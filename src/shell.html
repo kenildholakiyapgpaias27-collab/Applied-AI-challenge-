@@ -560,6 +560,49 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
 .fcheck.warn{border-left:3px solid var(--warn);background:rgba(220,140,40,.08)}
 .fcheck.warn .qactions{margin-top:10px}
 .citysearch{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:14px;max-width:560px}
+/* resume card */
+.resume{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;align-items:start;margin:0 0 16px;padding:18px 20px;border-radius:20px;background:var(--surface);border:1.5px solid var(--accent);box-shadow:0 18px 40px -30px var(--accent)}
+.resume[hidden]{display:none}
+.rs-ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+.rs-tx{font-size:15px;line-height:1.55}.rs-tx b{color:var(--accent)}
+.rs-due{display:block;margin-top:4px;font-weight:700;color:var(--ink)}
+.rs-bar{height:6px;border-radius:99px;background:var(--accent-soft);margin-top:10px;overflow:hidden;max-width:360px}.rs-bar span{display:block;height:100%;background:var(--accent);border-radius:99px}
+.rs-act{grid-column:2;display:flex;flex-wrap:wrap;gap:8px}
+@media (max-width:520px){.resume{grid-template-columns:minmax(0,1fr)}.rs-act{grid-column:1}.rs-ic{display:none}}
+/* shelf step */
+.shelfopts{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))!important}
+@media (max-width:520px){.shelfopts{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}.shelfopts .opt{padding:12px!important;min-height:0!important}.shelfopts .opt b{font-size:14px}.shelfopts .opt span{font-size:12px}}
+.shelfadd{margin-top:18px;display:grid;gap:8px;max-width:620px}
+.shelfadd label{font-weight:600;font-size:14px}
+.shelfrow{display:flex;gap:8px}.shelfrow input{flex:1;min-width:0;font:inherit;font-size:16px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink)}
+.shelfchips{display:flex;flex-wrap:wrap;gap:6px}
+.schip{display:inline-flex;align-items:center;gap:6px;padding:6px 6px 6px 12px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:600}
+.schip button{border:0;background:var(--surface);color:var(--accent);width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:15px;line-height:1}
+/* kept product + shelf note */
+.pcard.keep{border-style:dashed;border-color:var(--accent);background:color-mix(in srgb,var(--accent-soft) 45%,var(--surface))}
+.pcard.keep .phead .when{display:none}
+.ownbadge{white-space:nowrap;margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--surface);border:1px solid var(--accent);padding:4px 8px;border-radius:99px}
+.total small{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.shelfnote{margin-top:16px;padding:16px 18px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
+.shelfnote h4{margin:0 0 10px;font:600 17px/1.2 var(--display,serif)}
+.shelfnote ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.shelfnote li{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.55}
+.shelfnote li svg{flex:0 0 18px;width:18px;height:18px;color:var(--ok,#1f6b45);margin-top:2px}
+.shelfnote li.tip svg{color:var(--accent)}.shelfnote li.warn svg{color:var(--warn)}
+.shelfnote b{color:var(--accent)}
+/* check-in */
+.cklist{display:grid;gap:12px}
+.ckrow{border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:0;background:var(--surface)}
+.ckrow legend{display:flex;flex-direction:column;padding:0 6px;font-size:15px}
+.ckrow legend .role{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.ckopts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.ckopt{position:relative}
+.ckopt input{position:absolute;opacity:0;inset:0}
+.ckopt span{display:inline-block;padding:8px 14px;border-radius:99px;border:1px solid var(--line);font-size:14px;font-weight:600;cursor:pointer;background:var(--surface)}
+.ckopt input:checked+span{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.ck-sting input:checked+span,.ck-break input:checked+span{background:var(--warn);border-color:var(--warn);color:#fff}
+.ckopt input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.cknotes{margin:6px 0 8px;padding-left:18px;display:grid;gap:4px}
 .citysearch input{font:inherit;font-weight:400;font-size:16px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink)}
 .progress{display:none}
 .journey{border-bottom:1px solid var(--line);padding:12px clamp(12px,3vw,28px);overflow-x:auto;scrollbar-width:thin}
@@ -612,6 +655,7 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
       <li><span class="fi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><span><span class="fw">Reveal</span>Get personalised advice</span></li>
       <li><span class="fi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l2 6.2L20 12l-6 2.8L12 21l-2-6.2L4 12l6-2.8z"/></svg></span><span><span class="fw">Radiate</span>Discover simple next steps</span></li>
     </ul>
+    <div class="resume" id="resume" hidden aria-live="polite"></div>
     <form class="wl-card" id="nameForm">
       <label for="nameInput">Your first name <span class="req" aria-hidden="true">*</span></label>
       <div class="wl-row">

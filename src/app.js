@@ -116,7 +116,8 @@ function actives(p){const src=(p.a||"")+" || "+(p.i||"");const out=[];for(const[
 /* ---------- state ---------- */
 let PROB=null,SUB=null,PREF={boost:[]},FLOW=[],DONE=new Set(),stepNow=null,PL=null,turn=0;
 const thread=$("thread");
-let STEPS=["problem","follow","extra","avoid","react","preg","location","skin","tone","budget"];
+const DEFAULT_STEPS=["problem","follow","extra","avoid","react","preg","location","skin","tone","shelf","budget"];
+let STEPS=[...DEFAULT_STEPS];
 const FACE_SKIN=[["Shiny all over","Oily skin","oily"],["Shiny T-zone, normal cheeks","Combination skin","combination"],["Tight, rough or flaky","Dry skin","dry"],["Comfortable","Normal skin","normal"]];
 const SK_CATS=["Cleanser","Serum","Moisturiser","Sunscreen","Exfoliant","Toner","Spot treatment","Eye cream"];
 const STEP={
@@ -149,6 +150,8 @@ const STEP={
     apply:v=>{P.skin=v;P.skinConfirmed=true},show:()=>cap(P.skin)||"–"},
   tone:{title:"Your skin",side:"Skin tone",q:()=>({ask:"What's your skin tone?",help:"Tap **the closest shade**. Deeper skin marks more easily, so this changes **which ingredients and sunscreens** I pick.",tone:true}),
     show:()=>{if(!P.tone)return"Skipped";const src=P.toneSource||"";const m=/(\d) selfies/.exec(src);return`Tone ${P.tone} (${MONK_LABEL[P.tone]})${m?`, from ${m[1]} selfies`:/selfie/.test(src)?", from selfie":""}`}},
+  shelf:{title:"Your routine",side:"Already using",q:()=>({ask:"What are you already using on your face?",help:"I'll **build around what you have**, skip steps you've already covered, and make sure nothing new **clashes** with it.",shelf:true}),
+    apply:v=>{P.shelf=v},show:()=>{const it=shelfItems();return it.length?it.map(o=>o.short).join(", "):"Nothing yet"}},
   budget:{title:"Budget",side:"Budget",q:()=>({ask:"What's your budget per product?",help:"I'll keep **all three products** under this price.",
       opts:[{label:"Under ₹400",sub:"Most affordable",value:400},{label:"Under ₹700",sub:"Good mid-range choice",value:700},{label:"Under ₹1,200",sub:"Wider choice",value:1200},{label:"No limit",sub:"The best match regardless of price",value:null}]}),
     apply:v=>{P.budget=v},show:()=>P.budget?`Under ${rupee(P.budget)}`:"No limit"},
@@ -248,7 +251,7 @@ const EMPATHY={
 let OPEN_SELFIE=false;
 function showWelcome(){
   const d=dayPart();$("greetText").textContent=d.hello;$("greetIc").innerHTML=d.ic;$("greetSub").textContent=d.line;
-  $("welcome").hidden=false;$("advisor").hidden=true;$("nameInput").value=NAME||"";$("nameGo").disabled=!cleanName(NAME||"");
+  $("welcome").hidden=false;$("advisor").hidden=true;renderResume();$("nameInput").value=NAME||"";$("nameGo").disabled=!cleanName(NAME||"");
   requestAnimationFrame(()=>$("nameInput").focus({preventScroll:true}));
 }
 function askName(){showWelcome()}
@@ -260,7 +263,7 @@ function setName(n,startKey){
   const d=dayPart();
   botSay(n?`<p>${d.hello.replace("!","")}, <b>${esc(n)}</b>! Lovely to meet you. Tell me what's bothering your skin, and I'll put together <b>three products that work together</b>, then explain exactly why I chose each one.</p><p class="small muted">It takes about two minutes, and every pick is checked against what you tell me.</p>`
           :`<p>${d.hello} No problem at all. ${startKey==="tone"?"Let's start with your skin tone, then I'll ask what's bothering your skin":startKey==="skin"?"Let's start with your skin type, then I'll ask what's bothering your skin":"Tell me what's bothering your skin"}, and I'll put together <b>three products that work together</b>, then explain exactly why I chose each one.</p><p class="small muted">It takes about two minutes, and every pick is checked against what you tell me.</p>`);
-  updateTitle();next();
+  updateTitle();next();saveState();
 }
 function updateTitle(){
   $("advTitle").textContent=PROB?`${NAME?NAME+"'s":"Your"} plan for ${PROBLEMS[PROB].label.toLowerCase()}`:NAME?`Hi ${NAME}, let's find your three`:"Three products for your skin";
@@ -294,7 +297,7 @@ function ask(key){
   lockAll();const s=STEP[key],Q=s.q();const idx=STEPS.indexOf(key)+1;
   const box=document.createElement("div");box.className="q";box.dataset.step=key;
   box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">Q${idx} of ${STEPS.length} · ${esc(s.title)}${STEPS.length-idx===0?" · last one":""}</span><h3 class="qtitle">${esc(Q.ask)}</h3>${Q.help?`<p class="qhelp">${fmt(Q.help)}</p>`:""}</div></div>`;
-  box.appendChild(Q.location?locationWidget():Q.tone?toneWidget():optionsWidget(key,Q));
+  box.appendChild(Q.location?locationWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():optionsWidget(key,Q));
   const nav=document.createElement("div");nav.className="qnav";nav.innerHTML=`<button type="button" class="btn backcta">${SVG('<path d="M15 6l-6 6 6 6"/>')}Back</button><span class="qnav-step">Question ${idx} of ${STEPS.length}</span>`;
   nav.querySelector("button").onclick=goBack;box.appendChild(nav);
   newBlock(key).appendChild(box);progress();requestAnimationFrame(()=>thread.scrollTo({top:0}));
@@ -316,9 +319,9 @@ function optionsWidget(key,Q){
   return w;
 }
 function answer(key,val,label){
-  turn++;if(key!=="tone"||val!==undefined)STEP[key].apply&&STEP[key].apply(val);DONE.add(key);lockAll();
+  turn++;if(key==="follow")FOLLOW_IDX=val;if(key!=="tone"||val!==undefined)STEP[key].apply&&STEP[key].apply(val);DONE.add(key);lockAll();
   const note=afterNote(key);if(note)botSay(note[0],note[1]||"");
-  next();
+  next();saveState();
 }
 function afterNote(key){
   if(key==="problem")return[`<p>${nm("","," )} ${NAME?EMPATHY[PROB][0].toLowerCase()+EMPATHY[PROB].slice(1):EMPATHY[PROB]}</p><p class="small muted">A few quick questions so I can choose <b>the right three</b> for you.</p>`];
@@ -606,27 +609,39 @@ function slotScore(p,slot){
   if(p.aha&&p.c==="Cleanser"&&!["dullness","tanning"].includes(PROB))s-=2;
   if(!exSlot&&HARSH_NAME.test(p.n)&&["dehydration","redness","fine lines","dark circles"].includes(PROB))s-=4;
   if((PROB==="redness"||P.sensitive)&&(p.aha||p.ret||(p.bha&&p.leaveOn)))s-=6;
+  if(SHELF_ACTS.size&&actives(p).some(a=>SHELF_ACTS.has(a.name.toLowerCase())))s-=5;   // don't double up on what they already use
   return s;
 }
 function rankSlot(slot,ctx){
-  return CAT.filter(p=>slot.cats.includes(p.c)&&check(p).ok&&!p.sp&&!ctx.used.has(p.id)&&!clash(p,ctx))
+  return CAT.filter(p=>slot.cats.includes(p.c)&&check(p).ok&&!p.sp&&!ctx.used.has(p.id)&&!clash(p,ctx)&&!(P.excluded||[]).includes(p.id)&&!(P.shelf||[]).some(x=>x.id===p.id))
     .map(p=>({p,s:slotScore(p,slot)})).sort((a,b)=>b.s-a.s||(a.p.p||0)-(b.p.p||0)||a.p.id.localeCompare(b.p.id)).map(x=>x.p);
 }
-function clash(p,ctx){return (ctx.ret&&(p.aha||p.bha||p.ret)&&p.c!=="Sunscreen")||((ctx.acid)&&p.ret)}
-function buildPlan(){
+function clash(p,ctx){return (ctx.ret&&(p.aha||p.bha||p.ret)&&p.c!=="Sunscreen")||((ctx.acid)&&p.ret)||(ctx.bp&&p.ret)}
+function buildPlan(silent){
   lockAll();progress();
   const def=PROBLEMS[PROB].plan;
   const order=[...def.keys()].sort((a,b)=>(def[b].primary?1:0)-(def[a].primary?1:0));
-  const ctx={used:new Set(),ret:false,acid:false};const slots=[];
-  for(const i of order){const slot=def[i];const list=rankSlot(slot,ctx);const p=list[0]||null;
-    slots[i]={slot,list,idx:0,p};if(p){ctx.used.add(p.id);if(p.ret)ctx.ret=true;if((p.aha||p.bha)&&p.c!=="Cleanser")ctx.acid=true}}
-  PL={slots,ctx};renderPlan();
+  const shelf=shelfItems(),safe=shelf.filter(o=>o.safe);SHELF_ACTS=new Set(safe.flatMap(o=>o.acts));
+  const ctx={used:new Set(),ret:safe.some(o=>o.ret),acid:safe.some(o=>o.acid),bp:safe.some(o=>o.bp)};const slots=[];const kept=new Set();
+  const want=RESTORE_IDS;RESTORE_IDS=null;
+  for(const i of order){const slot=def[i];const list=rankSlot(slot,ctx);
+    const own=safe.find(o=>!kept.has(o.key)&&slot.cats.includes(o.cat)&&(!slot.primary||o.con.includes(PROB)));
+    if(own&&(!want||want[i]==="keep")){kept.add(own.key);slots[i]={slot,list,idx:0,p:null,keep:own};continue}
+    let p=list[0]||null;if(want&&want[i]&&want[i]!=="keep"){const j=list.findIndex(x=>x.id===want[i]);if(j>=0)p=list[j]}
+    slots[i]={slot,list,idx:Math.max(0,list.indexOf(p)),p};if(p){ctx.used.add(p.id);if(p.ret)ctx.ret=true;if((p.aha||p.bha)&&p.c!=="Cleanser")ctx.acid=true}}
+  PL={slots,ctx,shelf};
+  if(!META.planAt||META.planProb!==PROB){META.planAt=Date.now();META.planProb=PROB;META.checks=[]}
+  if(!silent)renderPlan();
 }
 function removedFor(cats){const c={};let n=0;for(const p of CAT)if(cats.includes(p.c)){n++;for(const[b]of check(p).blocks)c[b]=(c[b]||0)+1}return{c,n}}
 const SAY_BLOCK={B1:"contain fragrance or essential oils",B2:"contain essential oils",B3:"contain an ingredient you've reacted to",B4:"have no ingredient list, so I couldn't check them",A2:"contain retinoids or strong salicylic acid",B6:"don't suit your skin type or could clog pores",B7:"contain drying alcohol, which is harsh on dry skin in this weather",C5:"are over your budget"};
 
 function cardHTML(i,s){
   const p=s.p,role=s.slot.role;
+  if(s.keep)return`<article class="pcard keep"><div class="phead"><span class="stepn">${i+1}</span><div class="role">${esc(role)} <span class="when">· ${esc(s.slot.when)}</span></div><span class="ownbadge">Already yours</span></div>
+    <div class="ptop"><div class="thumb">${IC[CAT_IC[s.keep.cat]||"dropper"]}</div><div style="min-width:0"><div class="brand">Keep using</div><div class="nm">${esc(s.keep.p?s.keep.p.n:cap(s.keep.name.replace(/^your /,"Your ")))}</div><div class="cat">${esc(s.keep.cat)}</div></div></div>
+    <p class="why1">${s.keep.p?"It's already on your shelf and it passes all your checks":"You already have this step covered"}, so there's <b>no need to buy another</b>.${s.list[0]?` That saves you about <b>${rupee(s.list[0].p)}</b>.`:""}</p>
+    <div class="pfoot"><span class="small muted">From your routine</span>${s.list.length?`<button type="button" class="btn ghost newone" data-i="${i}">Suggest a new one</button>`:""}</div></article>`;
   if(!p)return`<article class="pcard empty"><span class="stepn">${i+1}</span><div><div class="role">${esc(role)}</div><p class="muted small">No product in our range passes all your checks for this step${P.budget?" within budget":""}. I've left it out rather than bend a safety rule.</p></div></article>`;
   const act=actives(p);
   return`<article class="pcard">
@@ -660,13 +675,13 @@ function spReason(p){
 function renderPlan(){
   thread.querySelectorAll(".plan").forEach(r=>r.classList.add("old"));
   const box=document.createElement("div");box.className="plan";
-  const total=PL.slots.reduce((t,s)=>t+(s.p?.p||0),0);
+  const total=PL.slots.reduce((t,s)=>t+(s.p?.p||0),0);const keptN=PL.slots.filter(s=>s.keep).length;
   const prob=PROBLEMS[PROB];
   const applied=[P.avoidFrag&&"Fragrance-free",P.avoidEO&&"No essential oils",P.noClog&&"Won't clog pores",P.reactions.length&&"No "+P.reactions.join(", "),P.pregnancy!==false&&"Pregnancy-safe",P.skin&&cap(P.skin)+" skin",P.city&&`${P.city} climate`,P.budget&&`Each under ${rupee(P.budget)}`].filter(Boolean);
   let h=`<div class="phero"><div class="eyebrow">${NAME?`${esc(NAME)}, your plan is ready`:"Your plan is ready"}</div><h3>Three steps for ${esc(prob.label.toLowerCase())}</h3><p class="lead">${SUB?`Made for what you described: ${esc(SUB.toLowerCase())}. `:""}Each product has one clear job, and together they take just a few minutes a day.</p>
     <div class="applied">${applied.map(x=>`<span class="chip ok">✓ ${esc(x)}</span>`).join("")}</div></div>
     <div class="pcards">${PL.slots.map((s,i)=>cardHTML(i,s)).join("")}</div>
-    <div class="total"><span>Total for all three</span><b>${rupee(total)}</b></div>`;
+    <div class="total"><span>${keptN?`Total for ${3-keptN===1?"the new product":`the ${3-keptN} new products`}`:"Total for all three"}${keptN?`<small>You're keeping ${keptN} from your routine</small>`:""}</span><b>${rupee(total)}</b></div>${shelfPlanNote()}`;
   // sponsored alternative (same checks, labelled, separate)
   const sp=CAT.filter(p=>p.sp&&PL.slots.some(s=>s.slot.cats.includes(p.c))&&check(p).ok&&!PL.ctx.used.has(p.id)&&!clash(p,PL.ctx))
     .map(p=>({p,s:slotScore(p,PL.slots.find(s=>s.slot.cats.includes(p.c)).slot)})).sort((a,b)=>b.s-a.s);
@@ -679,10 +694,29 @@ function renderPlan(){
   const nx=document.createElement("div");nx.className="next";
   const add=(label,fn,primary)=>{const b=document.createElement("button");b.type="button";b.className="btn"+(primary?" primary":"");b.textContent=label;b.onclick=fn;nx.appendChild(b)};
   add("Plan for another concern",()=>{meSay("Plan for another concern");DONE.delete("problem");DONE.delete("follow");DONE.delete("extra");PROB=null;botSay(`Of course${nm(", ")}. I'll keep your safety, location and skin answers, so this one is quicker.`);next()},true);
+  add("How's it going? Check in",()=>openCheckin());
   add("Check a product",()=>{$("askInput").focus();$("askInput").placeholder="Type a product name or code, e.g. P1025"});
   box.appendChild(nx);
   box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));
-  newBlock("plan").appendChild(box);stepNow=null;renderSide();requestAnimationFrame(()=>box.scrollIntoView({block:"start",behavior:"smooth"}));
+  box.querySelectorAll(".newone").forEach(b=>b.onclick=()=>{const s=PL.slots[+b.dataset.i];const p=s.list.find(x=>!PL.ctx.used.has(x.id)&&!clash(x,PL.ctx));if(!p)return;s.keep=null;s.p=p;s.idx=s.list.indexOf(p);PL.ctx.used.add(p.id);renderPlan();saveState()});
+  newBlock("plan").appendChild(box);stepNow=null;renderSide();saveState();requestAnimationFrame(()=>box.scrollIntoView({block:"start",behavior:"smooth"}));
+}
+function shelfPlanNote(){
+  const sh=PL.shelf||[];if(!sh.length)return"";
+  const warn=sh.filter(o=>!o.safe),combos=[];const safe=sh.filter(o=>o.safe);
+  const all=[...safe,...PL.slots.filter(s=>s.p).map(s=>({ret:!!s.p.ret,acid:!!((s.p.aha||s.p.bha)&&s.p.c!=="Cleanser"),bp:/benzoyl/i.test(hay(s.p)),short:s.p.n}))];
+  if(all.some(o=>o.ret)&&all.some(o=>o.acid))combos.push("Use your <b>retinoid and exfoliating acid on different nights</b>, never together.");
+  if(all.some(o=>o.ret)&&all.some(o=>o.bp))combos.push("Use <b>benzoyl peroxide in the morning</b> and your <b>retinoid at night</b>, as they can cancel each other out.");
+  const picked=new Set(PL.slots.filter(s=>s.p).flatMap(s=>actives(s.p).map(a=>a.name.toLowerCase())));
+  const avoided=uniq(safe.flatMap(o=>o.acts)).filter(a=>!picked.has(a)),doubled=uniq(safe.flatMap(o=>o.acts)).filter(a=>picked.has(a));
+  return`<div class="shelfnote"><h4>Works with what you already use</h4><ul>
+    ${PL.slots.filter(s=>s.keep).map(s=>`<li>${SVG('<path d="M5 12l4 4 10-10"/>')}<span>Keeping <b>${esc(s.keep.p?s.keep.p.n:s.keep.name)}</b> for your <b>${esc(s.slot.role.toLowerCase())}</b> step.</span></li>`).join("")}
+    ${avoided.length?`<li>${SVG('<path d="M5 12l4 4 10-10"/>')}<span>No new product doubles up on <b>${esc(avoided.map(a=>a.replace(/ \(.*\)/,"")).join(", "))}</b>, since you already use ${avoided.length>1?"them":"it"}.</span></li>`:""}
+    ${doubled.length?`<li class="tip">${SVG('<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>')}<span>Your new picks also contain <b>${esc(doubled.map(a=>a.replace(/ \(.*\)/,"")).join(", "))}</b>, which you already use. That's gentle and fine to layer, but you don't need extra.</span></li>`:""}
+    ${PL.ctx.ret||PL.ctx.acid||PL.ctx.bp?`<li>${SVG('<path d="M5 12l4 4 10-10"/>')}<span>Nothing new <b>clashes</b> with your ${esc(safe.filter(o=>o.ret||o.acid||o.bp).map(o=>o.short.toLowerCase()).join(" or ")||"routine")}.</span></li>`:""}
+    ${combos.map(c=>`<li class="tip">${SVG('<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>')}<span>${c}</span></li>`).join("")}
+    ${warn.map(o=>`<li class="warn">${SVG('<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/>')}<span>Consider pausing <b>${esc(o.p?o.p.n:o.name)}</b>: ${esc(o.warn.join("; "))}.</span></li>`).join("")}
+  </ul></div>`;
 }
 function swap(i){
   const s=PL.slots[i];PL.ctx.used.delete(s.p.id);
@@ -750,7 +784,7 @@ function explainHTML(){
 }
 
 /* ---------- side panel ---------- */
-const SHORT={problem:"Concern",follow:"Details",extra:"Also",avoid:"Avoid",react:"Reactions",preg:"Pregnancy",location:"Location",skin:"Skin type",tone:"Skin tone",budget:"Budget"};
+const SHORT={shelf:"Routine",problem:"Concern",follow:"Details",extra:"Also",avoid:"Avoid",react:"Reactions",preg:"Pregnancy",location:"Location",skin:"Skin type",tone:"Skin tone",budget:"Budget"};
 function renderSide(){
   const j=$("journey");if(!j)return;j.innerHTML="";
   const ol=document.createElement("ol");
@@ -764,7 +798,7 @@ function renderSide(){
   const cur=j.querySelector(".now");if(cur)requestAnimationFrame(()=>cur.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}));
   progress();
 }
-function editStep(k){DONE.delete(k);if(k==="problem"){DONE.delete("follow");DONE.delete("extra")}lockAll();botSay(`Sure, let's change your ${esc(STEP[k].side.toLowerCase())}.`);next()}
+function editStep(k){DONE.delete(k);if(k==="problem"){DONE.delete("follow");DONE.delete("extra")}lockAll();botSay(`Sure, let's change your ${esc(STEP[k].side.toLowerCase())}.`);next();saveState()}
 function toggleSide(force){const sd=$("side");if(!sd)return;const open=force??!sd.classList.contains("open");sd.classList.toggle("open",open);$("answersBtn")?.setAttribute("aria-expanded",String(open))}
 if($("answersBtn"))$("answersBtn").onclick=()=>{if($("advisor").hidden){$("nameInput").focus();return}if(innerWidth<=900)toggleSide();else{const p=$("side").querySelector(".panel");p.classList.remove("side-flash");void p.offsetWidth;p.classList.add("side-flash");p.scrollIntoView({block:"nearest"})}};
 document.addEventListener("keydown",e=>{if(e.key==="Escape")toggleSide(false)});
@@ -772,14 +806,172 @@ $("backBtn").onclick=goBack;
 function goBack(){
   const blocks=[...thread.querySelectorAll(".stepblock")];const cur=blocks[blocks.length-1];
   const prev=[...STEPS].reverse().find(k=>DONE.has(k));
-  if(!prev){thread.innerHTML="";CUR_BLOCK=null;nameAsked=false;stepNow=null;showWelcome();return}
+  if(!prev){thread.innerHTML="";CUR_BLOCK=null;nameAsked=false;stepNow=null;saveState();showWelcome();return}
   if(cur&&cur.dataset.step!==prev)cur.remove();
   const pb=[...thread.querySelectorAll(`.stepblock[data-step="${prev}"]`)].pop();if(pb)pb.remove();
   DONE.delete(prev);if(prev==="problem"){DONE.delete("follow");DONE.delete("extra");PROB=null}
-  CUR_BLOCK=null;next();
+  CUR_BLOCK=null;next();saveState();
 }
-if($("newBtn"))$("newBtn").onclick=()=>{if($("advisor").hidden){$("nameInput").focus();return}meSay("Start over");STEPS=["problem","follow","extra","avoid","react","preg","location","skin","tone","budget"];P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;lockAll();botSay(NAME?`Fresh start, ${esc(NAME)}. Let's go again.`:"Fresh start. Let's go again.");next();return;botSay("Okay, starting fresh.");next()};
-$("deleteBtn").onclick=()=>{P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;NAME=null;nameAsked=false;STEPS=["problem","follow","extra","avoid","react","preg","location","skin","tone","budget"];lockAll();toggleSide(false);botSay("Done. I've deleted all your answers.");next()};
+if($("newBtn"))$("newBtn").onclick=()=>{if($("advisor").hidden){$("nameInput").focus();return}meSay("Start over");STEPS=[...DEFAULT_STEPS];P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;lockAll();botSay(NAME?`Fresh start, ${esc(NAME)}. Let's go again.`:"Fresh start. Let's go again.");next();return;botSay("Okay, starting fresh.");next()};
+$("deleteBtn").onclick=()=>{clearState();META={planAt:null,planProb:null,checks:[]};FOLLOW_IDX=null;P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;NAME=null;nameAsked=false;STEPS=[...DEFAULT_STEPS];lockAll();toggleSide(false);botSay("Done. I've deleted all your answers.");next()};
+
+/* =====================================================================
+   1) SAVE & RESUME — answers are saved on this device after every step
+   ===================================================================== */
+const STORE_KEY="aaina.advisor.v1";
+let FOLLOW_IDX=null,RESTORE_IDS=null;
+let META={planAt:null,planProb:null,checks:[]};
+function store(){try{return window.localStorage}catch{return null}}
+function saveState(){
+  const ls=store();if(!ls)return;
+  try{ls.setItem(STORE_KEY,JSON.stringify({v:1,NAME,PROB,SUB,FOLLOW_IDX,P,DONE:[...DONE],STEPS,
+    planIds:PL&&!stepNow?PL.slots.map(s=>s.keep?"keep":s.p?.id||null):null,META,updated:Date.now()}))}catch{}
+}
+function loadState(){const ls=store();if(!ls)return null;try{const d=JSON.parse(ls.getItem(STORE_KEY)||"null");return d&&d.v===1&&d.NAME!==undefined?d:null}catch{return null}}
+function clearState(){const ls=store();if(ls)try{ls.removeItem(STORE_KEY)}catch{}}
+const DAY=86400000;
+const daysSince=t=>t?Math.floor((Date.now()-t)/DAY):0;
+const agoText=t=>{const d=daysSince(t);return d<=0?"today":d===1?"yesterday":`${d} days ago`};
+function dueCheck(meta){
+  if(!meta||!meta.planAt)return null;const d=daysSince(meta.planAt),done=new Set((meta.checks||[]).map(c=>c.stage));
+  if(d>=14&&!done.has("week2"))return"week2";if(d>=3&&!done.has("day3"))return"day3";return null;
+}
+function restoreState(d){
+  NAME=d.NAME;nameAsked=true;PROB=d.PROB;SUB=d.SUB;FOLLOW_IDX=d.FOLLOW_IDX;PREF={boost:[]};
+  if(PROB&&FOLLOW_IDX!=null&&PROBLEMS[PROB]?.follow.opts[FOLLOW_IDX])STEP.follow.apply(FOLLOW_IDX);
+  P=Object.assign(emptyProfile(),d.P||{});DONE=new Set(d.DONE||[]);
+  STEPS=Array.isArray(d.STEPS)&&DEFAULT_STEPS.every(k=>d.STEPS.includes(k))?d.STEPS:[...DEFAULT_STEPS];
+  META=Object.assign({planAt:null,planProb:null,checks:[]},d.META||{});RESTORE_IDS=d.planIds||null;
+}
+function renderResume(){
+  const box=$("resume");if(!box)return;const d=loadState();
+  if(!d||!d.NAME||!(d.DONE||[]).length){box.hidden=true;box.innerHTML="";return}
+  const steps=Array.isArray(d.STEPS)?d.STEPS:DEFAULT_STEPS,done=steps.filter(k=>(d.DONE||[]).includes(k)).length,finished=done>=steps.length&&d.PROB;
+  const nextIdx=steps.findIndex(k=>!(d.DONE||[]).includes(k))+1;const prob=d.PROB&&PROBLEMS[d.PROB]?PROBLEMS[d.PROB].label.toLowerCase():null;
+  const due=finished?dueCheck(d.META):null;
+  box.hidden=false;
+  box.innerHTML=finished
+    ?`<div class="rs-ic">${SVG('<path d="M5 12l4 4 10-10"/>')}</div><div class="rs-tx"><b>Welcome back, ${esc(d.NAME)}.</b> Your plan for <b>${esc(prob)}</b> is saved${d.META?.planAt?` (made ${agoText(d.META.planAt)})`:""}.${due?`<span class="rs-due">${due==="week2"?"Two weeks in! Time for a quick check-in.":"It's been 3 days. How are your products going?"}</span>`:""}</div>
+       <div class="rs-act">${due?`<button type="button" class="btn primary" data-rs="check">Check in now</button><button type="button" class="btn" data-rs="plan">View my plan</button>`:`<button type="button" class="btn primary" data-rs="plan">View my plan</button><button type="button" class="btn" data-rs="check">Report how it's going</button>`}<button type="button" class="btn ghost" data-rs="fresh">Start fresh</button></div>`
+    :`<div class="rs-ic">${SVG('<path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/>')}</div><div class="rs-tx"><b>Welcome back, ${esc(d.NAME)}.</b> You were on <b>question ${nextIdx} of ${steps.length}</b>${prob?` of your plan for ${esc(prob)}`:""}. Your answers are saved.<div class="rs-bar" aria-hidden="true"><span style="width:${Math.round(100*done/steps.length)}%"></span></div></div>
+       <div class="rs-act"><button type="button" class="btn primary" data-rs="go">Continue where I left off</button><button type="button" class="btn ghost" data-rs="fresh">Start fresh</button></div>`;
+  box.querySelectorAll("[data-rs]").forEach(b=>b.onclick=()=>{const a=b.dataset.rs;
+    if(a==="fresh"){clearState();resetAll();renderResume();$("nameInput").focus();return}
+    resumeFrom(d,a==="check")});
+}
+function resumeFrom(d,thenCheck){
+  restoreState(d);
+  $("welcome").hidden=true;$("advisor").hidden=false;thread.innerHTML="";CUR_BLOCK=null;
+  const left=STEPS.filter(k=>!DONE.has(k)).length;
+  botSay(left?`<p>Welcome back, <b>${esc(NAME)}</b>! I've kept all your answers, so let's pick up at <b>question ${STEPS.length-left+1}</b>.</p>`:`<p>Welcome back, <b>${esc(NAME)}</b>! Here's the plan we made${META.planAt?` ${agoText(META.planAt)}`:""}.</p>`);
+  updateTitle();next();
+  if(thenCheck&&PL)openCheckin();
+}
+function resetAll(){P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;FOLLOW_IDX=null;PL=null;RESTORE_IDS=null;META={planAt:null,planProb:null,checks:[]};NAME=null;nameAsked=false;STEPS=[...DEFAULT_STEPS];thread.innerHTML="";CUR_BLOCK=null}
+
+/* =====================================================================
+   5) WHAT YOU ALREADY USE — build around the shelf and avoid clashes
+   ===================================================================== */
+const SHELF_TYPES=[
+  {k:"cleanser",label:"Face wash",sub:"Any cleanser",cat:"Cleanser",con:[]},
+  {k:"moist",label:"Moisturiser",sub:"Cream, gel or lotion",cat:"Moisturiser",con:["dehydration"]},
+  {k:"spf",label:"Sunscreen",sub:"SPF 30 or higher",cat:"Sunscreen",con:["tanning","pigmentation"]},
+  {k:"vitc",label:"Vitamin C serum",sub:"Brightening",cat:"Serum",act:["vitamin c"],con:["pigmentation","dullness","tanning"]},
+  {k:"nia",label:"Niacinamide serum",sub:"Oil and marks",cat:"Serum",act:["niacinamide"],con:["acne","pigmentation","oiliness"]},
+  {k:"ha",label:"Hyaluronic acid serum",sub:"Hydrating",cat:"Serum",act:["hyaluronic acid"],con:["dehydration"]},
+  {k:"ret",label:"Retinol or retinoid",sub:"Including adapalene",cat:"Serum",ret:true,act:["retinol"],con:["fine lines","acne"]},
+  {k:"aha",label:"Glycolic or AHA exfoliant",sub:"Toner, peel or serum",cat:"Exfoliant",acid:true,act:["glycolic acid (aha)"],con:["dullness","pigmentation"]},
+  {k:"bha",label:"Salicylic acid (BHA)",sub:"Leave-on toner or serum",cat:"Exfoliant",acid:true,act:["salicylic acid (bha)"],con:["acne","oiliness"]},
+  {k:"bp",label:"Benzoyl peroxide",sub:"Spot gel",cat:"Spot treatment",bp:true,act:["benzoyl peroxide"],con:["acne"]},
+];
+const ACT_TO_REACTION={"vitamin c":"vitamin c","niacinamide":"niacinamide","retinol":"retinoids","glycolic acid (aha)":"glycolic acid","salicylic acid (bha)":"salicylic acid","lactic acid":"lactic acid","azelaic acid":"azelaic acid"};
+function shelfItems(){
+  return (P.shelf||[]).map(x=>{
+    if(x.id&&BY_ID[x.id]){const p=BY_ID[x.id];return{key:x.id,name:p.n,short:p.n,cat:p.c,p,ret:!!p.ret,acid:!!((p.aha||p.bha)&&p.c!=="Cleanser"),bp:/benzoyl/i.test(hay(p)),acts:actives(p).map(a=>a.name.toLowerCase()),con:p.con||[]}}
+    const t=SHELF_TYPES.find(t=>t.k===x.type);if(!t)return null;
+    return{key:t.k,name:`your ${t.label.toLowerCase()}`,short:t.label,cat:t.cat,ret:!!t.ret,acid:!!t.acid,bp:!!t.bp,acts:t.act||[],con:t.con||[]};
+  }).filter(Boolean).map(o=>{o.warn=shelfWarnings(o);o.safe=!o.warn.length;return o});
+}
+function shelfWarnings(o){
+  const w=[];
+  if(o.p){const r=check(o.p);if(!r.ok)w.push(...r.blocks.map(b=>b[1]))}
+  else{
+    if(o.ret&&P.pregnancy!==false)w.push("retinoids aren't recommended while you're being pregnancy-cautious");
+    for(const a of o.acts){const r=ACT_TO_REACTION[a];if(r&&P.reactions.includes(r))w.push(`it contains ${r}, which you've reacted to`)}
+  }
+  return uniq(w);
+}
+function shelfWidget(){
+  const w=document.createElement("div");w.className="qbody shelf";
+  const picked=new Set((P.shelf||[]).filter(x=>x.type).map(x=>x.type));const own=(P.shelf||[]).filter(x=>x.id).map(x=>x.id);
+  w.innerHTML=`<div class="opts shelfopts"></div>
+    <div class="shelfadd"><label for="shelfFind">Or add a product by name</label>
+      <div class="shelfrow"><input id="shelfFind" type="search" list="shelfList" autocomplete="off" placeholder="Start typing, e.g. Niacinamide or P1025"><button type="button" class="btn" data-add>Add</button></div>
+      <datalist id="shelfList">${CAT.map(p=>`<option value="${esc(p.n)}"></option>`).join("")}</datalist>
+      <div class="shelfchips" data-chips></div><p class="small muted" data-msg hidden></p></div>
+    <div class="qactions"><button type="button" class="btn primary" data-go>Continue</button><button type="button" class="btn" data-none>Nothing yet</button></div>`;
+  const grid=w.querySelector(".shelfopts"),chips=w.querySelector("[data-chips]"),find=w.querySelector("#shelfFind"),msg=w.querySelector("[data-msg]"),go=w.querySelector("[data-go]");
+  const count=()=>picked.size+own.length;const upd=()=>{go.textContent=count()?`Continue with ${count()}`:"Continue"};
+  for(const t of SHELF_TYPES){const b=document.createElement("button");b.type="button";b.className="opt";b.setAttribute("aria-pressed",String(picked.has(t.k)));
+    b.innerHTML=`<b>${esc(t.label)}</b><span>${esc(t.sub)}</span>`;b.onclick=()=>{picked.has(t.k)?picked.delete(t.k):picked.add(t.k);b.setAttribute("aria-pressed",String(picked.has(t.k)));upd()};grid.appendChild(b)}
+  const drawChips=()=>{chips.innerHTML=own.map(id=>`<span class="schip">${esc(BY_ID[id].n)}<button type="button" aria-label="Remove ${esc(BY_ID[id].n)}" data-rm="${id}">×</button></span>`).join("");
+    chips.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{own.splice(own.indexOf(b.dataset.rm),1);drawChips();upd()})};
+  const add=()=>{const v=find.value.trim();if(!v)return;const p=CAT.find(p=>p.n.toLowerCase()===v.toLowerCase())||findProduct(v);
+    if(!p){msg.hidden=false;msg.textContent="I couldn't find that one in our range. Pick the closest type above instead.";return}
+    msg.hidden=true;if(!own.includes(p.id))own.push(p.id);find.value="";drawChips();upd()};
+  w.querySelector("[data-add]").onclick=add;find.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();add()}});
+  find.addEventListener("input",()=>{if(CAT.some(p=>p.n.toLowerCase()===find.value.trim().toLowerCase()))add()});
+  go.onclick=()=>{const v=[...[...picked].map(type=>({type})),...own.map(id=>({id}))];answer("shelf",v,v.length?`${v.length} products`:"Nothing yet")};
+  w.querySelector("[data-none]").onclick=()=>answer("shelf",[],"Nothing yet");
+  drawChips();upd();return w;
+}
+let SHELF_ACTS=new Set();
+
+/* =====================================================================
+   4) CHECK-INS — day 3 and week 2; a bad reaction swaps the product
+   ===================================================================== */
+const CHECK_OPTS=[["good","Going well"],["notyet","Not started yet"],["sting","Stinging or redness"],["break","New breakouts"],["stop","Stopped using it"]];
+function openCheckin(){
+  if(!PL)return;const stage=dueCheck(META)||"anytime";
+  const items=PL.slots.map((s,i)=>({s,i})).filter(x=>x.s.p);
+  const box=document.createElement("div");box.className="q checkin";
+  box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">${stage==="week2"?"Week 2 check-in":stage==="day3"?"Day 3 check-in":"Check-in"}</span><h3 class="qtitle">How are your products going${nm(", ")}?</h3><p class="qhelp">Be honest, it helps. If something <b>stings, turns red or breaks you out</b>, I'll <b>swap it</b> and remember to avoid that ingredient.</p></div></div>
+    <div class="qbody"><div class="cklist">${items.map(({s,i})=>`<fieldset class="ckrow" data-i="${i}"><legend><span class="role">${esc(s.slot.role)}</span><b>${esc(s.p.n)}</b></legend><div class="ckopts">${CHECK_OPTS.map(([v,l])=>`<label class="ckopt ck-${v}"><input type="radio" name="ck${i}" value="${v}"><span>${esc(l)}</span></label>`).join("")}</div></fieldset>`).join("")}</div>
+    <div class="qactions"><button type="button" class="btn primary" data-save disabled>Update my plan</button><button type="button" class="btn" data-cancel>Not now</button></div></div>`;
+  const save=box.querySelector("[data-save]");
+  box.addEventListener("change",()=>{save.disabled=!box.querySelector("input:checked")});
+  box.querySelector("[data-cancel]").onclick=()=>{box.closest(".stepblock").remove();CUR_BLOCK=null;renderPlan()};
+  save.onclick=()=>{const res={};box.querySelectorAll(".ckrow").forEach(f=>{const c=f.querySelector("input:checked");if(c)res[f.dataset.i]=c.value});applyCheckin(res,stage)};
+  const blk=newBlock("checkin");blk.appendChild(box);requestAnimationFrame(()=>thread.scrollTo({top:0}));
+}
+function applyCheckin(res,stage){
+  const notes=[],swapped=[],avoidNew=[];P.excluded=P.excluded||[];
+  for(const[i,v]of Object.entries(res)){const s=PL.slots[+i],p=s.p;if(!p)continue;
+    if(v==="sting"||v==="break"){
+      if(!P.excluded.includes(p.id))P.excluded.push(p.id);
+      const main=actives(p).map(a=>ACT_TO_REACTION[a.name.toLowerCase()]).find(Boolean);const r=main&&!P.reactions.includes(main)&&(isActive(p)||v==="sting")?[main]:[];
+      if(r.length){P.reactions=uniq([...P.reactions,...r]);avoidNew.push(...r)}
+      else if(v==="sting")P.sensitive=true;
+      if(v==="break"&&!isActive(p))P.noClog=true;
+      swapped.push({i:+i,old:p,why:v==="sting"?"stung or turned red":"brought on breakouts"});
+    }else if(v==="stop")notes.push(`<li><b>${esc(p.n)}</b>: no problem. If it was the texture or price, tap <b>Show another</b> on that step.</li>`);
+    else if(v==="good")notes.push(`<li><b>${esc(p.n)}</b>: great, keep going. Most people notice a difference after ${PROB==="dehydration"||PROB==="dullness"?"two to four":"six to eight"} weeks.</li>`);
+    else if(v==="notyet")notes.push(`<li><b>${esc(p.n)}</b>: start it when you're ready, one new product every few days.</li>`);
+  }
+  META.checks=[...(META.checks||[]),{stage,at:Date.now(),res:Object.fromEntries(Object.entries(res).map(([i,v])=>[PL.slots[+i].p?.id||i,v]))}];
+  const keepIds=PL.slots.map(s=>s.keep?"keep":s.p?.id||null);const beforeKeep=PL.slots.map(s=>s.keep);
+  for(const sw of swapped)keepIds[sw.i]=null;
+  RESTORE_IDS=keepIds;
+  thread.querySelector(".stepblock:last-child")?.remove();CUR_BLOCK=null;
+  let h="";
+  if(swapped.length){
+    buildPlan(true);
+    h+=`<p><b>Thanks for telling me${nm(", ")}.</b> I'm sorry it didn't suit you. Please stop using it and let your skin settle for a few days.</p><ul class="cknotes">${swapped.map(sw=>{const np=PL.slots[sw.i].p;return`<li><b>${esc(sw.old.n)}</b> ${esc(sw.why)}, so I've swapped it for <b>${np?esc(np.n):"nothing yet"}</b>${np?"":", because nothing else passes your checks"}.</li>`}).join("")}${PL.slots.map((s,i)=>beforeKeep[i]&&!s.keep&&!swapped.some(w=>w.i===i)?`<li>Because of that, please also <b>pause ${esc(beforeKeep[i].p?beforeKeep[i].p.n:beforeKeep[i].name)}</b>. I've added <b>${s.p?esc(s.p.n):"nothing yet"}</b> for your ${esc(s.slot.role.toLowerCase())} step instead.</li>`:"").join("")}${notes.join("")}</ul>${avoidNew.length?`<p>I'll also <b>avoid ${esc(uniq(avoidNew).join(", "))}</b> in every plan from now on.</p>`:""}<p class="small muted">If the redness, swelling or breakouts don't settle within a week, please see a dermatologist.</p>`;
+  }else{
+    h+=`<p><b>Thanks for checking in${nm(", ")}!</b></p><ul class="cknotes">${notes.join("")}</ul>`;
+  }
+  botSay(h);renderPlan();saveState();
+}
 
 /* ---------- typed messages: guardrails first ---------- */
 function findProduct(t){const id=/\bP1\d{3}\b/i.exec(t);if(id)return BY_ID[id[0].toUpperCase()];const low=t.toLowerCase();let best=null,bl=0;for(const p of CAT){const n=p.n.toLowerCase();if(low.includes(n)&&n.length>bl){best=p;bl=n.length}}return best}
@@ -817,5 +1009,6 @@ document.querySelectorAll(".skipbtn").forEach(b=>b.addEventListener("click",()=>
 $("learnBtn").addEventListener("click",()=>{const l=$("learnMore");l.hidden=!l.hidden;$("learnBtn").setAttribute("aria-expanded",String(!l.hidden))});
 /* ---------- boot ---------- */
 $("advIcon").innerHTML=`<span class="brandmark"></span>`;
+window.addEventListener("pagehide",()=>{if(nameAsked)saveState()});
 if(false)botSay(`<p>Hi, I'm Aaina's AI skin advisor. Tell me what's bothering your skin, and I'll recommend <b>three products that work together</b>, then explain exactly why I chose each one.</p><p class="small muted">About nine quick taps. I check every ingredient list against your answers and never suggest anything that clashes with them.</p>`);
 next();

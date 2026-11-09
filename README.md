@@ -8,7 +8,7 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
 ## What it does
 
 - **Personal start:** asks your first name and greets you by time of day.
-- **A 10-step journey (Q1–Q10):** a progress bar shows each step, one question at a time, with a Back button on every screen.
+- **An 11-step journey (Q1–Q11):** a progress bar shows each step, one question at a time, with a Back button on every screen.
   1. Main concern (illustrated cards)
   2. Concern-specific follow-up
   3. Anything else to help with
@@ -18,9 +18,13 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
   7. State and city (962 Indian cities, with search; climate shapes texture choices)
   8. Skin type
   9. Skin tone (Monk 1–10 scale, or a selfie)
-  10. Budget
+  10. Your current routine (product types or specific products you already own)
+  11. Budget
 - **Selfie skin-tone reader:** uses the camera or a photo upload after explicit consent. It reads skin tone and undertone from the face region, asks for a retake when lighting is poor, and offers 3 or 5 photos when the reading falls between two shades.
 - **Filter check:** warns when a photo looks filtered (airbrushed skin with a sharp background, black-and-white, boosted colour or colour casts) and asks for a retake without a filter.
+- **Save and resume:** answers are saved on the device after every step. Returning users see "Continue where I left off" (or "View my plan"), and **Delete my answers** clears everything.
+- **Builds around what you already use:** if you already own a product that covers a step and passes your checks, the plan keeps it instead of selling you another. New picks never clash with your routine (retinoid + acids, retinoid + benzoyl peroxide), avoid doubling up on actives you already use, and warn you about owned products that fail your safety answers.
+- **Day-3 and week-2 check-ins:** the welcome screen asks how each product is going once the time comes, and a check-in can be started any time from the plan. "Stinging or redness" or "New breakouts" removes that product, swaps in the next safe option, and adds its main active to your reactions so future plans avoid it.
 - **The plan:** three products that work together, a total price, two clearly labelled sponsored suggestions with relevance reasons, and a detailed "Why I recommended these" section.
 
 ## Guardrails enforced in code
@@ -32,7 +36,7 @@ Every product passes a hard filter before it can be ranked (`check()` in `src/en
 | Safety | No retinoids or strong salicylic acid when pregnancy-cautious; no ingredient you've reacted to; products with no ingredient list are excluded |
 | Preferences | Fragrance-free (including hidden fragrance such as linalool and limonene); no essential oils; no pore-clogging formulas; gentle picks for sensitive skin |
 | Fit | Skin-type match; no drying alcohol for dry skin in dry, cold weather; within budget |
-| Combinations | No retinoid together with acids; no two retinoids in one plan |
+| Combinations | No retinoid together with acids or benzoyl peroxide, including products you already own; no two retinoids in one plan |
 | Honesty | Sponsored items are labelled, pass the same checks and never affect ranking; no skin-lightening advice; no guarantees; red-flag symptoms and prescription questions go to a dermatologist; prompt-injection attempts are refused |
 
 ## Project structure
