@@ -560,6 +560,26 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
 .fcheck.warn{border-left:3px solid var(--warn);background:rgba(220,140,40,.08)}
 .fcheck.warn .qactions{margin-top:10px}
 .citysearch{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:14px;max-width:560px}
+/* season card (location step) */
+.season{display:grid;grid-template-columns:48px minmax(0,1fr);gap:14px;margin:16px 0 4px;padding:16px 18px;border-radius:18px;background:var(--accent-soft);max-width:620px;animation:qin .25s ease}
+.season-ic{width:48px;height:48px;border-radius:50%;background:var(--surface);color:var(--accent);display:grid;place-items:center}
+.season-ic svg{width:24px;height:24px}
+.season-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.season-eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.season-tx>b{font:600 20px/1.2 var(--display,serif);color:var(--ink)}
+.season-when{font-size:13px;color:var(--muted)}
+.season-tx p{margin:8px 0 0;font-size:14px;line-height:1.55}
+.season-next{color:var(--muted)}.season-next b{color:var(--accent)}
+.season-opt{margin-top:12px;font-weight:600}
+.rs-season{display:flex;gap:6px;align-items:center}.rs-season svg{width:18px;height:18px;color:var(--accent)}
+/* share bar (plan) */
+.sharebar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px;padding:14px 16px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
+.sharebar .btn{gap:8px;text-decoration:none}
+.sharebar .btn svg{width:18px;height:18px}
+.sharebar .btn.wa{background:#1f8f4e;border-color:#1f8f4e;color:#fff}
+.sharebar .btn.wa:hover{background:#17763f}
+.sharemsg{font-size:13px;font-weight:600;color:var(--ok,#1f6b45)}
+.sharenote{flex-basis:100%;margin:2px 0 0;font-size:12px;color:var(--muted)}
 /* resume card */
 .resume{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;align-items:start;margin:0 0 16px;padding:18px 20px;border-radius:20px;background:var(--surface);border:1.5px solid var(--accent);box-shadow:0 18px 40px -30px var(--accent)}
 .resume[hidden]{display:none}

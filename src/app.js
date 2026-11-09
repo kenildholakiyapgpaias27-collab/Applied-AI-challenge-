@@ -332,7 +332,7 @@ function afterNote(key){
    if(left===1)return[`<b>Last question${nm(", ")}!</b> Your plan is ready right after this.`];
    if(left===2&&key!=="problem")return[`You're doing great${nm(", ")}. <b>Just two more</b> and your plan is ready.`];}
   if(key==="follow")return[`Thanks, that really helps me narrow it down.`];
-  if(key==="location"&&P.city)return[`${esc(P.city)} is mostly <b>${CLIMATE_SAY[P.climate]}</b>${dryWinter()?", and it's the dry, cold season there now":""}. I'll pick textures to suit.`];
+  if(key==="location"&&P.city){const se=seasonFor();return[`${esc(P.city)} is mostly <b>${CLIMATE_SAY[P.climate]}</b>${se?`, and it's <b>${esc(se.say)}</b> there now`:""}. I'll pick textures to suit${P.seasonAlert&&se?`, and remind you to refresh your plan when ${esc(se.nextSay)} arrives`:""}.`]}
   return null;
 }
 function locationWidget(){
@@ -343,14 +343,18 @@ function locationWidget(){
     <div class="loc"><label>State or union territory<select data-st><option value="">Choose your state</option>${states.map(s=>`<option${s===P.state?" selected":""}>${esc(s)}</option>`).join("")}</select></label>
     <label>City<select data-ct disabled><option value="">Choose your state first</option></select></label>
     <label data-ow hidden>Your city<input data-other type="text" maxlength="40" placeholder="Type your city"></label></div>
+    <div data-season></div>
     <div class="qactions"><button type="button" class="btn primary" data-go disabled>Continue</button></div>`;
   const st=w.querySelector("[data-st]"),ct=w.querySelector("[data-ct]"),ow=w.querySelector("[data-ow]"),other=w.querySelector("[data-other]"),go=w.querySelector("[data-go]");
-  const ready=()=>{go.disabled=!(st.value&&ct.value&&(ct.value!=="__other"||other.value.trim()))};
+  const seasonBox=w.querySelector("[data-season]");
+  const ready=()=>{const ok=!!(st.value&&ct.value&&(ct.value!=="__other"||other.value.trim()));go.disabled=!ok;
+    if(ok){const s=INDIA[st.value],listed=ct.value!=="__other",city=listed?ct.value:other.value.trim();const html=seasonCardHTML(city,st.value,(listed&&s.c[ct.value])||s.d);if(seasonBox.dataset.k!==city+st.value){seasonBox.innerHTML=html;seasonBox.dataset.k=city+st.value;focusEl(go)}}
+    else{seasonBox.innerHTML="";seasonBox.dataset.k=""}};
   const fill=()=>{const s=INDIA[st.value];ct.innerHTML=s?`<option value="">Choose your city</option>`+Object.keys(s.c).sort((a,b)=>a.localeCompare(b)).map(c=>`<option${c===P.city?" selected":""}>${esc(c)}</option>`).join("")+`<option value="__other">My city isn't listed</option>`:`<option value="">Choose your state first</option>`;ct.disabled=!s;ow.hidden=true;ready()};
   st.onchange=fill;if(st.value)fill();
   const find=w.querySelector("[data-find]");find.oninput=()=>{const v=find.value.trim().toLowerCase();const hit=ALLC.find(([c,s])=>`${c}, ${s}`.toLowerCase()===v)||(v.length>2&&ALLC.filter(([c])=>c.toLowerCase()===v).length===1&&ALLC.find(([c])=>c.toLowerCase()===v));
     if(hit){st.value=hit[1];fill();ct.value=hit[0];ow.hidden=true;ready()}};ct.onchange=()=>{ow.hidden=ct.value!=="__other";if(!ow.hidden)other.focus();ready()};other.oninput=ready;
-  go.onclick=()=>{const s=INDIA[st.value],listed=ct.value!=="__other",city=listed?ct.value:other.value.trim().replace(/\s+/g," ");P.state=st.value;P.city=city;P.climate=(listed&&s.c[ct.value])||s.d;answer("location",null,`${city}, ${st.value}`)};
+  go.onclick=()=>{const s=INDIA[st.value],listed=ct.value!=="__other",city=listed?ct.value:other.value.trim().replace(/\s+/g," ");P.state=st.value;P.city=city;P.climate=(listed&&s.c[ct.value])||s.d;const al=w.querySelector("[data-salert]");P.seasonAlert=al?al.checked:false;answer("location",null,`${city}, ${st.value}`)};
   return w;
 }
 
@@ -609,6 +613,7 @@ function slotScore(p,slot){
   if(p.aha&&p.c==="Cleanser"&&!["dullness","tanning"].includes(PROB))s-=2;
   if(!exSlot&&HARSH_NAME.test(p.n)&&["dehydration","redness","fine lines","dark circles"].includes(PROB))s-=4;
   if((PROB==="redness"||P.sensitive)&&(p.aha||p.ret||(p.bha&&p.leaveOn)))s-=6;
+  s+=seasonBoost(p);
   if(SHELF_ACTS.size&&actives(p).some(a=>SHELF_ACTS.has(a.name.toLowerCase())))s-=5;   // don't double up on what they already use
   return s;
 }
@@ -631,6 +636,7 @@ function buildPlan(silent){
     slots[i]={slot,list,idx:Math.max(0,list.indexOf(p)),p};if(p){ctx.used.add(p.id);if(p.ret)ctx.ret=true;if((p.aha||p.bha)&&p.c!=="Cleanser")ctx.acid=true}}
   PL={slots,ctx,shelf};
   if(!META.planAt||META.planProb!==PROB){META.planAt=Date.now();META.planProb=PROB;META.checks=[]}
+  META.planSeason=seasonFor()?.key||null;
   if(!silent)renderPlan();
 }
 function removedFor(cats){const c={};let n=0;for(const p of CAT)if(cats.includes(p.c)){n++;for(const[b]of check(p).blocks)c[b]=(c[b]||0)+1}return{c,n}}
@@ -681,7 +687,7 @@ function renderPlan(){
   let h=`<div class="phero"><div class="eyebrow">${NAME?`${esc(NAME)}, your plan is ready`:"Your plan is ready"}</div><h3>Three steps for ${esc(prob.label.toLowerCase())}</h3><p class="lead">${SUB?`Made for what you described: ${esc(SUB.toLowerCase())}. `:""}Each product has one clear job, and together they take just a few minutes a day.</p>
     <div class="applied">${applied.map(x=>`<span class="chip ok">✓ ${esc(x)}</span>`).join("")}</div></div>
     <div class="pcards">${PL.slots.map((s,i)=>cardHTML(i,s)).join("")}</div>
-    <div class="total"><span>${keptN?`Total for ${3-keptN===1?"the new product":`the ${3-keptN} new products`}`:"Total for all three"}${keptN?`<small>You're keeping ${keptN} from your routine</small>`:""}</span><b>${rupee(total)}</b></div>${shelfPlanNote()}`;
+    <div class="total"><span>${keptN?`Total for ${3-keptN===1?"the new product":`the ${3-keptN} new products`}`:"Total for all three"}${keptN?`<small>You're keeping ${keptN} from your routine</small>`:""}</span><b>${rupee(total)}</b></div>${shareBarHTML()}${shelfPlanNote()}`;
   // sponsored alternative (same checks, labelled, separate)
   const sp=CAT.filter(p=>p.sp&&PL.slots.some(s=>s.slot.cats.includes(p.c))&&check(p).ok&&!PL.ctx.used.has(p.id)&&!clash(p,PL.ctx))
     .map(p=>({p,s:slotScore(p,PL.slots.find(s=>s.slot.cats.includes(p.c)).slot)})).sort((a,b)=>b.s-a.s);
@@ -697,7 +703,7 @@ function renderPlan(){
   add("How's it going? Check in",()=>openCheckin());
   add("Check a product",()=>{$("askInput").focus();$("askInput").placeholder="Type a product name or code, e.g. P1025"});
   box.appendChild(nx);
-  box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));
+  box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));wireShare(box);
   box.querySelectorAll(".newone").forEach(b=>b.onclick=()=>{const s=PL.slots[+b.dataset.i];const p=s.list.find(x=>!PL.ctx.used.has(x.id)&&!clash(x,PL.ctx));if(!p)return;s.keep=null;s.p=p;s.idx=s.list.indexOf(p);PL.ctx.used.add(p.id);renderPlan();saveState()});
   newBlock("plan").appendChild(box);stepNow=null;renderSide();saveState();requestAnimationFrame(()=>box.scrollIntoView({block:"start",behavior:"smooth"}));
 }
@@ -732,7 +738,7 @@ function told(){
   const also=P.concerns.filter(c=>c!==PROB);if(also.length)r.push(["Also helping with",also.map(c=>esc(PROBLEMS[c].label)).join(", ")]);
   if(P.skin)r.push(["Skin type",esc(cap(P.skin))]);
   if(P.tone)r.push(["Skin tone",`${P.tone} of 10<small>${esc(cap(MONK_LABEL[P.tone]))}</small>`]);
-  if(P.city)r.push(["Where you live",`${esc(P.city)}<small>Mostly ${esc(CLIMATE_SAY[P.climate])}${dryWinter()?", dry and cold now":""}</small>`]);
+  if(P.city){const se=seasonFor();r.push(["Where you live",`${esc(P.city)}<small>Mostly ${esc(CLIMATE_SAY[P.climate])}${se?` · ${esc(cap(se.say.replace(/^the /,"")))} now`:""}</small>`])}
   const avoid=[P.avoidFrag&&"Fragrance",P.avoidEO&&"Essential oils",P.noClog&&"Pore-clogging formulas",...P.reactions.map(cap)].filter(Boolean);
   if(avoid.length)r.push(["Avoiding",esc(avoid.join(", "))]);
   r.push(["Pregnancy-cautious",P.pregnancy===false?"No":"Yes"]);
@@ -761,6 +767,7 @@ function explainHTML(){
     if((P.skin==="oily"||PROB==="acne")&&p.com==="low")fit.push("low risk of clogging pores");
     if(P.tone>=7&&p.c==="Sunscreen"&&/invisible|aqua|hybrid/i.test(p.n))fit.push("a sheer texture that won't leave a white cast on deeper skin");
     else if(P.tone>=7&&/niacinamide|azelaic|tranexamic|arbutin|licorice/i.test(hay(p))&&["acne","pigmentation","dullness","tanning"].includes(PROB))fit.push("a gentle way to even tone on deeper skin, which can darken after irritation");
+    {const se=seasonFor();if(se&&seasonBoost(p)>0)fit.push(`a texture that suits ${se.label.toLowerCase()} in ${P.city}`)}
     const hit=p.con.filter(c=>P.concerns.includes(c)&&c!==PROB);if(hit.length)fit.push(`also targets ${hit.map(c=>PROBLEMS[c]?.label.toLowerCase()||c).join(" and ")}`);
     if(SUB&&(PREF.boost||[]).some(([re,w])=>w>0&&re.test(hay(p))))fit.push(`matches what you described ("${SUB}")`);
     const safe=[P.avoidFrag&&"no fragrance, including hidden fragrance ingredients",P.avoidEO&&"no essential oils",...P.reactions.map(r=>`no ${r}`),P.pregnancy!==false&&(p.ret||p.salPct>=2?null:"no retinoids or strong salicylic acid"),P.budget&&`under your ${rupee(P.budget)} budget`].filter(Boolean);
@@ -816,6 +823,177 @@ if($("newBtn"))$("newBtn").onclick=()=>{if($("advisor").hidden){$("nameInput").f
 $("deleteBtn").onclick=()=>{clearState();META={planAt:null,planProb:null,checks:[]};FOLLOW_IDX=null;P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;NAME=null;nameAsked=false;STEPS=[...DEFAULT_STEPS];lockAll();toggleSide(false);botSay("Done. I've deleted all your answers.");next()};
 
 /* =====================================================================
+   3) SEASONS — what the season is in the user's city, and an opt-in nudge
+      to refresh the plan when it changes
+   ===================================================================== */
+const MON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const SEASON_INFO={
+  winter:{say:"winter",label:"Winter",tip:"Air turns colder and drier, so I lean towards richer moisturisers with ceramides and gentler cleansing."},
+  summer:{say:"summer",label:"Summer",tip:"Heat and sweat mean lighter gel textures and a matte, high-SPF sunscreen you'll actually reapply."},
+  premonsoon:{say:"the pre-monsoon season",label:"Pre-monsoon",tip:"Humid heat builds up, so I keep textures light and pores clear."},
+  monsoon:{say:"the monsoon",label:"Monsoon",tip:"High humidity means lightweight, non-clogging formulas and a sweat-resistant sunscreen. Breakouts often flare now."},
+  nemonsoon:{say:"the northeast monsoon",label:"Northeast monsoon",tip:"Rain and humidity return, so I keep textures light and non-clogging."},
+  post:{say:"the post-monsoon season",label:"Post-monsoon",tip:"Humidity starts dropping, so skin can feel tighter. A little more hydration helps."},
+  autumn:{say:"autumn",label:"Autumn",tip:"Cooler, drier air arrives, so I add more hydration and barrier support."},
+};
+function seasonMap(state,climate){
+  const NE=["Assam","Meghalaya","Arunachal Pradesh","Nagaland","Manipur","Mizoram","Tripura","Sikkim"];
+  if(climate==="cool / hill")return["winter","winter","winter","summer","summer","summer","monsoon","monsoon","monsoon","autumn","winter","winter"];
+  if(["Tamil Nadu","Puducherry"].includes(state))return["winter","winter","summer","summer","summer","monsoon","monsoon","monsoon","monsoon","nemonsoon","nemonsoon","nemonsoon"];
+  if(NE.includes(state))return["winter","winter","premonsoon","premonsoon","monsoon","monsoon","monsoon","monsoon","monsoon","post","post","winter"];
+  if(["Kerala","Goa","Lakshadweep","Andaman and Nicobar Islands"].includes(state))return["winter","winter","summer","summer","summer","monsoon","monsoon","monsoon","monsoon","post","post","winter"];
+  return["winter","winter","summer","summer","summer","monsoon","monsoon","monsoon","monsoon","post","post","winter"];
+}
+function seasonFor(state=P.state,climate=P.climate,month=new Date().getMonth()){
+  if(!state)return null;const m=seasonMap(state,climate),key=m[month];
+  let s=month,e=month,g=0;while(m[(s+11)%12]===key&&g++<11)s=(s+11)%12;g=0;while(m[(e+1)%12]===key&&g++<11)e=(e+1)%12;
+  const n=(e+1)%12;
+  return{key,...SEASON_INFO[key],from:MON[s],to:MON[e],next:SEASON_INFO[m[n]].label,nextSay:SEASON_INFO[m[n]].say,nextKey:m[n],nextFrom:MON[n]};
+}
+function seasonCardHTML(city,state,climate){
+  const s=seasonFor(state,climate);if(!s)return"";
+  return`<div class="season"><div class="season-ic">${SEASON_IC[s.key]||SEASON_IC.summer}</div><div class="season-tx">
+    <span class="season-eyebrow">Right now in ${esc(city)}</span><b>${esc(s.label)}</b><span class="season-when">${esc(s.from)}${s.from!==s.to?` to ${esc(s.to)}`:""}</span>
+    <p>${esc(s.tip)}</p><p class="season-next">Next: <b>${esc(s.next)}</b> from ${esc(s.nextFrom)}.</p>
+    <label class="agree season-opt"><input type="checkbox" data-salert ${P.seasonAlert!==false?"checked":""}> Remind me to refresh my plan when the season changes in ${esc(city)}</label></div></div>`;
+}
+const SEASON_IC={
+  winter:SVG('<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M9 4.5l3 2 3-2M9 19.5l3-2 3 2"/>'),
+  summer:SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+  premonsoon:SVG('<path d="M7 15a4 4 0 1 1 1-7.9A5 5 0 0 1 18 9a3.5 3.5 0 0 1-1 6.9z"/><circle cx="17" cy="5" r="2"/>'),
+  monsoon:SVG('<path d="M7 13a4 4 0 1 1 1-7.9A5 5 0 0 1 18 7a3.5 3.5 0 0 1-1 6.9H7z"/><path d="M8 17l-1 3M12 17l-1 3M16 17l-1 3"/>'),
+  nemonsoon:SVG('<path d="M7 13a4 4 0 1 1 1-7.9A5 5 0 0 1 18 7a3.5 3.5 0 0 1-1 6.9H7z"/><path d="M8 17l-1 3M12 17l-1 3M16 17l-1 3"/>'),
+  post:SVG('<path d="M7 16a4 4 0 1 1 1-7.9A5 5 0 0 1 18 10a3.5 3.5 0 0 1-1 6.9z"/><path d="M12 2v2M4 6l1.5 1.5"/>'),
+  autumn:SVG('<path d="M5 19c8 0 14-6 14-14-8 0-14 6-14 14z"/><path d="M5 19l7-7"/>'),
+};
+/* season nudges the ranking a little: textures that suit the weather right now */
+function seasonBoost(p){
+  const s=seasonFor();if(!s)return 0;const t=hay(p);let b=0;
+  if(p.c==="Moisturiser"){
+    if(["winter","autumn","post"].includes(s.key)&&/ceramide|squalane|butyrospermum|shea|cream/i.test(t))b+=1.5;
+    if(["summer","monsoon","premonsoon","nemonsoon"].includes(s.key)){if(/gel|oil-free|water|aqua|matte/i.test(p.n))b+=1.5;if(/butter|rich|night cream/i.test(p.n))b-=1}}
+  if(p.c==="Sunscreen"&&["monsoon","premonsoon","nemonsoon","summer"].includes(s.key)&&/matte|gel|aqua|sport|water/i.test(p.n))b+=1;
+  if(p.c==="Cleanser"&&s.key==="winter"&&/foam|clarifying|deep/i.test(p.n))b-=0.8;
+  return b;
+}
+
+/* =====================================================================
+   SHARE — WhatsApp text (no private answers) and a branded PDF
+   ===================================================================== */
+function planShareText(){
+  const prob=PROBLEMS[PROB].label.toLowerCase();const nums=["1️⃣","2️⃣","3️⃣"];
+  const lines=PL.slots.map((s,i)=>s.keep?`${nums[i]} ${s.slot.role} (${s.slot.when.toLowerCase()}): keep using my ${s.keep.short.toLowerCase()}`:s.p?`${nums[i]} ${s.slot.role} (${s.slot.when.toLowerCase()}): ${s.p.n} – ${rupee(s.p.p)}`:null).filter(Boolean);
+  const total=PL.slots.reduce((t,s)=>t+(s.p?.p||0),0);
+  return`✨ My Aaina skin plan for ${prob}\n\n${lines.join("\n")}\n\nTotal: ${rupee(total)}\n\nTip: start one product at a time, a few days apart, and wear sunscreen every morning.\n\nMade with Aaina AI Skin Advisor · Reflect. Reveal. Radiate.`;
+}
+function shareBarHTML(){
+  const wa="https://wa.me/?text="+encodeURIComponent(planShareText());
+  return`<div class="sharebar" role="group" aria-label="Share or save your plan">
+    <a class="btn wa" href="${wa}" target="_blank" rel="noopener" data-wa>${SVG('<path d="M4 20l1.3-4A8 8 0 1 1 8 18.7z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1.2-1.4-1.9-1-1 .8a4 4 0 0 1-2.2-2.2l.8-1-1-1.9z"/>')}Share on WhatsApp</a>
+    <button type="button" class="btn" data-pdf>${SVG('<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>')}Save as PDF</button>
+    <button type="button" class="btn ghost" data-copy>${SVG('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>')}Copy plan</button>
+    <span class="sharemsg" data-sharemsg role="status"></span>
+    <p class="sharenote">Sharing includes only your products and routine, not your safety answers.</p></div>`;
+}
+function wireShare(box){
+  const msg=box.querySelector("[data-sharemsg]");const say=t=>{msg.textContent=t;clearTimeout(say.t);say.t=setTimeout(()=>msg.textContent="",4000)};
+  box.querySelector("[data-wa]").addEventListener("click",e=>{
+    if(navigator.share&&matchMedia("(pointer:coarse)").matches){e.preventDefault();navigator.share({text:planShareText()}).catch(()=>{})}});
+  box.querySelector("[data-copy]").onclick=async()=>{const t=planShareText();
+    try{await navigator.clipboard.writeText(t);say("Plan copied. Paste it anywhere.")}
+    catch{const ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand("copy")}catch{}ta.remove();say(ok?"Plan copied. Paste it anywhere.":"Couldn't copy here. Use Share on WhatsApp instead.")}};
+  box.querySelector("[data-pdf]").onclick=async e=>{const b=e.currentTarget;b.disabled=true;try{say(await savePlanPDF())}finally{b.disabled=false}};
+}
+async function savePlanPDF(){
+  const bytes=makePlanPDF();const filename=`Aaina-skin-plan${NAME?"-"+NAME.replace(/[^\w-]/g,""):""}.pdf`;const blob=new Blob([bytes],{type:"application/pdf"});
+  try{if(window.claude&&typeof window.claude.use==="function"){const dl=await Promise.race([window.claude.use("downloads"),new Promise(r=>setTimeout(()=>r(null),3000))]);
+      if(dl){try{await dl.save({filename,data:blob});return"PDF saved."}catch(err){if(err&&err.code==="declined")return"";if(err&&err.code==="rate_limited")return"A save is already open. Finish that one first.";}}}}catch{}
+  try{const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);return"PDF downloaded."}
+  catch{return"Couldn't save the PDF here. Try Copy plan instead."}
+}
+/* --- a small PDF writer: A4, Helvetica, text + rectangles, no libraries --- */
+const HELV=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
+function pdfClean(s){return String(s??"").replace(/₹\s?/g,"Rs ").replace(/[–—]/g,"-").replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/·/g,"·").replace(/…/g,"...").replace(/[^\x20-\x7E -ÿ]/g,"")}
+function pdfW(s,size,bold){let w=0;for(const ch of s){const c=ch.charCodeAt(0);w+=(c>=32&&c<=126?HELV[c-32]:556)}return w*size/1000*(bold?1.07:1)}
+function pdfWrap(s,size,maxW,bold){const words=pdfClean(s).split(/\s+/).filter(Boolean),out=[];let line="";
+  for(const w of words){const t=line?line+" "+w:w;if(pdfW(t,size,bold)>maxW&&line){out.push(line);line=w}else line=t}if(line)out.push(line);return out}
+function makePlanPDF(){
+  const W=595,H=842,M=48,CW=W-2*M;const pages=[];let ops=[],y=0;
+  const rgb=h=>{const n=parseInt(h.slice(1),16);return[(n>>16&255)/255,(n>>8&255)/255,(n&255)/255].map(v=>v.toFixed(3)).join(" ")};
+  const esc2=s=>s.replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)");
+  const text=(x,yy,s,size,{bold=false,color="#2a1420"}={})=>ops.push(`BT /${bold?"F2":"F1"} ${size} Tf ${rgb(color)} rg ${x.toFixed(1)} ${(H-yy).toFixed(1)} Td (${esc2(pdfClean(s))}) Tj ET`);
+  const rect=(x,yy,w,h,color)=>ops.push(`${rgb(color)} rg ${x.toFixed(1)} ${(H-yy-h).toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)} re f`);
+  const BR="#7d174c",INK="#2a1420",MUTED="#7a6470",SOFT="#fbe7ef";
+  const footer=()=>{text(M,H-30,"Cosmetic advice only, not medical advice. Aaina is a fictional demo brand (PS-14).",8,{color:MUTED});text(W-M-40,H-30,`Page ${pages.length+1}`,8,{color:MUTED})};
+  const newPage=()=>{if(ops.length){footer();pages.push(ops.join("\n"))}ops=[];y=M};
+  const need=h=>{if(y+h>H-56){newPage();y=M}};
+  const para=(s,size,{bold=false,color=INK,x=M,w=CW,gap=4}={})=>{for(const l of pdfWrap(s,size,w,bold)){need(size+gap);text(x,y+size,l,size,{bold,color});y+=size+gap}};
+  // header band
+  rect(0,0,W,96,BR);text(M,46,"Aaina",28,{bold:true,color:"#ffffff"});text(M,66,"REFLECT. REVEAL. RADIATE.",8.5,{color:"#f6cfe0"});
+  text(W-M-pdfW("AI Skin Advisor",11,true),46,"AI Skin Advisor",11,{bold:true,color:"#ffffff"});
+  const today=new Date().toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"});
+  text(W-M-pdfW(today,9),64,today,9,{color:"#f6cfe0"});
+  y=130;const prob=PROBLEMS[PROB];
+  para(`${NAME?NAME+"'s":"Your"} skin plan`,22,{bold:true});y+=2;
+  para(`For ${prob.label.toLowerCase()}${SUB?` (${SUB.toLowerCase()})`:""}`,12,{color:MUTED});y+=10;
+  // profile strip
+  const s=seasonFor();
+  const facts=[P.skin&&["Skin type",cap(P.skin)],P.tone&&["Skin tone",`${P.tone} of 10, ${MONK_LABEL[P.tone]}`],P.city&&["City",P.city],s&&["Season now",s.label],["Budget",P.budget?`Under Rs ${P.budget} each`:"No limit"]].filter(Boolean);
+  need(64);rect(M,y,CW,58,SOFT);const colW=CW/facts.length;
+  facts.forEach(([k,v],i)=>{text(M+12+i*colW,y+17,k.toUpperCase(),7.5,{bold:true,color:BR});pdfWrap(v,9.5,colW-16,true).slice(0,2).forEach((ln,j)=>text(M+12+i*colW,y+32+j*12,ln,9.5,{bold:true}))});y+=74;
+  const checks=[P.avoidFrag&&"Fragrance-free",P.avoidEO&&"No essential oils",P.noClog&&"Won't clog pores",P.sensitive&&"Gentle for sensitive skin",P.budget&&`Each under Rs ${P.budget}`].filter(Boolean);
+  if(checks.length){para("Checks every product passed: "+checks.join("  ·  "),9.5,{color:MUTED});y+=6}
+  // routine
+  y+=6;para("Your routine",15,{bold:true});y+=4;
+  PL.slots.forEach((sl,i)=>{
+    const p=sl.p,k=sl.keep;const body=[];
+    if(k)body.push(["",`Keep using ${k.p?k.p.n:k.name}. It already covers this step, so there's no need to buy another.`]);
+    else if(p){body.push(["Why",oneLine(p,sl.slot)]);body.push(["How to use",useList(p,sl.slot).map(cap).join(". ")+"."])}
+    else body.push(["","Nothing in our range passes all your checks for this step, so I've left it out rather than bend a safety rule."]);
+    const lines=body.reduce((n,[l,t])=>n+pdfWrap(t,9.5,CW-110,false).length,0);const h=44+lines*13.5+(p?14:0);
+    need(h+10);rect(M,y,CW,h,"#fdf5f8");rect(M,y,4,h,BR);
+    rect(M+14,y+12,20,20,BR);text(M+21,y+26,String(i+1),11,{bold:true,color:"#ffffff"});
+    text(M+44,y+22,`${sl.slot.role.toUpperCase()}  ·  ${sl.slot.when}`,8.5,{bold:true,color:BR});
+    const name=k?(k.p?k.p.n:cap(k.short)):p?p.n:"No product";text(M+44,y+38,pdfWrap(name,12.5,CW-140,true)[0],12.5,{bold:true});
+    if(p){const pr=`Rs ${Math.round(p.p).toLocaleString("en-IN")}`;text(W-M-12-pdfW(pr,12.5,true),y+38,pr,12.5,{bold:true});text(M+44,y+52,`${p.b}  ·  ${p.c}${p.sz?"  ·  "+p.sz:""}`,8.5,{color:MUTED})}
+    else if(k)text(W-M-12-pdfW("ALREADY YOURS",8,true),y+38,"ALREADY YOURS",8,{bold:true,color:BR});
+    let yy=y+(p?70:56);
+    for(const[l,t]of body){const ls=pdfWrap(t,9.5,CW-110,false);if(l)text(M+44,yy,l,8.5,{bold:true,color:MUTED});ls.forEach((ln,j)=>text(M+(l?110:44),yy+j*13.5,ln,9.5));yy+=ls.length*13.5}
+    y+=h+10;
+  });
+  const total=PL.slots.reduce((t,x)=>t+(x.p?.p||0),0);const kept=PL.slots.filter(x=>x.keep).length;
+  need(30);rect(M,y,CW,1,"#e8cfdb");y+=18;text(M,y,kept?`Total for the new product${3-kept>1?"s":""}`:"Total for all three",11);const tt=`Rs ${Math.round(total).toLocaleString("en-IN")}`;text(W-M-pdfW(tt,15,true),y+2,tt,15,{bold:true});y+=26;
+  // shelf notes
+  if((PL.shelf||[]).length){const d=document.createElement("div");d.innerHTML=shelfPlanNote();const items=[...d.querySelectorAll("li")].map(li=>li.textContent.trim()).filter(Boolean);
+    if(items.length){y+=4;para("Works with what you already use",12.5,{bold:true});items.forEach(t=>para("-  "+t,9.5,{x:M+6,w:CW-6}));y+=6}}
+  // first weeks
+  y+=4;para("Your first few weeks",12.5,{bold:true});
+  ["Start one product at a time, a few days apart, so you know how your skin feels with each.","Patch-test new products on your jaw for 2-3 days first, and stop if anything stings or burns.","Wear sunscreen every morning, even on cloudy days.",`Give the plan ${PROB==="dehydration"||PROB==="dullness"?"two to four":"six to eight"} weeks before judging it.`].forEach(t=>para("-  "+t,9.5,{x:M+6,w:CW-6}));
+  if(s){y+=8;para(`Season: it's ${s.say} in ${P.city} now. ${s.next} starts in ${s.nextFrom}, which is a good time to refresh your plan.`,9.5,{color:MUTED})}
+  y+=6;para("If your skin becomes painful or swollen, or the problem spreads, please see a dermatologist.",9,{color:MUTED});
+  footer();pages.push(ops.join("\n"));
+  // assemble
+  const objs=[];const add=s=>{objs.push(s);return objs.length};
+  const cat=add(""),pagesId=add(""),f1=add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>"),f2=add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
+  const kids=[];for(const c of pages){const cs=add(`<< /Length ${c.length} >>\nstream\n${c}\nendstream`);kids.push(add(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 ${f1} 0 R /F2 ${f2} 0 R >> >> /Contents ${cs} 0 R >>`))}
+  objs[cat-1]=`<< /Type /Catalog /Pages ${pagesId} 0 R >>`;objs[pagesId-1]=`<< /Type /Pages /Kids [${kids.map(k=>k+" 0 R").join(" ")}] /Count ${kids.length} >>`;
+  const info=add(`<< /Title (${esc2(pdfClean((NAME?NAME+"'s ":"")+"Aaina skin plan"))}) /Producer (Aaina AI Skin Advisor) >>`);
+  let out="%PDF-1.4\n%âãÏÓ\n";const offs=[];
+  objs.forEach((o,i)=>{offs.push(out.length);out+=`${i+1} 0 obj\n${o}\nendobj\n`});
+  const xref=out.length;out+=`xref\n0 ${objs.length+1}\n0000000000 65535 f \n`+offs.map(o=>String(o).padStart(10,"0")+" 00000 n \n").join("");
+  out+=`trailer\n<< /Size ${objs.length+1} /Root ${cat} 0 R /Info ${info} 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  const bytes=new Uint8Array(out.length);for(let i=0;i<out.length;i++)bytes[i]=out.charCodeAt(i)&255;return bytes;
+}
+function useList(p,slot){
+  const use=[slot.when];
+  if(p.aha||p.bha&&p.leaveOn||p.ret)use.push("start 2-3 nights a week and build up");
+  if(p.c==="Sunscreen")use.push("use two finger-lengths for face and neck, and reapply every 2-3 hours outdoors");
+  if(p.c==="Cleanser")use.push("massage for 30 seconds, then rinse with lukewarm water");
+  if(isActive(p)||P.sensitive)use.push("patch-test on your jaw for 2-3 days first");
+  return use;
+}
+
+/* =====================================================================
    1) SAVE & RESUME — answers are saved on this device after every step
    ===================================================================== */
 const STORE_KEY="aaina.advisor.v1";
@@ -849,18 +1027,24 @@ function renderResume(){
   const steps=Array.isArray(d.STEPS)?d.STEPS:DEFAULT_STEPS,done=steps.filter(k=>(d.DONE||[]).includes(k)).length,finished=done>=steps.length&&d.PROB;
   const nextIdx=steps.findIndex(k=>!(d.DONE||[]).includes(k))+1;const prob=d.PROB&&PROBLEMS[d.PROB]?PROBLEMS[d.PROB].label.toLowerCase():null;
   const due=finished?dueCheck(d.META):null;
+  const sNow=finished&&d.P?.seasonAlert&&d.P?.state?seasonFor(d.P.state,d.P.climate):null,sChanged=sNow&&d.META?.planSeason&&sNow.key!==d.META.planSeason;
   box.hidden=false;
   box.innerHTML=finished
-    ?`<div class="rs-ic">${SVG('<path d="M5 12l4 4 10-10"/>')}</div><div class="rs-tx"><b>Welcome back, ${esc(d.NAME)}.</b> Your plan for <b>${esc(prob)}</b> is saved${d.META?.planAt?` (made ${agoText(d.META.planAt)})`:""}.${due?`<span class="rs-due">${due==="week2"?"Two weeks in! Time for a quick check-in.":"It's been 3 days. How are your products going?"}</span>`:""}</div>
-       <div class="rs-act">${due?`<button type="button" class="btn primary" data-rs="check">Check in now</button><button type="button" class="btn" data-rs="plan">View my plan</button>`:`<button type="button" class="btn primary" data-rs="plan">View my plan</button><button type="button" class="btn" data-rs="check">Report how it's going</button>`}<button type="button" class="btn ghost" data-rs="fresh">Start fresh</button></div>`
+    ?`<div class="rs-ic">${SVG('<path d="M5 12l4 4 10-10"/>')}</div><div class="rs-tx"><b>Welcome back, ${esc(d.NAME)}.</b> Your plan for <b>${esc(prob)}</b> is saved${d.META?.planAt?` (made ${agoText(d.META.planAt)})`:""}.${due?`<span class="rs-due">${due==="week2"?"Two weeks in! Time for a quick check-in.":"It's been 3 days. How are your products going?"}</span>`:""}${sChanged?`<span class="rs-due rs-season">${SEASON_IC[sNow.key]||""}${esc(sNow.label)} has started in ${esc(d.P.city)}. Want to refresh your plan for it?</span>`:""}</div>
+       <div class="rs-act">${sChanged?`<button type="button" class="btn primary" data-rs="season">Refresh for ${esc(sNow.label.toLowerCase())}</button>`:""}${due?`<button type="button" class="btn${sChanged?"":" primary"}" data-rs="check">Check in now</button><button type="button" class="btn" data-rs="plan">View my plan</button>`:`<button type="button" class="btn${sChanged?"":" primary"}" data-rs="plan">View my plan</button><button type="button" class="btn" data-rs="check">Report how it's going</button>`}<button type="button" class="btn ghost" data-rs="fresh">Start fresh</button></div>`
     :`<div class="rs-ic">${SVG('<path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/>')}</div><div class="rs-tx"><b>Welcome back, ${esc(d.NAME)}.</b> You were on <b>question ${nextIdx} of ${steps.length}</b>${prob?` of your plan for ${esc(prob)}`:""}. Your answers are saved.<div class="rs-bar" aria-hidden="true"><span style="width:${Math.round(100*done/steps.length)}%"></span></div></div>
        <div class="rs-act"><button type="button" class="btn primary" data-rs="go">Continue where I left off</button><button type="button" class="btn ghost" data-rs="fresh">Start fresh</button></div>`;
   box.querySelectorAll("[data-rs]").forEach(b=>b.onclick=()=>{const a=b.dataset.rs;
     if(a==="fresh"){clearState();resetAll();renderResume();$("nameInput").focus();return}
-    resumeFrom(d,a==="check")});
+    resumeFrom(d,a==="check",a==="season")});
 }
-function resumeFrom(d,thenCheck){
-  restoreState(d);
+function resumeFrom(d,thenCheck,seasonRefresh){
+  restoreState(d);P.month=new Date().getMonth();
+  if(seasonRefresh){const before=(d.planIds||[]).map(id=>id&&id!=="keep"?BY_ID[id]:null);RESTORE_IDS=(d.planIds||[]).map(id=>id==="keep"?"keep":null);
+    $("welcome").hidden=true;$("advisor").hidden=false;thread.innerHTML="";CUR_BLOCK=null;
+    buildPlan(true);const se=seasonFor();const ch=PL.slots.map((s,i)=>before[i]&&s.p&&before[i].id!==s.p.id?`<li>${esc(s.slot.role)}: <b>${esc(s.p.n)}</b> instead of ${esc(before[i].n)}</li>`:"").filter(Boolean);
+    botSay(`<p>Welcome back, <b>${esc(NAME)}</b>! It's <b>${esc(se.say)}</b> in ${esc(P.city)} now. ${esc(se.tip)}</p>${ch.length?`<p>Here's what I changed:</p><ul class="cknotes">${ch.join("")}</ul>`:`<p>Good news: your current products <b>still suit this season</b>, so nothing needs to change.</p>`}`);
+    updateTitle();renderPlan();return}
   $("welcome").hidden=true;$("advisor").hidden=false;thread.innerHTML="";CUR_BLOCK=null;
   const left=STEPS.filter(k=>!DONE.has(k)).length;
   botSay(left?`<p>Welcome back, <b>${esc(NAME)}</b>! I've kept all your answers, so let's pick up at <b>question ${STEPS.length-left+1}</b>.</p>`:`<p>Welcome back, <b>${esc(NAME)}</b>! Here's the plan we made${META.planAt?` ${agoText(META.planAt)}`:""}.</p>`);
