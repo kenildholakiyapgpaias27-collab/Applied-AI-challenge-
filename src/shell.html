@@ -571,6 +571,33 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
 .season-tx p{margin:8px 0 0;font-size:14px;line-height:1.55}
 .season-next{color:var(--muted)}.season-next b{color:var(--accent)}
 .season-opt{margin-top:12px;font-weight:600}
+/* upgrade picks + combos */
+.upg{margin-top:4px;padding:12px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line);display:grid;gap:6px}
+.upg-top{display:flex;align-items:center;justify-content:space-between}
+.upg-tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1f6b45}
+.upg-tag svg{width:14px;height:14px}
+.upg-price{font-weight:700;font-variant-numeric:tabular-nums}
+.upg-nm{font-size:15px;line-height:1.3}
+.upg ul{margin:0;padding-left:18px;display:grid;gap:3px;font-size:13px;line-height:1.5;color:var(--ink)}.upg ul b{color:var(--accent)}
+.upg-go{justify-self:start;margin-top:4px}
+.combos{margin-top:18px;padding:20px;border-radius:20px;background:color-mix(in srgb,var(--accent-soft) 60%,var(--surface))}
+.combos h4{margin:0;font:600 19px/1.25 var(--display,serif)}
+.combos-sub{margin:6px 0 14px;font-size:14px;color:var(--muted);line-height:1.5}
+.combo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.combo{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.combo.on{border:2px solid var(--accent)}
+.combo-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.combo-k{display:block;font-weight:700;font-size:16px}.combo-h small{display:block;font-size:13px;color:var(--muted);margin-top:2px;line-height:1.4}
+.combo-h>b{font-size:18px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.combo-it{padding-top:10px;border-top:1px solid var(--line)}
+.combo-it .role{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.combo-it>b{display:block;font-size:15px;margin:2px 0}.combo-it p{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}.combo-it p b{color:var(--accent)}
+.combo-rt{background:var(--accent-soft);border-radius:12px;padding:10px 12px}
+.combo-rt>span{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.combo-rt ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px;font-size:13px;line-height:1.45}
+.combo-go{margin-top:auto;align-self:flex-start}
+.extras{margin-top:16px}.extras h4{margin:0 0 10px;font:600 17px/1.2 var(--display,serif)}
+.pcard.addon{border-color:var(--accent)}
 /* live weather card */
 .wxcard{max-width:720px}
 .wxstrip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin:12px 0 4px;padding:10px;border-radius:14px;background:var(--surface)}

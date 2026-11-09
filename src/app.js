@@ -642,7 +642,8 @@ function buildPlan(silent){
     let p=list[0]||null;if(want&&want[i]&&want[i]!=="keep"){const j=list.findIndex(x=>x.id===want[i]);if(j>=0)p=list[j]}
     slots[i]={slot,list,idx:Math.max(0,list.indexOf(p)),p};if(p){ctx.used.add(p.id);if(p.ret)ctx.ret=true;if((p.aha||p.bha)&&p.c!=="Cleanser")ctx.acid=true}}
   PL={slots,ctx,shelf};
-  if(!META.planAt||META.planProb!==PROB){META.planAt=Date.now();META.planProb=PROB;META.checks=[]}
+  if(!META.planAt||META.planProb!==PROB){META.planAt=Date.now();META.planProb=PROB;META.checks=[];META.extraIds=[]}
+  PL.extras=(META.extraIds||[]).map(x=>({slot:x.slot,p:BY_ID[x.id]})).filter(x=>x.p&&check(x.p).ok&&!(P.excluded||[]).includes(x.p.id)&&!clash(x.p,ctx));
   META.planSeason=seasonFor()?.key||null;
   if(!silent)renderPlan();
 }
@@ -654,7 +655,7 @@ function cardHTML(i,s){
   if(s.keep)return`<article class="pcard keep"><div class="phead"><span class="stepn">${i+1}</span><div class="role">${esc(role)} <span class="when">· ${esc(s.slot.when)}</span></div><span class="ownbadge">Already yours</span></div>
     <div class="ptop"><div class="thumb">${IC[CAT_IC[s.keep.cat]||"dropper"]}</div><div style="min-width:0"><div class="brand">Keep using</div><div class="nm">${esc(s.keep.p?s.keep.p.n:cap(s.keep.name.replace(/^your /,"Your ")))}</div><div class="cat">${esc(s.keep.cat)}</div></div></div>
     <p class="why1">${s.keep.p?"It's already on your shelf and it passes all your checks":"You already have this step covered"}, so there's <b>no need to buy another</b>.${s.list[0]?` That saves you about <b>${rupee(s.list[0].p)}</b>.`:""}</p>
-    <div class="pfoot"><span class="small muted">From your routine</span>${s.list.length?`<button type="button" class="btn ghost newone" data-i="${i}">Suggest a new one</button>`:""}</div></article>`;
+    ${upgradeHTML(i)}<div class="pfoot"><span class="small muted">From your routine</span>${s.list.length&&!upgradeFor(i)?`<button type="button" class="btn ghost newone" data-i="${i}">Suggest a new one</button>`:""}</div></article>`;
   if(!p)return`<article class="pcard empty"><span class="stepn">${i+1}</span><div><div class="role">${esc(role)}</div><p class="muted small">No product in our range passes all your checks for this step${P.budget?" within budget":""}. I've left it out rather than bend a safety rule.</p></div></article>`;
   const act=actives(p);
   return`<article class="pcard">
@@ -688,13 +689,14 @@ function spReason(p){
 function renderPlan(){
   thread.querySelectorAll(".plan").forEach(r=>r.classList.add("old"));
   const box=document.createElement("div");box.className="plan";
-  const total=PL.slots.reduce((t,s)=>t+(s.p?.p||0),0);const keptN=PL.slots.filter(s=>s.keep).length;
+  const exN=(PL.extras||[]).length;const total=PL.slots.reduce((t,s)=>t+(s.p?.p||0),0)+(PL.extras||[]).reduce((t,x)=>t+(x.p.p||0),0);const keptN=PL.slots.filter(s=>s.keep).length;const newN=PL.slots.filter(s=>s.p).length+exN;
   const prob=PROBLEMS[PROB];
   const applied=[P.avoidFrag&&"Fragrance-free",P.avoidEO&&"No essential oils",P.noClog&&"Won't clog pores",P.reactions.length&&"No "+P.reactions.join(", "),P.pregnancy!==false&&"Pregnancy-safe",P.skin&&cap(P.skin)+" skin",P.city&&(P.weather?`${P.city} weather, last 7 days`:`${P.city} climate`),P.budget&&`Each under ${rupee(P.budget)}`].filter(Boolean);
-  let h=`<div class="phero"><div class="eyebrow">${NAME?`${esc(NAME)}, your plan is ready`:"Your plan is ready"}</div><h3>Three steps for ${esc(prob.label.toLowerCase())}</h3><p class="lead">${SUB?`Made for what you described: ${esc(SUB.toLowerCase())}. `:""}Each product has one clear job, and together they take just a few minutes a day.</p>
+  let h=`<div class="phero"><div class="eyebrow">${NAME?`${esc(NAME)}, your plan is ready`:"Your plan is ready"}</div><h3>${PL.slots.every(s=>s.keep)?`You already have all three steps for ${esc(prob.label.toLowerCase())}`:`Three steps for ${esc(prob.label.toLowerCase())}`}</h3><p class="lead">${SUB?`Made for what you described: ${esc(SUB.toLowerCase())}. `:""}Each product has one clear job, and together they take just a few minutes a day.</p>
     <div class="applied">${applied.map(x=>`<span class="chip ok">✓ ${esc(x)}</span>`).join("")}</div></div>
     <div class="pcards">${PL.slots.map((s,i)=>cardHTML(i,s)).join("")}</div>
-    <div class="total"><span>${keptN?`Total for ${3-keptN===1?"the new product":`the ${3-keptN} new products`}`:"Total for all three"}${keptN?`<small>You're keeping ${keptN} from your routine</small>`:""}</span><b>${rupee(total)}</b></div>${shareBarHTML()}${shelfPlanNote()}`;
+    ${extrasHTML()}
+    <div class="total"><span>${!keptN&&!exN?"Total for all three":newN===0?"Nothing new to buy":`Total for ${newN===1?"the new product":`the ${newN} new products`}`}${keptN?`<small>${keptN===PL.slots.length?"You already have all three steps covered":`You're keeping ${keptN} from your routine`}${keptN&&!exN?". See the upgrade picks and combos below.":""}</small>`:""}</span><b>${rupee(total)}</b></div>${combosHTML()}${shareBarHTML()}${shelfPlanNote()}`;
   // sponsored alternative (same checks, labelled, separate)
   const sp=CAT.filter(p=>p.sp&&PL.slots.some(s=>s.slot.cats.includes(p.c))&&check(p).ok&&!PL.ctx.used.has(p.id)&&!clash(p,PL.ctx))
     .map(p=>({p,s:slotScore(p,PL.slots.find(s=>s.slot.cats.includes(p.c)).slot)})).sort((a,b)=>b.s-a.s);
@@ -710,7 +712,7 @@ function renderPlan(){
   add("How's it going? Check in",()=>openCheckin());
   add("Check a product",()=>{$("askInput").focus();$("askInput").placeholder="Type a product name or code, e.g. P1025"});
   box.appendChild(nx);
-  box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));wireShare(box);
+  box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));wireShare(box);wireUpgrades(box);
   box.querySelectorAll(".newone").forEach(b=>b.onclick=()=>{const s=PL.slots[+b.dataset.i];const p=s.list.find(x=>!PL.ctx.used.has(x.id)&&!clash(x,PL.ctx));if(!p)return;s.keep=null;s.p=p;s.idx=s.list.indexOf(p);PL.ctx.used.add(p.id);renderPlan();saveState()});
   newBlock("plan").appendChild(box);stepNow=null;renderSide();saveState();requestAnimationFrame(()=>box.scrollIntoView({block:"start",behavior:"smooth"}));
 }
@@ -979,12 +981,106 @@ const wxShort=w=>`${r0(w.avg.tmax)}°/${r0(w.avg.tmin)}°${w.avg.rh!=null?`, ${r
 
 let WX_PENDING=null;
 /* =====================================================================
+   UPGRADES & COMBOS — when the user already owns a step, suggest a better
+   version, and add-on combos that make their existing routine work harder
+   ===================================================================== */
+const ADDONS={
+  acne:[{role:"Spot treat",cats:["Spot treatment"],when:"Dab on spots at night"},{role:"Exfoliate weekly",cats:["Exfoliant"],when:"Twice a week, at night"},{role:"Clay mask",cats:["Face mask"],when:"Once a week"},{role:"Light hydrate",cats:["Moisturiser"],when:"Morning and night",boost:[[/gel|oil-free|water|matte|aqua/i,2],[/night|rich|butter/i,-2.5]]}],
+  pigmentation:[{role:"Exfoliate gently",cats:["Exfoliant"],when:"Twice a week, at night"},{role:"Morning brightener",cats:["Serum"],when:"Every morning, before sunscreen"},{role:"Brightening mask",cats:["Face mask"],when:"Once a week"},{role:"Cleanse",cats:["Cleanser"],when:"Morning and night"}],
+  dullness:[{role:"Hydrate",cats:["Moisturiser"],when:"Morning and night",boost:[[/night/i,-1.5]]},{role:"Glow mask",cats:["Face mask"],when:"Once a week"},{role:"Prep",cats:["Toner"],when:"After cleansing"},{role:"Cleanse",cats:["Cleanser"],when:"Morning and night"}],
+  dehydration:[{role:"Seal in at night",cats:["Face oil","Moisturiser"],when:"Last step at night"},{role:"Hydrating mask",cats:["Face mask"],when:"Twice a week"},{role:"Protect",cats:["Sunscreen"],when:"Every morning"}],
+  oiliness:[{role:"Clay mask",cats:["Face mask"],when:"Once or twice a week"},{role:"Exfoliate weekly",cats:["Exfoliant"],when:"Twice a week, at night"},{role:"Light hydrate",cats:["Moisturiser"],when:"Morning and night",boost:[[/gel|oil-free|water|matte|aqua/i,2],[/night|rich|butter/i,-2.5]]}],
+  tanning:[{role:"Hydrate",cats:["Moisturiser"],when:"Morning and night",boost:[[/night/i,-1.5]]},{role:"Brightening mask",cats:["Face mask"],when:"Once a week"},{role:"Cleanse",cats:["Cleanser"],when:"Morning and night"}],
+  redness:[{role:"Protect",cats:["Sunscreen"],when:"Every morning"},{role:"Soothing mask",cats:["Face mask"],when:"Once or twice a week"},{role:"Prep",cats:["Toner"],when:"After cleansing"}],
+  "fine lines":[{role:"Morning antioxidant",cats:["Serum"],when:"Every morning, before sunscreen"},{role:"Eye care",cats:["Eye cream"],when:"Morning and night"},{role:"Cleanse gently",cats:["Cleanser"],when:"Morning and night"}],
+  "dark circles":[{role:"Night serum",cats:["Serum"],when:"At night"},{role:"Cleanse gently",cats:["Cleanser"],when:"Morning and night"},{role:"Hydrating mask",cats:["Face mask"],when:"Once a week"}],
+};
+function upgradeFor(i){
+  const s=PL.slots[i];if(!s.keep)return null;const own=s.keep;
+  const others=new Set(PL.slots.filter((x,j)=>j!==i&&x.p).map(x=>x.p.id));(PL.extras||[]).forEach(x=>others.add(x.p.id));
+  for(const p of s.list.slice(0,8)){if(others.has(p.id))continue;const why=upgradeReasons(own,p,s.slot);if(why.length)return{p,why}}
+  return null;
+}
+function upgradeReasons(own,p,slot){
+  const out=[],prob=PROBLEMS[PROB].label.toLowerCase(),ownActs=new Set(own.acts||[]);
+  const add=actives(p).filter(a=>!ownActs.has(a.name.toLowerCase()));
+  const rel=add.filter(a=>RELEVANT[PROB]&&RELEVANT[PROB].test(a.name));
+  if(rel.length)out.push(`adds <b>${esc(rel.map(a=>a.name).join(" and "))}</b>, which ${esc(rel[0].does)}`);
+  if((p.con||[]).includes(PROB)&&!(own.con||[]).includes(PROB))out.push(`made to target <b>${esc(prob)}</b>, which ${own.p?"yours isn't":`a regular ${esc(own.short.toLowerCase())} isn't`}`);
+  if(p.c==="Sunscreen"){const os=own.p?.spf||0;if((p.spf||0)>=50&&os<50)out.push(`<b>SPF ${p.spf}${p.pa?" "+esc(p.pa):""}</b> for stronger protection${["pigmentation","tanning"].includes(PROB)?", so spots and tan don't return":""}`)}
+  if(P.skin&&p.st?.includes(P.skin)&&p.st.length<4&&!(own.p&&own.p.st?.includes(P.skin)))out.push(`made specifically for <b>${esc(P.skin)} skin</b>`);
+  const wy=P.weather&&weatherBoost(p)>0?wxWhyFor(p):null;if(wy)out.push(`suits this week's <b>${esc(wy)}</b> in ${esc(P.city)}`);
+  if(!rel.length&&add.length&&out.length<2)out.push(`adds ${esc(add.slice(0,2).map(a=>a.name).join(" and "))}`);
+  return out.slice(0,3);
+}
+function upgradeHTML(i){
+  const u=upgradeFor(i);if(!u)return"";const p=u.p;
+  return`<div class="upg"><div class="upg-top"><span class="upg-tag">${SVG('<path d="M12 19V5M6 11l6-6 6 6"/>')}Upgrade pick</span><span class="upg-price">${rupee(p.p)}</span></div>
+    <b class="upg-nm">${esc(p.n)}</b><ul>${u.why.map(w=>`<li>${w.charAt(0).toUpperCase()+w.slice(1)}</li>`).join("")}</ul>
+    <button type="button" class="btn upg-go" data-up="${i}" data-pid="${p.id}">Switch to this</button></div>`;
+}
+function combos(){
+  const roles=(ADDONS[PROB]||[]);const planCats=new Set(PL.slots.flatMap(s=>s.slot.cats));
+  const used=new Set([...PL.slots.filter(s=>s.p).map(s=>s.p.id),...(P.shelf||[]).filter(x=>x.id).map(x=>x.id)]);
+  const ctx={...PL.ctx,used};const picks=[];
+  roles.forEach((r,ri)=>{
+    if(r.cats.every(c=>planCats.has(c))&&!/morning|night|seal/i.test(r.role))return;   // already a step in the plan
+    const slot={role:r.role,when:r.when,cats:r.cats,con:PROB,boost:r.boost||[]};
+    const p=rankSlot(slot,ctx).find(x=>!used.has(x.id)&&!picks.some(y=>y.p.id===x.id));
+    if(p)picks.push({slot,p,s:slotScore(p,slot)+(roles.length-ri)*1.5});   // earlier roles matter more for this concern
+  });
+  picks.sort((a,b)=>b.s-a.s);
+  const out=[];if(picks[0])out.push({k:"boost",title:"Quick boost",sub:"One addition that works hardest with what you have",items:[picks[0]]});
+  if(picks.length>=2)out.push({k:"full",title:"Full routine upgrade",sub:"Two additions for faster, steadier results",items:picks.slice(0,2).sort((a,b)=>/mask/i.test(a.slot.role)-/mask/i.test(b.slot.role))});
+  return out;
+}
+function routineLines(extra){
+  const am=[],pm=[],weekly=[];
+  const ORDER=["Cleanser","Toner","Exfoliant","Serum","Spot treatment","Eye cream","Moisturiser","Face oil","Face mask","Sunscreen"];
+  const all=[...PL.slots.map(s=>({slot:s.slot,cat:s.keep?s.keep.cat:s.p?.c,name:s.keep?(s.keep.p?s.keep.p.n:cap(s.keep.name.replace(/^your /,"your "))):s.p?.n,own:!!s.keep})).filter(x=>x.name),...extra.map(x=>({slot:x.slot,cat:x.p.c,name:x.p.n,add:true}))]
+    .sort((a,b)=>ORDER.indexOf(a.cat)-ORDER.indexOf(b.cat));
+  for(const x of all){const w=x.slot.when.toLowerCase();const label=`${x.own?"Your ":""}${x.own?x.name.replace(/^your /i,""):x.name}${x.add?" (new)":""}`;
+    if(/week/.test(w))weekly.push(label);else{if(/morning|day|spots/.test(w)&&!/night only/.test(w))am.push(label);if(/night|spots/.test(w)||/morning and night/.test(w))pm.push(label)}}
+  const fix=a=>[...new Set(a)];return{am:fix(am),pm:fix(pm.filter(n=>!/sunscreen/i.test(n))),weekly:fix(weekly)};
+}
+function combosHTML(){
+  const kept=PL.slots.filter(s=>s.keep).length;if(!kept)return"";const cs=combos();if(!cs.length)return"";
+  const added=new Set((PL.extras||[]).map(x=>x.p.id));
+  return`<div class="combos"><h4>${kept===PL.slots.length?"You already have the basics. Here's how to get more from them":"Make your routine work harder"}</h4>
+    <p class="combos-sub">Every add-on passes the same safety checks, doesn't clash with what you already use, and fits around it.</p>
+    <div class="combo-grid">${cs.map(c=>{const tot=c.items.reduce((t,x)=>t+(x.p.p||0),0),isOn=c.items.every(x=>added.has(x.p.id)),r=routineLines(c.items);
+      return`<article class="combo${isOn?" on":""}"><div class="combo-h"><div><span class="combo-k">${esc(c.title)}</span><small>${esc(c.sub)}</small></div><b>+${rupee(tot)}</b></div>
+        ${c.items.map(x=>`<div class="combo-it"><span class="role">${esc(x.slot.role)} · ${esc(x.slot.when)}</span><b>${esc(x.p.n)}</b><p>${lineHTML(x.p,x.slot)}</p></div>`).join("")}
+        <div class="combo-rt"><span>How your routine would look</span><ul>${r.am.length?`<li><b>Morning:</b> ${esc(r.am.join(" → "))}</li>`:""}${r.pm.length?`<li><b>Night:</b> ${esc(r.pm.join(" → "))}</li>`:""}${r.weekly.length?`<li><b>Weekly:</b> ${esc(r.weekly.join(", "))}</li>`:""}</ul></div>
+        <button type="button" class="btn ${isOn?"":"primary"} combo-go" data-combo="${c.items.map(x=>x.p.id).join(",")}" data-roles="${esc(JSON.stringify(c.items.map(x=>x.slot)))}">${isOn?"Remove from my plan":"Add to my plan"}</button></article>`}).join("")}</div></div>`;
+}
+function extrasHTML(){
+  const ex=PL.extras||[];if(!ex.length)return"";
+  return`<div class="extras"><h4>Your add-ons</h4><div class="pcards">${ex.map((x,j)=>`<article class="pcard addon"><div class="phead"><span class="stepn">+</span><div class="role">${esc(x.slot.role)} <span class="when">· ${esc(x.slot.when)}</span></div><div class="price">${rupee(x.p.p)}</div></div>
+    <div class="ptop"><div class="thumb">${IC[CAT_IC[x.p.c]||"dropper"]}</div><div style="min-width:0"><div class="brand">${esc(x.p.b)}</div><div class="nm">${esc(x.p.n.replace(x.p.b+" ",""))}</div><div class="cat">${esc(x.p.c)}</div></div></div>
+    <p class="why1">${lineHTML(x.p,x.slot)}</p><div class="pfoot"><span class="small muted">${esc(x.p.sz||"")} · add-on</span><button type="button" class="btn ghost rmx" data-x="${j}">Remove</button></div></article>`).join("")}</div></div>`;
+}
+function wireUpgrades(box){
+  box.querySelectorAll(".upg-go").forEach(b=>b.onclick=()=>{const s=PL.slots[+b.dataset.up],p=BY_ID[b.dataset.pid];if(!p)return;
+    botSay(`Good call${nm(", ")}. I've switched your ${esc(s.slot.role.toLowerCase())} step to <b>${esc(p.n)}</b>. You can finish your current ${esc(s.keep.short.toLowerCase())} first, then move to this.`);
+    s.keep=null;s.p=p;s.idx=Math.max(0,s.list.indexOf(p));PL.ctx.used.add(p.id);if(p.ret)PL.ctx.ret=true;if((p.aha||p.bha)&&p.c!=="Cleanser")PL.ctx.acid=true;renderPlan();saveState()});
+  box.querySelectorAll(".combo-go").forEach(b=>b.onclick=()=>{const ids=b.dataset.combo.split(","),roles=JSON.parse(b.dataset.roles);PL.extras=PL.extras||[];
+    const on=ids.every(id=>PL.extras.some(x=>x.p.id===id));
+    if(on){PL.extras=PL.extras.filter(x=>!ids.includes(x.p.id))}
+    else{PL.extras=PL.extras.filter(x=>!roles.some(r=>r.role===x.slot.role));ids.forEach((id,k)=>{if(!PL.extras.some(x=>x.p.id===id))PL.extras.push({slot:roles[k],p:BY_ID[id]})});
+      botSay(`Added${nm(", ")}! Start the new ${ids.length>1?"products one at a time, a week apart,":"product"} so you can tell how your skin takes ${ids.length>1?"each":"it"}.`)}
+    META.extraIds=PL.extras.map(x=>({id:x.p.id,slot:x.slot}));renderPlan();saveState()});
+  box.querySelectorAll(".rmx").forEach(b=>b.onclick=()=>{PL.extras.splice(+b.dataset.x,1);META.extraIds=PL.extras.map(x=>({id:x.p.id,slot:x.slot}));renderPlan();saveState()});
+}
+
+/* =====================================================================
    SHARE — WhatsApp text (no private answers) and a branded PDF
    ===================================================================== */
 function planShareText(){
   const prob=PROBLEMS[PROB].label.toLowerCase();const nums=["1️⃣","2️⃣","3️⃣"];
   const lines=PL.slots.map((s,i)=>s.keep?`${nums[i]} ${s.slot.role} (${s.slot.when.toLowerCase()}): keep using my ${s.keep.short.toLowerCase()}`:s.p?`${nums[i]} ${s.slot.role} (${s.slot.when.toLowerCase()}): ${s.p.n} – ${rupee(s.p.p)}`:null).filter(Boolean);
-  const total=PL.slots.reduce((t,s)=>t+(s.p?.p||0),0);
+  (PL.extras||[]).forEach(x=>lines.push(`➕ ${x.slot.role} (${x.slot.when.toLowerCase()}): ${x.p.n} – ${rupee(x.p.p)}`));
+  const total=PL.slots.reduce((t,s)=>t+(s.p?.p||0),0)+(PL.extras||[]).reduce((t,x)=>t+(x.p.p||0),0);
   return`✨ My Aaina skin plan for ${prob}\n\n${lines.join("\n")}\n\nTotal: ${rupee(total)}\n\nTip: start one product at a time, a few days apart, and wear sunscreen every morning.\n\nMade with Aaina AI Skin Advisor · Reflect. Reveal. Radiate.`;
 }
 function shareBarHTML(){
@@ -1046,14 +1142,14 @@ function makePlanPDF(){
   if(checks.length){para("Checks every product passed: "+checks.join("  ·  "),9.5,{color:MUTED});y+=6}
   // routine
   y+=6;para("Your routine",15,{bold:true});y+=4;
-  PL.slots.forEach((sl,i)=>{
+  [...PL.slots,...(PL.extras||[]).map(x=>({slot:x.slot,p:x.p,addon:true}))].forEach((sl,i)=>{
     const p=sl.p,k=sl.keep;const body=[];
     if(k)body.push(["",`Keep using ${k.p?k.p.n:k.name}. It already covers this step, so there's no need to buy another.`]);
     else if(p){body.push(["Why",oneLine(p,sl.slot)]);body.push(["How to use",useList(p,sl.slot).map(cap).join(". ")+"."])}
     else body.push(["","Nothing in our range passes all your checks for this step, so I've left it out rather than bend a safety rule."]);
     const lines=body.reduce((n,[l,t])=>n+pdfWrap(t,9.5,CW-110,false).length,0);const h=44+lines*13.5+(p?14:0);
     need(h+10);rect(M,y,CW,h,"#fdf5f8");rect(M,y,4,h,BR);
-    rect(M+14,y+12,20,20,BR);text(M+21,y+26,String(i+1),11,{bold:true,color:"#ffffff"});
+    rect(M+14,y+12,20,20,BR);text(M+21,y+26,sl.addon?"+":String(i+1),11,{bold:true,color:"#ffffff"});
     text(M+44,y+22,`${sl.slot.role.toUpperCase()}  ·  ${sl.slot.when}`,8.5,{bold:true,color:BR});
     const name=k?(k.p?k.p.n:cap(k.short)):p?p.n:"No product";text(M+44,y+38,pdfWrap(name,12.5,CW-140,true)[0],12.5,{bold:true});
     if(p){const pr=`Rs ${Math.round(p.p).toLocaleString("en-IN")}`;text(W-M-12-pdfW(pr,12.5,true),y+38,pr,12.5,{bold:true});text(M+44,y+52,`${p.b}  ·  ${p.c}${p.sz?"  ·  "+p.sz:""}`,8.5,{color:MUTED})}
@@ -1062,8 +1158,8 @@ function makePlanPDF(){
     for(const[l,t]of body){const ls=pdfWrap(t,9.5,CW-110,false);if(l)text(M+44,yy,l,8.5,{bold:true,color:MUTED});ls.forEach((ln,j)=>text(M+(l?110:44),yy+j*13.5,ln,9.5));yy+=ls.length*13.5}
     y+=h+10;
   });
-  const total=PL.slots.reduce((t,x)=>t+(x.p?.p||0),0);const kept=PL.slots.filter(x=>x.keep).length;
-  need(30);rect(M,y,CW,1,"#e8cfdb");y+=18;text(M,y,kept?`Total for the new product${3-kept>1?"s":""}`:"Total for all three",11);const tt=`Rs ${Math.round(total).toLocaleString("en-IN")}`;text(W-M-pdfW(tt,15,true),y+2,tt,15,{bold:true});y+=26;
+  const total=PL.slots.reduce((t,x)=>t+(x.p?.p||0),0)+(PL.extras||[]).reduce((t,x)=>t+(x.p.p||0),0);const kept=PL.slots.filter(x=>x.keep).length;const nNew=PL.slots.filter(x=>x.p).length+(PL.extras||[]).length;
+  need(30);rect(M,y,CW,1,"#e8cfdb");y+=18;text(M,y,kept||PL.extras?.length?(nNew?`Total for the ${nNew} new product${nNew>1?"s":""}`:"Nothing new to buy"):"Total for all three",11);const tt=`Rs ${Math.round(total).toLocaleString("en-IN")}`;text(W-M-pdfW(tt,15,true),y+2,tt,15,{bold:true});y+=26;
   // shelf notes
   if((PL.shelf||[]).length){const d=document.createElement("div");d.innerHTML=shelfPlanNote();const items=[...d.querySelectorAll("li")].map(li=>li.textContent.trim()).filter(Boolean);
     if(items.length){y+=4;para("Works with what you already use",12.5,{bold:true});items.forEach(t=>para("-  "+t,9.5,{x:M+6,w:CW-6}));y+=6}}
