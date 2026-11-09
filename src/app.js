@@ -332,6 +332,7 @@ function afterNote(key){
    if(left===1)return[`<b>Last question${nm(", ")}!</b> Your plan is ready right after this.`];
    if(left===2&&key!=="problem")return[`You're doing great${nm(", ")}. <b>Just two more</b> and your plan is ready.`];}
   if(key==="follow")return[`Thanks, that really helps me narrow it down.`];
+  if(key==="location"&&P.city&&P.weather){const w=P.weather;return[`Over the last 7 days ${esc(P.city)} has been <b>${esc(wxHeadline(w).toLowerCase())}</b> (${esc(wxShort(w))}). I'll pick textures for that${P.seasonAlert?", and remind you to refresh your plan when the weather turns":""}.`]}
   if(key==="location"&&P.city){const se=seasonFor();return[`${esc(P.city)} is mostly <b>${CLIMATE_SAY[P.climate]}</b>${se?`, and it's <b>${esc(se.say)}</b> there now`:""}. I'll pick textures to suit${P.seasonAlert&&se?`, and remind you to refresh your plan when ${esc(se.nextSay)} arrives`:""}.`]}
   return null;
 }
@@ -348,13 +349,19 @@ function locationWidget(){
   const st=w.querySelector("[data-st]"),ct=w.querySelector("[data-ct]"),ow=w.querySelector("[data-ow]"),other=w.querySelector("[data-other]"),go=w.querySelector("[data-go]");
   const seasonBox=w.querySelector("[data-season]");
   const ready=()=>{const ok=!!(st.value&&ct.value&&(ct.value!=="__other"||other.value.trim()));go.disabled=!ok;
-    if(ok){const s=INDIA[st.value],listed=ct.value!=="__other",city=listed?ct.value:other.value.trim();const html=seasonCardHTML(city,st.value,(listed&&s.c[ct.value])||s.d);if(seasonBox.dataset.k!==city+st.value){seasonBox.innerHTML=html;seasonBox.dataset.k=city+st.value;focusEl(go)}}
+    if(ok){const s=INDIA[st.value],listed=ct.value!=="__other",city=listed?ct.value:other.value.trim(),state=st.value,clim=(listed&&s.c[ct.value])||s.d,k=city+"|"+state;
+      if(seasonBox.dataset.k!==k){seasonBox.dataset.k=k;WX_PENDING=null;seasonBox.innerHTML=weatherLoadingHTML(city);focusEl(go);
+        const job=fetchWeather(city,state).then(w=>{if(seasonBox.dataset.k!==k)return;WX_PENDING={k,w};seasonBox.innerHTML=weatherCardHTML(w,city,state,clim);if(P.city===city&&P.state===state)P.weather=w;focusEl(go)})
+          .catch(()=>{if(seasonBox.dataset.k!==k)return;WX_PENDING={k,w:null};seasonBox.innerHTML=weatherFallbackHTML(city,state,clim)});}}
     else{seasonBox.innerHTML="";seasonBox.dataset.k=""}};
   const fill=()=>{const s=INDIA[st.value];ct.innerHTML=s?`<option value="">Choose your city</option>`+Object.keys(s.c).sort((a,b)=>a.localeCompare(b)).map(c=>`<option${c===P.city?" selected":""}>${esc(c)}</option>`).join("")+`<option value="__other">My city isn't listed</option>`:`<option value="">Choose your state first</option>`;ct.disabled=!s;ow.hidden=true;ready()};
   st.onchange=fill;if(st.value)fill();
   const find=w.querySelector("[data-find]");find.oninput=()=>{const v=find.value.trim().toLowerCase();const hit=ALLC.find(([c,s])=>`${c}, ${s}`.toLowerCase()===v)||(v.length>2&&ALLC.filter(([c])=>c.toLowerCase()===v).length===1&&ALLC.find(([c])=>c.toLowerCase()===v));
     if(hit){st.value=hit[1];fill();ct.value=hit[0];ow.hidden=true;ready()}};ct.onchange=()=>{ow.hidden=ct.value!=="__other";if(!ow.hidden)other.focus();ready()};other.oninput=ready;
-  go.onclick=()=>{const s=INDIA[st.value],listed=ct.value!=="__other",city=listed?ct.value:other.value.trim().replace(/\s+/g," ");P.state=st.value;P.city=city;P.climate=(listed&&s.c[ct.value])||s.d;const al=w.querySelector("[data-salert]");P.seasonAlert=al?al.checked:false;answer("location",null,`${city}, ${st.value}`)};
+  go.onclick=()=>{const s=INDIA[st.value],listed=ct.value!=="__other",city=listed?ct.value:other.value.trim().replace(/\s+/g," ");P.state=st.value;P.city=city;P.climate=(listed&&s.c[ct.value])||s.d;const al=w.querySelector("[data-salert]");P.seasonAlert=al?al.checked:false;
+    P.weather=WX_PENDING&&WX_PENDING.k===city+"|"+st.value?WX_PENDING.w:null;
+    if(!P.weather)fetchWeather(city,st.value).then(x=>{if(P.city===city){P.weather=x;saveState()}}).catch(()=>{});
+    answer("location",null,`${city}, ${st.value}`)};
   return w;
 }
 
@@ -613,7 +620,7 @@ function slotScore(p,slot){
   if(p.aha&&p.c==="Cleanser"&&!["dullness","tanning"].includes(PROB))s-=2;
   if(!exSlot&&HARSH_NAME.test(p.n)&&["dehydration","redness","fine lines","dark circles"].includes(PROB))s-=4;
   if((PROB==="redness"||P.sensitive)&&(p.aha||p.ret||(p.bha&&p.leaveOn)))s-=6;
-  s+=seasonBoost(p);
+  s+=weatherBoost(p);
   if(SHELF_ACTS.size&&actives(p).some(a=>SHELF_ACTS.has(a.name.toLowerCase())))s-=5;   // don't double up on what they already use
   return s;
 }
@@ -683,7 +690,7 @@ function renderPlan(){
   const box=document.createElement("div");box.className="plan";
   const total=PL.slots.reduce((t,s)=>t+(s.p?.p||0),0);const keptN=PL.slots.filter(s=>s.keep).length;
   const prob=PROBLEMS[PROB];
-  const applied=[P.avoidFrag&&"Fragrance-free",P.avoidEO&&"No essential oils",P.noClog&&"Won't clog pores",P.reactions.length&&"No "+P.reactions.join(", "),P.pregnancy!==false&&"Pregnancy-safe",P.skin&&cap(P.skin)+" skin",P.city&&`${P.city} climate`,P.budget&&`Each under ${rupee(P.budget)}`].filter(Boolean);
+  const applied=[P.avoidFrag&&"Fragrance-free",P.avoidEO&&"No essential oils",P.noClog&&"Won't clog pores",P.reactions.length&&"No "+P.reactions.join(", "),P.pregnancy!==false&&"Pregnancy-safe",P.skin&&cap(P.skin)+" skin",P.city&&(P.weather?`${P.city} weather, last 7 days`:`${P.city} climate`),P.budget&&`Each under ${rupee(P.budget)}`].filter(Boolean);
   let h=`<div class="phero"><div class="eyebrow">${NAME?`${esc(NAME)}, your plan is ready`:"Your plan is ready"}</div><h3>Three steps for ${esc(prob.label.toLowerCase())}</h3><p class="lead">${SUB?`Made for what you described: ${esc(SUB.toLowerCase())}. `:""}Each product has one clear job, and together they take just a few minutes a day.</p>
     <div class="applied">${applied.map(x=>`<span class="chip ok">✓ ${esc(x)}</span>`).join("")}</div></div>
     <div class="pcards">${PL.slots.map((s,i)=>cardHTML(i,s)).join("")}</div>
@@ -738,7 +745,7 @@ function told(){
   const also=P.concerns.filter(c=>c!==PROB);if(also.length)r.push(["Also helping with",also.map(c=>esc(PROBLEMS[c].label)).join(", ")]);
   if(P.skin)r.push(["Skin type",esc(cap(P.skin))]);
   if(P.tone)r.push(["Skin tone",`${P.tone} of 10<small>${esc(cap(MONK_LABEL[P.tone]))}</small>`]);
-  if(P.city){const se=seasonFor();r.push(["Where you live",`${esc(P.city)}<small>Mostly ${esc(CLIMATE_SAY[P.climate])}${se?` · ${esc(cap(se.say.replace(/^the /,"")))} now`:""}</small>`])}
+  if(P.city){const se=seasonFor();r.push(["Where you live",`${esc(P.city)}<small>${P.weather?`Last 7 days: ${esc(wxShort(P.weather))}`:`Mostly ${esc(CLIMATE_SAY[P.climate])}${se?` · ${esc(cap(se.say.replace(/^the /,"")))} now`:""}`}</small>`])}
   const avoid=[P.avoidFrag&&"Fragrance",P.avoidEO&&"Essential oils",P.noClog&&"Pore-clogging formulas",...P.reactions.map(cap)].filter(Boolean);
   if(avoid.length)r.push(["Avoiding",esc(avoid.join(", "))]);
   r.push(["Pregnancy-cautious",P.pregnancy===false?"No":"Yes"]);
@@ -767,7 +774,7 @@ function explainHTML(){
     if((P.skin==="oily"||PROB==="acne")&&p.com==="low")fit.push("low risk of clogging pores");
     if(P.tone>=7&&p.c==="Sunscreen"&&/invisible|aqua|hybrid/i.test(p.n))fit.push("a sheer texture that won't leave a white cast on deeper skin");
     else if(P.tone>=7&&/niacinamide|azelaic|tranexamic|arbutin|licorice/i.test(hay(p))&&["acne","pigmentation","dullness","tanning"].includes(PROB))fit.push("a gentle way to even tone on deeper skin, which can darken after irritation");
-    {const se=seasonFor();if(se&&seasonBoost(p)>0)fit.push(`a texture that suits ${se.label.toLowerCase()} in ${P.city}`)}
+    {const se=seasonFor();if(P.weather&&weatherBoost(p)>0)fit.push(`suits this week's ${wxWhyFor(p)} in ${P.city}`);else if(!P.weather&&se&&seasonBoost(p)>0)fit.push(`a texture that suits ${se.label.toLowerCase()} in ${P.city}`)}
     const hit=p.con.filter(c=>P.concerns.includes(c)&&c!==PROB);if(hit.length)fit.push(`also targets ${hit.map(c=>PROBLEMS[c]?.label.toLowerCase()||c).join(" and ")}`);
     if(SUB&&(PREF.boost||[]).some(([re,w])=>w>0&&re.test(hay(p))))fit.push(`matches what you described ("${SUB}")`);
     const safe=[P.avoidFrag&&"no fragrance, including hidden fragrance ingredients",P.avoidEO&&"no essential oils",...P.reactions.map(r=>`no ${r}`),P.pregnancy!==false&&(p.ret||p.salPct>=2?null:"no retinoids or strong salicylic acid"),P.budget&&`under your ${rupee(P.budget)} budget`].filter(Boolean);
@@ -878,6 +885,100 @@ function seasonBoost(p){
 }
 
 /* =====================================================================
+   LIVE WEATHER — the last 7 days in the user's city (Open-Meteo, no key)
+   ===================================================================== */
+const WX_TTL=3*3600*1000;
+const wxKey=(c,s)=>`aaina.wx.${c}|${s}`;
+async function getJSON(url,ms=8000){const ac=new AbortController();const t=setTimeout(()=>ac.abort(),ms);try{const r=await fetch(url,{signal:ac.signal});if(!r.ok)throw new Error("http "+r.status);return await r.json()}finally{clearTimeout(t)}}
+async function fetchWeather(city,state){
+  try{const c=JSON.parse(store()?.getItem(wxKey(city,state))||"null");if(c&&Date.now()-c.at<WX_TTL)return c}catch{}
+  const name=city.replace(/\s*\(.*?\)\s*/g,"").trim();
+  const geo=await getJSON(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=10&language=en&format=json&countryCode=IN`);
+  const res=(geo.results||[]).filter(r=>r.country_code==="IN");
+  const norm=x=>String(x||"").toLowerCase().replace(/[^a-z]/g,"");
+  const g=res.find(r=>norm(r.admin1)===norm(state))||res.find(r=>norm(state).includes(norm(r.admin1))||norm(r.admin1).includes(norm(state)))||res[0];
+  if(!g)throw new Error("city not found");
+  const base=`latitude=${g.latitude.toFixed(3)}&longitude=${g.longitude.toFixed(3)}&past_days=7&forecast_days=1&timezone=auto`;
+  const [wx,aq]=await Promise.allSettled([
+    getJSON(`https://api.open-meteo.com/v1/forecast?${base}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,uv_index_max&hourly=relative_humidity_2m`),
+    getJSON(`https://air-quality-api.open-meteo.com/v1/air-quality?${base}&hourly=pm2_5,us_aqi`)]);
+  if(wx.status!=="fulfilled")throw wx.reason;
+  const out=analyseWeather(wx.value,aq.status==="fulfilled"?aq.value:null);out.city=city;out.state=state;out.at=Date.now();
+  try{store()?.setItem(wxKey(city,state),JSON.stringify(out))}catch{}
+  return out;
+}
+function analyseWeather(w,aq){
+  const D=w.daily,dates=D.time.slice(0,7);const byDay=(h,key)=>{const m={};if(!h||!h[key])return m;h.time.forEach((t,i)=>{const d=t.slice(0,10),v=h[key][i];if(v==null)return;(m[d]=m[d]||[]).push(v)});return m};
+  const rhD=byDay(w.hourly,"relative_humidity_2m"),pmD=byDay(aq?.hourly,"pm2_5"),aqiD=byDay(aq?.hourly,"us_aqi");
+  const mean=a=>a&&a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+  const days=dates.map((d,i)=>({d,tmax:D.temperature_2m_max[i],tmin:D.temperature_2m_min[i],rain:D.precipitation_sum[i]||0,uv:D.uv_index_max?.[i]??null,rh:mean(rhD[d]),pm:mean(pmD[d]),aqi:mean(aqiD[d])}));
+  const av=k=>{const v=days.map(x=>x[k]).filter(x=>x!=null);return v.length?mean(v):null};
+  const avg={tmax:av("tmax"),tmin:av("tmin"),rh:av("rh"),uv:av("uv"),pm:av("pm"),aqi:av("aqi"),rain:days.reduce((t,x)=>t+(x.rain||0),0),rainDays:days.filter(x=>x.rain>=1).length};
+  const half=(k,a,b)=>mean(days.slice(a,b).map(x=>x[k]).filter(x=>x!=null));
+  const trend={rh:(half("rh",4,7)??0)-(half("rh",0,3)??0),t:(half("tmax",4,7)??0)-(half("tmax",0,3)??0)};
+  const f={dry:avg.rh!=null&&avg.rh<45,humid:avg.rh!=null&&avg.rh>=70,hot:avg.tmax>=33,cold:avg.tmin<12,swing:avg.tmax-avg.tmin>=12,wet:avg.rainDays>=3||avg.rain>=25,
+    uvHigh:avg.uv!=null&&avg.uv>=7,polluted:avg.pm!=null&&avg.pm>=60,veryPolluted:avg.pm!=null&&avg.pm>=120,drying:trend.rh<=-10,cooling:trend.t<=-3};
+  return{days,avg,trend,flags:f};
+}
+const r0=v=>Math.round(v);
+function wxHeadline(w){const a=w.avg,f=w.flags;
+  const t=a.tmax>=33?"hot":a.tmax>=27?"warm":a.tmax>=20?"mild":a.tmax>=12?"cool":"cold";
+  const h=f.dry?"dry":f.humid?"humid":"comfortable";const parts=[t,h];
+  if(f.wet)parts.push("rainy");if(f.veryPolluted)parts.push("smoggy");else if(f.polluted)parts.push("hazy");
+  const s=parts.length>2?parts.slice(0,-1).join(", ")+" and "+parts.at(-1):parts.join(" and ");return cap(s);
+}
+function wxInsights(w){const a=w.avg,f=w.flags,out=[];
+  if(a.rh!=null)out.push({k:"rh",ic:'<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',t:`Humidity averaged <b>${r0(a.rh)}%</b>${f.drying?`, and fell ${r0(-w.trend.rh)} points this week`:""}`,
+    s:f.dry?"Skin loses water faster in dry air, so I'll favour a ceramide-rich moisturiser and a gentle, non-foaming cleanser.":f.humid?"Sweat and oil build up faster, so I'll keep textures light, oil-free and non-clogging.":"Comfortable for most skin, so I'll match textures to your skin type."});
+  out.push({k:"t",ic:'<path d="M10 14V5a2 2 0 1 1 4 0v9a4 4 0 1 1-4 0z"/>',t:`Days around <b>${r0(a.tmax)}°C</b>, nights around <b>${r0(a.tmin)}°C</b>`,
+    s:f.cold?"Cold nights dry skin out, so richer moisture at night helps.":f.swing?"Big swings between day and night can leave skin tight, so barrier support helps.":f.hot?"Heat raises oil and sweat, so a matte sunscreen you'll actually reapply matters.":"Mild temperatures, so nothing extra is needed here."});
+  if(a.uv!=null)out.push({k:"uv",ic:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2"/>',t:`UV peaked around <b>${a.uv.toFixed(1)}</b> a day`,
+    s:f.uvHigh?"That's high: SPF 50 PA+++ every morning, and reapply when you're outdoors.":a.uv>=3?"Moderate: SPF 30 or more every morning is enough.":"Low, but daily sunscreen still prevents spots and tanning."});
+  if(f.wet)out.push({k:"rain",ic:'<path d="M7 13a4 4 0 1 1 1-7.9A5 5 0 0 1 18 7a3.5 3.5 0 0 1-1 6.9H7z"/><path d="M8 17l-1 3M12 17l-1 3M16 17l-1 3"/>',t:`Rain on <b>${a.rainDays} of 7 days</b> (${r0(a.rain)} mm)`,s:"Damp air makes breakouts flare more easily, so I'll avoid heavy creams."});
+  if(a.pm!=null)out.push({k:"pm",ic:'<path d="M3 8h11a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h8"/>',t:`Air quality: PM2.5 around <b>${r0(a.pm)} µg/m³</b>${f.veryPolluted?" (very poor)":f.polluted?" (poor)":" (fine)"}`,
+    s:f.polluted?"Pollution clings to skin and can dull it, so cleanse well every evening; antioxidants like vitamin C or niacinamide help.":"Not a concern for your skin this week."});
+  return out;
+}
+function wxStripHTML(w){
+  const ds=w.days,lo=Math.min(...ds.map(x=>x.tmin)),hi=Math.max(...ds.map(x=>x.tmax)),span=Math.max(1,hi-lo);
+  return`<div class="wxstrip" role="img" aria-label="Last 7 days: highs ${ds.map(x=>r0(x.tmax)).join(", ")} degrees">${ds.map(x=>{const day=new Date(x.d+"T12:00").toLocaleDateString("en-IN",{weekday:"short"});
+    const top=100*(hi-x.tmax)/span,h=Math.max(8,100*(x.tmax-x.tmin)/span);
+    return`<div class="wxd"><span class="wxhi">${r0(x.tmax)}°</span><span class="wxbar"><i style="top:${top}%;height:${h}%"></i></span><span class="wxlo">${r0(x.tmin)}°</span>${x.rh!=null?`<span class="wxrh" title="Humidity">${r0(x.rh)}%</span>`:""}<span class="wxrain">${x.rain>=1?"💧":""}</span><span class="wxday">${esc(day)}</span></div>`}).join("")}</div>`;
+}
+function weatherCardHTML(w,city,state,climate){
+  const se=seasonFor(state,climate);const ins=wxInsights(w);const upd=new Date(w.at).toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit"});
+  return`<div class="season wxcard"><div class="season-ic">${SEASON_IC[w.flags.wet?"monsoon":w.flags.cold?"winter":w.flags.hot?"summer":"post"]}</div><div class="season-tx">
+    <span class="season-eyebrow">Last 7 days in ${esc(city)} · live</span><b>${esc(wxHeadline(w))}</b>
+    ${wxStripHTML(w)}
+    <ul class="wxins">${ins.map(i=>`<li>${SVG(i.ic)}<div><span>${i.t}</span><small>${esc(i.s)}</small></div></li>`).join("")}</ul>
+    ${se?`<p class="season-next">Season: <b>${esc(se.label)}</b>. ${esc(se.next)} usually starts in ${esc(se.nextFrom)}.</p>`:""}
+    <label class="agree season-opt"><input type="checkbox" data-salert ${P.seasonAlert!==false?"checked":""}> Remind me to refresh my plan when the weather turns in ${esc(city)}</label>
+    <p class="wxsrc">Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> · updated ${esc(upd)}</p></div></div>`;
+}
+function weatherLoadingHTML(city){return`<div class="season wxcard loading" aria-busy="true"><div class="season-ic"><span class="wxspin"></span></div><div class="season-tx"><span class="season-eyebrow">Checking live weather</span><b>Looking at the last 7 days in ${esc(city)}…</b><div class="wxskel"><i></i><i></i><i></i></div></div></div>`}
+function weatherFallbackHTML(city,state,climate){return seasonCardHTML(city,state,climate).replace('<span class="season-eyebrow">',`<span class="wxnote">Live weather couldn't load here, so this is based on the usual season.</span><span class="season-eyebrow">`)}
+/* ranking: textures that suit this week's actual weather (falls back to the season) */
+function weatherBoost(p){
+  const w=P.weather;if(!w||!w.flags)return seasonBoost(p);const f=w.flags,t=hay(p);let b=0;
+  if(p.c==="Moisturiser"){
+    if(f.dry||f.cold||f.drying){if(/ceramide|squalane|butyrospermum|shea|cream/i.test(t))b+=1.8;if(/gel|water/i.test(p.n)&&f.dry)b-=0.6}
+    if(f.humid||f.hot||f.wet){if(/gel|oil-free|water|aqua|matte/i.test(p.n))b+=1.8;if(/butter|rich|night cream/i.test(p.n))b-=1.2}}
+  if(p.c==="Sunscreen"){if(f.uvHigh)b+=(p.spf||0)>=50?1.5:-1;if((f.humid||f.hot||f.wet)&&/matte|gel|aqua|sport|water/i.test(p.n))b+=1}
+  if(p.c==="Cleanser"&&f.dry&&/foam|clarifying|deep/i.test(p.n))b-=1;
+  if(f.polluted&&p.c==="Serum"&&/vitamin c|ascorb|niacinamide/i.test(t))b+=0.8;
+  return b;
+}
+function wxWhyFor(p){const w=P.weather;if(!w)return null;const f=w.flags,t=hay(p);
+  if(p.c==="Moisturiser"&&(f.dry||f.cold||f.drying)&&/ceramide|squalane|butyrospermum|shea|cream/i.test(t))return f.dry?"dry air":"cold nights";
+  if(p.c==="Moisturiser"&&(f.humid||f.hot||f.wet)&&/gel|oil-free|water|aqua|matte/i.test(p.n))return f.wet?"rain and humidity":f.humid?"humid air":"heat";
+  if(p.c==="Sunscreen"&&f.uvHigh&&(p.spf||0)>=50)return"high UV";
+  if(p.c==="Sunscreen"&&(f.humid||f.hot||f.wet))return f.hot?"heat":"humidity";
+  if(f.polluted&&p.c==="Serum")return"pollution";return wxWhy()}
+const wxWhy=()=>{const w=P.weather;if(!w)return null;const f=w.flags;return f.dry?"dry air":f.humid?"humid air":f.cold?"cold nights":f.hot?"heat":f.polluted?"pollution":"this week's weather"};
+const wxShort=w=>`${r0(w.avg.tmax)}°/${r0(w.avg.tmin)}°${w.avg.rh!=null?`, ${r0(w.avg.rh)}% humidity`:""}${w.avg.pm!=null&&w.flags.polluted?`, PM2.5 ${r0(w.avg.pm)}`:""}`;
+
+let WX_PENDING=null;
+/* =====================================================================
    SHARE — WhatsApp text (no private answers) and a branded PDF
    ===================================================================== */
 function planShareText(){
@@ -938,7 +1039,7 @@ function makePlanPDF(){
   para(`For ${prob.label.toLowerCase()}${SUB?` (${SUB.toLowerCase()})`:""}`,12,{color:MUTED});y+=10;
   // profile strip
   const s=seasonFor();
-  const facts=[P.skin&&["Skin type",cap(P.skin)],P.tone&&["Skin tone",`${P.tone} of 10, ${MONK_LABEL[P.tone]}`],P.city&&["City",P.city],s&&["Season now",s.label],["Budget",P.budget?`Under Rs ${P.budget} each`:"No limit"]].filter(Boolean);
+  const facts=[P.skin&&["Skin type",cap(P.skin)],P.tone&&["Skin tone",`${P.tone} of 10, ${MONK_LABEL[P.tone]}`],P.city&&["City",P.city],P.weather?["Last 7 days",wxShort(P.weather)]:s&&["Season now",s.label],["Budget",P.budget?`Under Rs ${P.budget} each`:"No limit"]].filter(Boolean);
   need(64);rect(M,y,CW,58,SOFT);const colW=CW/facts.length;
   facts.forEach(([k,v],i)=>{text(M+12+i*colW,y+17,k.toUpperCase(),7.5,{bold:true,color:BR});pdfWrap(v,9.5,colW-16,true).slice(0,2).forEach((ln,j)=>text(M+12+i*colW,y+32+j*12,ln,9.5,{bold:true}))});y+=74;
   const checks=[P.avoidFrag&&"Fragrance-free",P.avoidEO&&"No essential oils",P.noClog&&"Won't clog pores",P.sensitive&&"Gentle for sensitive skin",P.budget&&`Each under Rs ${P.budget}`].filter(Boolean);
@@ -969,7 +1070,8 @@ function makePlanPDF(){
   // first weeks
   y+=4;para("Your first few weeks",12.5,{bold:true});
   ["Start one product at a time, a few days apart, so you know how your skin feels with each.","Patch-test new products on your jaw for 2-3 days first, and stop if anything stings or burns.","Wear sunscreen every morning, even on cloudy days.",`Give the plan ${PROB==="dehydration"||PROB==="dullness"?"two to four":"six to eight"} weeks before judging it.`].forEach(t=>para("-  "+t,9.5,{x:M+6,w:CW-6}));
-  if(s){y+=8;para(`Season: it's ${s.say} in ${P.city} now. ${s.next} starts in ${s.nextFrom}, which is a good time to refresh your plan.`,9.5,{color:MUTED})}
+  if(P.weather){y+=8;para(`Weather: over the 7 days before this plan, ${P.city} was ${wxHeadline(P.weather).toLowerCase()} (${wxShort(P.weather)}). Products were chosen to suit it. Weather data by Open-Meteo.com.`,9.5,{color:MUTED})}
+  if(s){y+=4;para(`Season: it's ${s.say} in ${P.city} now. ${s.next} starts in ${s.nextFrom}, which is a good time to refresh your plan.`,9.5,{color:MUTED})}
   y+=6;para("If your skin becomes painful or swollen, or the problem spreads, please see a dermatologist.",9,{color:MUTED});
   footer();pages.push(ops.join("\n"));
   // assemble
@@ -1038,12 +1140,13 @@ function renderResume(){
     if(a==="fresh"){clearState();resetAll();renderResume();$("nameInput").focus();return}
     resumeFrom(d,a==="check",a==="season")});
 }
-function resumeFrom(d,thenCheck,seasonRefresh){
+async function resumeFrom(d,thenCheck,seasonRefresh){
   restoreState(d);P.month=new Date().getMonth();
   if(seasonRefresh){const before=(d.planIds||[]).map(id=>id&&id!=="keep"?BY_ID[id]:null);RESTORE_IDS=(d.planIds||[]).map(id=>id==="keep"?"keep":null);
     $("welcome").hidden=true;$("advisor").hidden=false;thread.innerHTML="";CUR_BLOCK=null;
+    try{P.weather=await fetchWeather(P.city,P.state)}catch{}
     buildPlan(true);const se=seasonFor();const ch=PL.slots.map((s,i)=>before[i]&&s.p&&before[i].id!==s.p.id?`<li>${esc(s.slot.role)}: <b>${esc(s.p.n)}</b> instead of ${esc(before[i].n)}</li>`:"").filter(Boolean);
-    botSay(`<p>Welcome back, <b>${esc(NAME)}</b>! It's <b>${esc(se.say)}</b> in ${esc(P.city)} now. ${esc(se.tip)}</p>${ch.length?`<p>Here's what I changed:</p><ul class="cknotes">${ch.join("")}</ul>`:`<p>Good news: your current products <b>still suit this season</b>, so nothing needs to change.</p>`}`);
+    botSay(`<p>Welcome back, <b>${esc(NAME)}</b>! It's <b>${esc(se.say)}</b> in ${esc(P.city)} now${P.weather?`, and the last 7 days have been <b>${esc(wxHeadline(P.weather).toLowerCase())}</b> (${esc(wxShort(P.weather))})`:""}. ${esc(se.tip)}</p>${ch.length?`<p>Here's what I changed:</p><ul class="cknotes">${ch.join("")}</ul>`:`<p>Good news: your current products <b>still suit this season</b>, so nothing needs to change.</p>`}`);
     updateTitle();renderPlan();return}
   $("welcome").hidden=true;$("advisor").hidden=false;thread.innerHTML="";CUR_BLOCK=null;
   const left=STEPS.filter(k=>!DONE.has(k)).length;

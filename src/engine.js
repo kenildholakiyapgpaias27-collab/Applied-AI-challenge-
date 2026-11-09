@@ -39,12 +39,13 @@ const MONTHS=["january","february","march","april","may","june","july","august",
 function emptyProfile(){return{noClog:false,state:null,skin:null,skinConfirmed:false,concerns:[],sensitive:false,avoidFrag:null,avoidEO:false,reactions:[],pregnancy:null,city:null,climate:null,month:new Date().getMonth(),budget:null,steps:3,tone:null,undertone:null,toneSource:null}}
 let P=emptyProfile();
 function dryWinter(prof=P){
+  if(prof.weather&&prof.weather.avg)return !!(prof.weather.flags.dry&&prof.weather.avg.tmin<15);   // live: dry air and cold nights
   const cl=prof.climate;if(!cl)return false;
   if(cl==="cool / hill")return true;
   if(cl==="hot and dry / cold winters")return [10,11,0,1].includes(prof.month);
   return false;
 }
-function humid(prof=P){return prof.climate==="humid coastal"}
+function humid(prof=P){if(prof.weather&&prof.weather.avg)return !!(prof.weather.flags.humid||(prof.weather.avg.rh>=65&&prof.weather.avg.tmax>=28));return prof.climate==="humid coastal"}
 
 /* reaction families: what the shopper says -> ingredient patterns to block */
 const REACTIONS={
