@@ -170,7 +170,7 @@ const hex2rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
 const MONK_LAB={};for(const t in MONK_HEX)MONK_LAB[t]=rgb2lab(...hex2rgb(MONK_HEX[t]));
 const lch=([L,a,b])=>[L,Math.hypot(a,b),Math.atan2(b,a)*180/Math.PI];
 function toneDist(x,y){const[L1,C1,h1]=lch(x),[L2,C2,h2]=lch(y);const dH=2*Math.sqrt(Math.max(C1*C2,0))*Math.sin((h1-h2)*Math.PI/360);return Math.hypot(L1-L2,0.5*(C1-C2),0.5*dH)}
-const FR={minShortSide:480,minScene:45,maxHigh:0.06,maxLow:0.12,minSharp:18,maxCast:1.40,minSkin:0.40,maxCheekGap:9,maxSpread:1,maxAmb:0.80,utMargin:2.5,minConf:0.60,coolBelow:50,warmFrom:60,oliveFrom:72,maxAttempts:3,minOvalSkin:0.35};
+const FR={minShortSide:480,minScene:45,maxHigh:0.06,maxLow:0.12,minSharp:18,maxCast:1.40,minSkin:0.40,maxCheekGap:9,maxSpread:1,maxAmb:0.80,utMargin:2.5,minConf:0.60,coolBelow:50,warmFrom:60,oliveFrom:72,maxAttempts:3,minOvalSkin:0.35,closeAmb:0.55,maxSceneWhite:0.30,nearRef:4};
 const TIPS={TOO_DARK:"Move somewhere brighter, ideally facing a window in daylight.",LOW_RESOLUTION:"Use your phone's main camera at full quality.",NO_FACE:"Fit your whole face inside the oval and look straight at the camera.",OVEREXPOSED:"Turn off the flash and move out of direct sunlight.",UNDEREXPOSED:"Find softer, even light; part of your face is in deep shadow.",BLURRY:"Hold the phone steady and tap your face to focus before taking it.",COLOUR_CAST:"The light looks yellow or coloured. Try natural daylight instead of indoor bulbs.",SKIN_HIDDEN:"Keep your cheeks and forehead clear of hair, glasses, masks or a heavy beard.",UNEVEN_LIGHT:"One side of your face is in shadow. Face the light so it falls evenly.",REGIONS_DISAGREE:"Your cheeks and forehead read as different shades, often from makeup or uneven light. Please use a bare face in even daylight.",TONE_AMBIGUOUS:"Your skin sits between two shades on our scale. One more photo in daylight will help.",UNDERTONE_AMBIGUOUS:"I can't tell your undertone clearly. Natural daylight without filters helps most.",LOW_CONFIDENCE:"I'm not confident enough in this reading. Please try again in natural daylight."};
 const JUDGEMENT=new Set(["TONE_AMBIGUOUS","UNDERTONE_AMBIGUOUS","LOW_CONFIDENCE"]);
 function isSkin(L,a,b){const C=Math.hypot(a,b),h=Math.atan2(b,a)*180/Math.PI;return L>3&&L<98.5&&a>-2&&b>1&&C>(L<35?1.5:3)&&h>10&&h<110}
@@ -184,16 +184,17 @@ function readPhoto(src,oval){
   const W=src.width,H=src.height,full=src.getContext("2d",{willReadFrequently:true}).getImageData(0,0,W,H);const issues=[];
   if(Math.min(W,H)<FR.minShortSide)issues.push("LOW_RESOLUTION");
   const small=scaled(src,0,0,W,H,200);let lum=0;for(let k=0;k<small.data.length;k+=4)lum+=0.299*small.data[k]+0.587*small.data[k+1]+0.114*small.data[k+2];lum/=small.data.length/4;if(lum<FR.minScene)issues.push("TOO_DARK");
+  {let wh=0;for(let k=0;k<small.data.length;k+=4)if(Math.min(small.data[k],small.data[k+1],small.data[k+2])>=250)wh++;if(wh/(small.data.length/4)>FR.maxSceneWhite)issues.push("OVEREXPOSED")}   // blown-out scene, even if the face itself isn't clipped
   const fw=oval.w*W,fh=oval.h*H,fx=oval.cx*W-fw/2,fy=oval.cy*H-fh/2;const sx=Math.max(0,fx),sy=Math.max(0,fy),sw=Math.min(W,fx+fw)-sx,sh=Math.min(H,fy+fh)-sy;
+  {let cr=0,cg=0,cb=0,cn=0;const bx0=sx/W,by0=sy/H,bx1=(sx+sw)/W,by1=(sy+sh)/H;for(let j=0;j<small.height;j++)for(let i=0;i<small.width;i++){const u=i/small.width,v=j/small.height;if(u>=bx0&&u<=bx1&&v>=by0&&v<=by1)continue;const k=(j*small.width+i)*4;cr+=small.data[k];cg+=small.data[k+1];cb+=small.data[k+2];cn++}
+   if(cn>200){const m=[cr/cn+1,cg/cn+1,cb/cn+1];if(Math.max(...m)/Math.min(...m)>FR.maxCast)issues.push("COLOUR_CAST")}}
   const face=scaled(src,sx,sy,sw,sh,128);let skin=0,inside=0,high=0,low=0;
   for(let j=0;j<face.height;j++)for(let i=0;i<face.width;i++){const nx=(i+0.5)/face.width-0.5,ny=(j+0.5)/face.height-0.5;if(nx*nx/0.25+ny*ny/0.25>1)continue;const k=(j*face.width+i)*4,r=face.data[k],g=face.data[k+1],b=face.data[k+2];inside++;if(isSkin(...rgb2lab(r,g,b)))skin++;if(Math.min(r,g,b)>=252)high++;if(Math.max(r,g,b)<=6)low++}
-  if(!inside||skin/inside<FR.minOvalSkin){issues.push("NO_FACE");return{status:"RECAPTURE",issues,regions:[]}}
-  if(high/inside>FR.maxHigh)issues.push("OVEREXPOSED");if(low/inside>FR.maxLow)issues.push("UNDEREXPOSED");
+  if(!inside||skin/inside<FR.minOvalSkin){if(!issues.includes("COLOUR_CAST"))issues.push("NO_FACE");return{status:"RECAPTURE",issues,regions:[]}}   // a strong tint hides skin: say "lighting", not "no face"
+  if(high/inside>FR.maxHigh&&!issues.includes("OVEREXPOSED"))issues.push("OVEREXPOSED");if(low/inside>FR.maxLow)issues.push("UNDEREXPOSED");
   const f2=scaled(src,sx,sy,sw,sh,256),gw=f2.width,gh=f2.height,gray=new Float32Array(gw*gh);for(let k=0;k<gw*gh;k++)gray[k]=0.299*f2.data[k*4]+0.587*f2.data[k*4+1]+0.114*f2.data[k*4+2];
   let s1=0,s2=0,n=0;for(let j=1;j<gh-1;j++)for(let i=1;i<gw-1;i++){const k=j*gw+i;const v=gray[k-1]+gray[k+1]+gray[k-gw]+gray[k+gw]-4*gray[k];s1+=v;s2+=v*v;n++}
   if((n?s2/n-(s1/n)**2:0)<FR.minSharp)issues.push("BLURRY");
-  let cr=0,cg=0,cb=0,cn=0;const bx0=sx/W,by0=sy/H,bx1=(sx+sw)/W,by1=(sy+sh)/H;for(let j=0;j<small.height;j++)for(let i=0;i<small.width;i++){const u=i/small.width,v=j/small.height;if(u>=bx0&&u<=bx1&&v>=by0&&v<=by1)continue;const k=(j*small.width+i)*4;cr+=small.data[k];cg+=small.data[k+1];cb+=small.data[k+2];cn++}
-  if(cn>200){const m=[cr/cn+1,cg/cn+1,cb/cn+1];if(Math.max(...m)/Math.min(...m)>FR.maxCast)issues.push("COLOUR_CAST")}
   const s=Math.max(Math.round(0.13*fw),6);
   const regions=[sampleRegion(full,"cheek",fx+0.18*fw,fy+0.52*fh,s,s),sampleRegion(full,"cheek",fx+0.82*fw-s,fy+0.52*fh,s,s),sampleRegion(full,"forehead",fx+0.35*fw,fy+0.14*fh,0.30*fw,0.09*fh)];
   if(regions.some(r=>r.frac<FR.minSkin||!r.lab))issues.push("SKIN_HIDDEN");
@@ -205,7 +206,11 @@ function readPhoto(src,oval){
   if(spread>FR.maxSpread)issues.push("REGIONS_DISAGREE");if(T.amb>FR.maxAmb)issues.push("TONE_AMBIGUOUS");if(U.margin<FR.utMargin)issues.push("UNDERTONE_AMBIGUOUS");
   const conf=(1-0.5*Math.max(0,Math.min(1,(T.amb-0.5)/0.5)))*(0.7+0.3*Math.min(1,U.margin/(2*FR.utMargin)))*(spread===0?1:spread===1?0.9:0.6)*(0.6+0.4*Math.min(1,Math.min(...regions.map(r=>r.frac))/0.8));
   if(conf<FR.minConf)issues.push("LOW_CONFIDENCE");
-  return{status:issues.length?"RECAPTURE":"OK",issues,regions,lab,tone:T.tone,second:T.second,ut:U.ut,why:U.why,conf:+conf.toFixed(2),candidates:uniq([T.tone,T.second]).sort((a,b)=>a-b)};
+  const blocking=issues.filter(i=>i!=="UNDERTONE_AMBIGUOUS");
+  const nearRefs=toneDist(MONK_LAB[T.tone],MONK_LAB[T.second])<FR.nearRef;   // e.g. Monk 1 and 2 are almost the same colour
+  const closeCall=!issues.includes("TONE_AMBIGUOUS")&&Math.abs(T.tone-T.second)===1&&(T.amb>FR.closeAmb||nearRefs);
+  return{status:blocking.length?"RECAPTURE":"OK",issues,regions,lab,tone:T.tone,second:T.second,ut:U.ut,why:U.why,conf:+conf.toFixed(2),candidates:uniq([T.tone,T.second]).sort((a,b)=>a-b),
+    utUnsure:issues.includes("UNDERTONE_AMBIGUOUS"),closeCall,amb:+T.amb.toFixed(2)};
 }
 let photoAttempts=[];
 function sessionRead(res){

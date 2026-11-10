@@ -277,7 +277,7 @@ function newBlock(step){
   const carry=[];
   for(const el of [...thread.children]){if(el.classList.contains("past"))continue;
     if(!el.classList.contains("stepblock")){if(el.classList.contains("row")&&!el.classList.contains("me"))carry.push(el);else el.classList.add("past");continue}
-    let after=false;for(const c of [...el.children]){if(c.classList.contains("q")){after=true;continue}if(after&&c.classList.contains("row")&&!c.classList.contains("me"))carry.push(c)}
+    let after=false;for(const c of [...el.children]){if(c.classList.contains("q")||c.classList.contains("plan")){after=true;continue}if(after&&c.classList.contains("row")&&!c.classList.contains("me"))carry.push(c)}
     el.classList.add("past")}
   for(const c of carry){c.classList.add("carried");b.appendChild(c)}
   thread.appendChild(b);CUR_BLOCK=b;thread.scrollTop=0;return b}
@@ -449,7 +449,7 @@ function toneWidget(){
 
   /* 5a. first photo result: clear, or torn between two */
   const firstResult=res=>{
-    const torn=res.issues.some(i=>JUDGEMENT.has(i));
+    const torn=res.issues.includes("TONE_AMBIGUOUS")||res.issues.includes("LOW_CONFIDENCE");
     const out=document.createElement("div");out.className="readout";
     if(torn){
       const [a,b]=res.candidates.length>1?res.candidates:[res.tone,res.second].sort((x,y)=>x-y);
@@ -459,8 +459,27 @@ function toneWidget(){
         card.onclick=()=>{P.toneSource="you chose after a selfie";finish(t,res.ut,`Tone ${t} (${MONK_LABEL[t]})`)};pick.appendChild(card)}
       out.appendChild(pick);
       out.appendChild(morePhotos("Not sure which? Add more photos and I'll compare them for a steadier reading:"));
+    } else if(res.closeCall){
+      // two neighbouring tones are almost equally close: show the best match first and let the user confirm with one tap
+      const other=res.second;
+      out.innerHTML=`<div class="notice info"><b>You look closest to tone ${res.tone}</b>, but tone ${other} is very close. Which matches your jawline better?</div>`;
+      const pick=document.createElement("div");pick.className="torn";
+      for(const t of[res.tone,other]){const card=document.createElement("button");card.type="button";card.className="torncard"+(t===res.tone?" best":"");card.innerHTML=`<span class="bigsw" style="background:${MONK_HEX[t]}"></span><b>Tone ${t}</b><span class="small muted">${t===res.tone?"Best match · ":""}${MONK_LABEL[t]}</span>`;
+        card.onclick=()=>{P.toneSource=t===res.tone?"selfie (confirmed by you)":"you chose after a selfie";finish(t,res.utUnsure?null:res.ut,`Tone ${t} (${MONK_LABEL[t]})`)};pick.appendChild(card)}
+      out.appendChild(pick);
     } else {
-      out.appendChild(resultCard(res.tone,res.ut,`Your skin tone looks like <b>${res.tone} on the 1–10 scale (${MONK_LABEL[res.tone]})</b> with ${/^[aeiou]/.test(res.ut)?"an":"a"} <b>${res.ut} undertone</b>, because ${esc(res.why)}.`,"From your selfie","selfie"));
+      let utSel=res.utUnsure?null:res.ut;
+      const rc=resultCard(res.tone,()=>utSel,res.utUnsure?`Your skin tone looks like <b>${res.tone} on the 1–10 scale (${MONK_LABEL[res.tone]})</b>.`:`Your skin tone looks like <b>${res.tone} on the 1–10 scale (${MONK_LABEL[res.tone]})</b> with ${/^[aeiou]/.test(res.ut)?"an":"a"} <b>${res.ut} undertone</b>, because ${esc(res.why)}.`,"From your selfie","selfie");out.appendChild(rc);
+      if(res.utUnsure){
+        // the tone is clear; only the undertone is borderline, so ask one quick question instead of a retake
+        const u=document.createElement("div");u.className="utask";
+        u.innerHTML=`<p class="small" style="margin:0 0 8px"><b>One quick check:</b> your undertone is borderline in this light. Which sounds more like you? <span class="muted">(optional)</span></p>`;
+        const row=document.createElement("div");row.className="utrow";
+        for(const [k,l,d] of [["warm","Warm","Gold jewellery suits me"],["cool","Cool","Silver suits me"],["neutral","Neutral","Both suit me"],["olive","Olive","Slightly green-grey"]]){
+          const b=document.createElement("button");b.type="button";b.className="utchip";b.setAttribute("aria-pressed","false");b.innerHTML=`<b>${l}</b><span>${d}</span>`;
+          b.onclick=()=>{utSel=k;row.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)))};row.appendChild(b)}
+        u.appendChild(row);rc.insertBefore(u,rc.querySelector(".qactions"));
+      }
       out.appendChild(morePhotos("Want extra certainty? Add a few more photos:",true));
     }
     area.appendChild(out);focusEl(out);
@@ -512,12 +531,12 @@ function toneWidget(){
   };
   const resultCard=(tone,ut,text,eyebrow,src)=>{
     let cur=tone;const wrap=document.createElement("div");wrap.style.display="flex";wrap.style.flexDirection="column";wrap.style.gap="10px";
-    wrap.innerHTML=`<div class="toneresult"><span class="bigsw" style="background:${MONK_HEX[tone]}"></span><div><div class="eyebrow">${esc(eyebrow)}</div><p style="margin:2px 0 0">${text}</p><p class="small muted" style="margin:4px 0 0">Not quite right? Tap a different tone. Your photos have not been saved.</p></div></div>`;
+    wrap.innerHTML=`<div class="toneresult"><span class="bigsw" style="background:${MONK_HEX[tone]}"></span><div><div class="eyebrow">${esc(eyebrow)}</div><p style="margin:2px 0 0">${text}</p><p class="small muted" style="margin:4px 0 0">Not quite right? Tap a different tone.</p></div></div>`;
     const row=document.createElement("div");row.className="trow";
     for(let t=1;t<=10;t++)row.appendChild(swBtn(t,{size:"sm",pressed:t===tone,onClick:()=>{cur=t;row.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(+x.textContent===t)));wrap.querySelector(".bigsw").style.background=MONK_HEX[t]}}));
     wrap.appendChild(row);
     const a=document.createElement("div");a.className="qactions";const ok=document.createElement("button");ok.type="button";ok.className="btn primary";ok.textContent="Looks right, continue";
-    ok.onclick=()=>{P.toneSource=cur===tone?src:`${src}, corrected by you`;finish(cur,ut,`Tone ${cur} (${MONK_LABEL[cur]})${cur===tone?`, from ${src==="selfie"?"my selfie":"my "+src}`:""}`)};
+    ok.onclick=()=>{P.toneSource=cur===tone?src:`${src}, corrected by you`;finish(cur,typeof ut==="function"?ut():ut,`Tone ${cur} (${MONK_LABEL[cur]})${cur===tone?`, from ${src==="selfie"?"my selfie":"my "+src}`:""}`)};
     a.appendChild(ok);wrap.appendChild(a);return wrap;
   };
   if(OPEN_SELFIE){OPEN_SELFIE=false;consent()}else choose();return w;
@@ -540,7 +559,7 @@ function detectFilter(src,oval){
   let hue=Math.atan2(hy,hx)*180/Math.PI;if(hue<0)hue+=360;
   const flags=[];
   if(nOut>200&&skinTex<1.2&&bgTex>2.4&&bgTex/Math.max(skinTex,0.1)>2.6)flags.push({k:"smooth",say:"Your skin looks airbrushed while the background is sharp, which is what beauty mode does."});
-  if(allSat<0.06)flags.push({k:"mono",say:"It looks black-and-white or sepia."});
+  if(allSat<0.03&&skinSat<0.035)flags.push({k:"mono",say:"It looks black-and-white or sepia."});   // very fair skin on a grey wall is low-saturation too, so require near-zero colour
   else if(skinSat>0.62)flags.push({k:"sat",say:"The colours look boosted."});
   if(allSat>=0.06&&skinSat>0.12&&hue>60&&hue<320)flags.push({k:"tint",say:"There's a green, blue or purple colour cast that real skin doesn't have."});
   else if(skinSat>0.3&&hue>=320&&hue<352)flags.push({k:"pink",say:"There's a pink or rosy tint over the photo."});
@@ -650,13 +669,32 @@ function buildPlan(silent){
 function removedFor(cats){const c={};let n=0;for(const p of CAT)if(cats.includes(p.c)){n++;for(const[b]of check(p).blocks)c[b]=(c[b]||0)+1}return{c,n}}
 const SAY_BLOCK={B1:"contain fragrance or essential oils",B2:"contain essential oils",B3:"contain an ingredient you've reacted to",B4:"have no ingredient list, so I couldn't check them",A2:"contain retinoids or strong salicylic acid",B6:"don't suit your skin type or could clog pores",B7:"contain drying alcohol, which is harsh on dry skin in this weather",C5:"are over your budget"};
 
+const BLOCK_SAY={B1:"contain fragrance",B2:"contain essential oils",B3:"contain an ingredient you've reacted to",A2:"aren't advised while you're pregnancy-cautious",B4:"have no ingredient list, so I can't check them",B6:"don't suit your skin type or may clog pores",B7:"contain drying alcohol, which is harsh on dry skin this season",C5:"cost more than your budget",CLASH:"would clash with a retinoid or acid in your routine"};
+const NEXT_BUDGET={400:700,700:1200,1200:null};
+function emptyWhy(s){
+  const cands=CAT.filter(p=>s.slot.cats.includes(p.c)&&!p.sp),cnt={};let relax=0;const nb=P.budget?NEXT_BUDGET[P.budget]:undefined;
+  for(const p of cands){const r=check(p);const codes=uniq(r.blocks.map(b=>b[0]));if(r.ok&&clash(p,PL.ctx))codes.push("CLASH");codes.forEach(c=>cnt[c]=(cnt[c]||0)+1);
+    if(P.budget&&codes.length===1&&codes[0]==="C5"&&(nb===null||p.p<=nb))relax++}
+  return{n:cands.length,cnt,relax,nb};
+}
+function emptyCardHTML(i,s){
+  const w=emptyWhy(s),top=Object.entries(w.cnt).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  return`<article class="pcard empty"><div class="phead"><span class="stepn">${i+1}</span><div class="role">${esc(s.slot.role)} <span class="when">· ${esc(s.slot.when)}</span></div></div>
+    <p class="why1"><b>Nothing safe for this step yet.</b> I checked all ${w.n} ${esc(s.slot.cats.join(" and ").toLowerCase())}s in our range, and I won't bend a safety rule to fill the gap.</p>
+    ${top.length?`<ul class="emptywhy">${top.map(([c,n])=>`<li><b>${n}</b> ${esc(BLOCK_SAY[c]||"don't pass your checks")}</li>`).join("")}</ul>`:""}
+    <div class="emptynext"><span>What you can do</span><ul>
+      ${w.relax?`<li>Raising your budget to ${w.nb?rupee(w.nb):"no limit"} would give you <b>${w.relax} safe option${w.relax>1?"s":""}</b> for this step.</li>`:""}
+      <li>Your other steps work on their own, so you can start with those.</li>
+      <li>A pharmacist or dermatologist can suggest a product for this step that suits your restrictions.</li></ul>
+      ${w.relax?`<button type="button" class="btn relax" data-nb="${w.nb===null?"none":w.nb}">Show options ${w.nb?`under ${rupee(w.nb)}`:"with no budget limit"}</button>`:""}</div></article>`;
+}
 function cardHTML(i,s){
   const p=s.p,role=s.slot.role;
   if(s.keep)return`<article class="pcard keep"><div class="phead"><span class="stepn">${i+1}</span><div class="role">${esc(role)} <span class="when">· ${esc(s.slot.when)}</span></div><span class="ownbadge">Already yours</span></div>
     <div class="ptop"><div class="thumb">${IC[CAT_IC[s.keep.cat]||"dropper"]}</div><div style="min-width:0"><div class="brand">Keep using</div><div class="nm">${esc(s.keep.p?s.keep.p.n:cap(s.keep.name.replace(/^your /,"Your ")))}</div><div class="cat">${esc(s.keep.cat)}</div></div></div>
     <p class="why1">${s.keep.p?"It's already on your shelf and it passes all your checks":"You already have this step covered"}, so there's <b>no need to buy another</b>.${s.list[0]?` That saves you about <b>${rupee(s.list[0].p)}</b>.`:""}</p>
     ${upgradeHTML(i)}<div class="pfoot"><span class="small muted">From your routine</span>${s.list.length&&!upgradeFor(i)?`<button type="button" class="btn ghost newone" data-i="${i}">Suggest a new one</button>`:""}</div></article>`;
-  if(!p)return`<article class="pcard empty"><span class="stepn">${i+1}</span><div><div class="role">${esc(role)}</div><p class="muted small">No product in our range passes all your checks for this step${P.budget?" within budget":""}. I've left it out rather than bend a safety rule.</p></div></article>`;
+  if(!p)return emptyCardHTML(i,s);
   const act=actives(p);
   return`<article class="pcard">
     <div class="phead"><span class="stepn">${i+1}</span><div class="role">${esc(role)} <span class="when">· ${esc(s.slot.when)}</span></div><div class="price">${rupee(p.p)}</div></div>
@@ -713,6 +751,7 @@ function renderPlan(){
   add("Check a product",()=>{$("askInput").focus();$("askInput").placeholder="Type a product name or code, e.g. P1025"});
   box.appendChild(nx);
   box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));wireShare(box);wireUpgrades(box);
+  box.querySelectorAll(".relax").forEach(b=>b.onclick=()=>{const nb=b.dataset.nb==="none"?null:+b.dataset.nb;P.budget=nb;botSay(`Done${nm(", ")}. I've raised your budget to ${nb?`${rupee(nb)} per product`:"no limit"} and rebuilt your plan. Every product still passes all your other checks.`);buildPlan();saveState()});
   box.querySelectorAll(".newone").forEach(b=>b.onclick=()=>{const s=PL.slots[+b.dataset.i];const p=s.list.find(x=>!PL.ctx.used.has(x.id)&&!clash(x,PL.ctx));if(!p)return;s.keep=null;s.p=p;s.idx=s.list.indexOf(p);PL.ctx.used.add(p.id);renderPlan();saveState()});
   newBlock("plan").appendChild(box);stepNow=null;renderSide();saveState();requestAnimationFrame(()=>box.scrollIntoView({block:"start",behavior:"smooth"}));
 }

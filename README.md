@@ -21,6 +21,7 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
   10. Your current routine (product types or specific products you already own)
   11. Budget
 - **Selfie skin-tone reader:** uses the camera or a photo upload after explicit consent. It reads skin tone and undertone from the face region, asks for a retake when lighting is poor, and offers 3 or 5 photos when the reading falls between two shades.
+- **Smarter photo checks:** a borderline undertone no longer forces a retake (you get one optional question instead), near-identical neighbouring tones (such as Monk 1 and 2) are shown side by side for a one-tap confirm, blown-out scenes and colour casts are named correctly so the retake advice fits the problem.
 - **Filter check:** warns when a photo looks filtered (airbrushed skin with a sharp background, black-and-white, boosted colour or colour casts) and asks for a retake without a filter.
 - **Save and resume:** answers are saved on the device after every step. Returning users see "Continue where I left off" (or "View my plan"), and **Delete my answers** clears everything.
 - **Builds around what you already use:** if you already own a product that covers a step and passes your checks, the plan keeps it instead of selling you another. New picks never clash with your routine (retinoid + acids, retinoid + benzoyl peroxide), avoid doubling up on actives you already use, and warn you about owned products that fail your safety answers.
@@ -29,6 +30,7 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
 - **Live 7-day weather on the location step:** after choosing a city, the advisor looks up the last 7 days of real weather and air quality there ([Open-Meteo](https://open-meteo.com/), free, no API key): daily highs and lows, humidity, rain, UV and PM2.5. It sums the week up (for example "Warm, dry and smoggy"), explains what each reading means for skin, and uses it to rank textures: ceramide creams for dry air or cold nights, oil-free gels for humidity or rain, SPF 50 for high UV, antioxidant serums for pollution. The drying-alcohol guardrail also uses the live readings. Results are cached for 3 hours. If the weather service can't be reached, it falls back to the usual season for that region, and says so.
 - **Season reminder:** with the reminder on, returning users are offered **Refresh for <season>** once the season in their city changes. The refresh pulls fresh weather and says exactly which products changed.
 - **Share and save:** the plan page has **Share on WhatsApp** (opens WhatsApp with a ready message, or the phone's share sheet), **Save as PDF** (a branded A4 plan generated in the browser with no libraries), and **Copy plan**. Shared text includes only the products and routine, never safety answers like pregnancy or reactions.
+- **Honest empty steps:** if nothing in the range is safe for a step, the card says how many products were checked, the top reasons they were ruled out, and what to do next, including a one-tap button to raise the budget when that would unlock safe options.
 - **The plan:** three products that work together, a total price, two clearly labelled sponsored suggestions with relevance reasons, and a detailed "Why I recommended these" section.
 
 ## Guardrails enforced in code
@@ -42,6 +44,17 @@ Every product passes a hard filter before it can be ranked (`check()` in `src/en
 | Fit | Skin-type match; no drying alcohol for dry skin in dry, cold weather; within budget |
 | Combinations | No retinoid together with acids or benzoyl peroxide, including products you already own; no two retinoids in one plan |
 | Honesty | Sponsored items are labelled, pass the same checks and never affect ranking; no skin-lightening advice; no guarantees; red-flag symptoms and prescription questions go to a dermatologist; prompt-injection attempts are refused |
+
+## Catalogue data check
+
+The guardrails trust the catalogue's tags, so a wrong tag silently changes recommendations. Run the check on every catalogue update:
+
+```bash
+python3 tools/catalogue_check.py          # report only
+python3 tools/catalogue_check.py --fix    # apply safe rule-based fixes (backup kept)
+```
+
+It flags skin-type tags that contradict a product's purpose (for example an acne or oil-control moisturiser not tagged for oily skin, or a hydrating product not tagged for dry skin), flags that disagree with the ingredient list, missing ingredient lists and sunscreens without an SPF. The 14 safe corrections it found have been applied to `data/catalogue.json`; the rest are listed for human review.
 
 ## Project structure
 

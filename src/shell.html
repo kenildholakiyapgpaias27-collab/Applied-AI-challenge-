@@ -243,7 +243,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between}
 .pcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 @media (max-width:1100px){.pcards{grid-template-columns:minmax(0,1fr)}}
 .pcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
-.pcard.empty{flex-direction:row;border-style:dashed}
+.pcard.empty{border-style:dashed}
 .phead{display:flex;align-items:center;gap:8px}
 .stepn{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:600 13px var(--mono)}
 .role{font:700 12px/1.2 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
@@ -571,6 +571,20 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
 .season-tx p{margin:8px 0 0;font-size:14px;line-height:1.55}
 .season-next{color:var(--muted)}.season-next b{color:var(--accent)}
 .season-opt{margin-top:12px;font-weight:600}
+/* empty step, undertone check, close-call pick */
+.pcard.empty{border-style:dashed;background:var(--surface)}
+.emptywhy{margin:0;padding-left:18px;display:grid;gap:3px;font-size:13.5px;line-height:1.5}
+.emptywhy b{color:var(--accent)}
+.emptynext{background:var(--accent-soft);border-radius:12px;padding:10px 12px;display:grid;gap:6px}
+.emptynext>span{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.emptynext ul{margin:0;padding-left:18px;display:grid;gap:3px;font-size:13px;line-height:1.5}
+.emptynext .btn{justify-self:start}
+.utask{margin-top:4px;padding:12px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+.utrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.utchip{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;text-align:left}
+.utchip span{font-size:12px;color:var(--muted)}
+.utchip[aria-pressed="true"]{border:2px solid var(--accent);background:var(--accent-soft)}
+.torncard.best{border:2px solid var(--accent)}
 /* upgrade picks + combos */
 .upg{margin-top:4px;padding:12px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line);display:grid;gap:6px}
 .upg-top{display:flex;align-items:center;justify-content:space-between}
