@@ -519,7 +519,7 @@ function toneWidget(){
       out.querySelectorAll(".tonepick .tsw").forEach(x=>x.setAttribute("aria-pressed",String(+x.textContent===cur)))};
     const row=out.querySelector(".tonepick .trow");for(let t=1;t<=10;t++)row.appendChild(swBtn(t,{size:"sm",pressed:t===tone,onClick:()=>{cur=t;paint()}}));
     out.querySelector("[data-fix]").onclick=e=>{out.querySelector(".tonepick").hidden=false;e.target.hidden=true};
-    out.querySelector("[data-ok]").onclick=()=>{P.toneSource=cur===tone?"selfie":"selfie, corrected by you";P.toneRead={tone,method:res.method,conf:res.conf,notes:res.notes};
+    out.querySelector("[data-ok]").onclick=()=>{P.toneSource=cur===tone?"selfie":"selfie, corrected by you";P.toneRead={tone,lab:res.lab,method:res.method,conf:res.conf,notes:res.notes};
       finish(cur,cur===tone?res.ut:null,`Skin tone ${cur} (${TONE_NAME[cur]})${cur===tone?", from my selfie":""}`)};
     paint();focusEl(out);return out;
   };
@@ -595,6 +595,16 @@ function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
   return box;
 }
 
+/* ---------- your shade in base makeup: exact names from the shade library ---------- */
+function baseShadesHTML(){
+  if(!P.tone)return"";const ut=P.undertone||null,out=[];
+  for(const cat of["Foundation","BB / CC cream","Concealer","Compact powder"]){
+    const cands=CAT.filter(p=>p.c===cat&&p.s&&p.s.length&&!p.sp&&check(p).ok&&(!P.budget||p.p<=P.budget*1.5));
+    let best=null;for(const p of cands){const m=bestShade(p,P.tone,ut);if(m&&(!best||m.score<best.m.score))best={p,m}}
+    out.push({cat,best:best&&best.m.good?best:null})}
+  if(!out.some(x=>x.best))return"";
+  return`<div class="baseshades"><h4>Your shade in base makeup</h4><p class="small muted">Matched to skin tone ${P.tone} (${esc(TONE_NAME[P.tone])})${P.toneRead&&P.toneRead.lab&&P.toneRead.tone===P.tone?" using the colour measured from your selfie":""}. Not part of your three-step routine.</p>
+    <ul>${out.map(({cat,best})=>best?`<li><span class="bsw" style="background:${best.m.hex}"></span><div><b>${esc(best.m.name)}</b><small>${esc(best.p.n)} · ${esc(cat)} · ${rupee(best.p.p)}</small></div></li>`:`<li class="none"><span class="bsw"></span><div><b>No close shade in this range</b><small>${esc(cat)} · I'd rather tell you than suggest the wrong one</small></div></li>`).join("")}</ul></div>`}
 /* ---------- building the 3-product plan ---------- */
 const hay=p=>p.n+" "+(p.a||"")+" "+(p.i||"");
 function slotScore(p,slot){
@@ -728,6 +738,7 @@ function renderPlan(){
   for(const x of sp){if(spPick.length>=2)break;if(!spPick.includes(x))spPick.push(x)}
   if(spPick.length)h+=`<div class="spwrap"><h4 class="sphead">You might also like</h4>${spPick.map(({p})=>`<div class="spalt"><div class="sptop"><span class="spl">Sponsored</span><b>${esc(p.n)}</b><span class="small muted">${esc(p.c)} · ${rupee(p.p)}</span></div>${spReasonHTML(p)}</div>`).join("")}</div>`;
   h+=explainHTML();
+  h+=baseShadesHTML();
   h+=`<div class="sendoff"><span class="tagline-end">Reflect · Reveal · Radiate</span><h4>You've got this${nm(", ")}</h4><p>Start with one product at a time, a few days apart, so you know how your skin feels with each. Give the plan ${PROB==="dehydration"||PROB==="dullness"?"two to four":"six to eight"} weeks before judging it, and take a quick photo in the same light every couple of weeks. Small changes are easy to miss day to day.</p></div>`;
   box.innerHTML=h;
   const nx=document.createElement("div");nx.className="next";

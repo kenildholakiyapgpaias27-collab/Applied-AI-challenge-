@@ -11,7 +11,7 @@ read = lambda p: (ROOT / p).read_text(encoding="utf-8")
 page = (read("src/shell.html")
         .replace("__CATALOGUE__", read("data/catalogue.json"))
         .replace("__INDIA__", read("src/india.js") + "\n" + read("src/climate.js"))
-        .replace("__ENGINE__", read("src/engine.js"))
+        .replace("__ENGINE__", "const AAINA_CAL=" + (read("data/calibration.json") if (ROOT / "data/calibration.json").exists() else "null") + ";\n" + read("src/engine.js"))
         .replace("__APP__", read("src/app.js")))
 
 html = ("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">"
