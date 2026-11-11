@@ -19,11 +19,14 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
   6. Pregnancy caution
   7. State and city (962 Indian cities, with search; climate shapes texture choices)
   8. Skin type
-  9. Skin tone (Monk 1–10 scale, or a selfie)
+  5. Skin tone (Aaina 1–10 scale, or a selfie)
 
   Budget and "already using" are not questions any more: they live on the plan page (see **Tune your plan**).
-- **Selfie skin-tone reader:** uses the camera or a photo upload after explicit consent. It reads skin tone and undertone from the face region, asks for a retake when lighting is poor, and offers 3 or 5 photos when the reading falls between two shades.
-- **Smarter photo checks:** a borderline undertone no longer forces a retake (you get one optional question instead), near-identical neighbouring tones (such as Monk 1 and 2) are shown side by side for a one-tap confirm, blown-out scenes and colour casts are named correctly so the retake advice fits the problem.
+- **Selfie skin-tone reader (v2):** after explicit consent, reads a camera photo or upload and returns exactly one shade on the fixed Aaina scale, shown as **SKIN TONE: N** (1 Very Light, 2–3 Light, 4 Light Medium, 5 Medium, 6 Medium Tan, 7 Tan, 8 Deep, 9 Dark, 10 Very Dark). No ranges, no undertone, no explanation; a "Not right? Choose another shade" link lets the user correct it.
+  - **Lighting correction instead of retakes:** the whites of the eyes are used as a light reference (found next to the iris, so it works for very fair and very deep skin), which removes warm/cool casts and over/under-exposure together. If one eye is in shadow, the lit eye is used. With no usable eye whites it falls back to a partial colour balance from the background.
+  - **Multi-region skin sampling:** forehead, cheeks and chin, split left and right; only skin-coloured pixels and the middle 70% by brightness are kept. If one side of the face is in shadow, the lit side is read. A red channel clipped by bright light is rebuilt from green using real skin's red/green ratio.
+  - **Retakes only when unreadable:** no face in the oval, face too small, face blown out to white, or too dark to hold colour.
+  - **Test (`tools/tone_eval.py`, 450 simulated selfies: 50 people x 9 lighting conditions, light applied to face, eyes and wall together):** retake rate 62.2% → 4.9%; of all photos, exact shade 16.9% → 62.2% and within one shade 26.2% → 84.0%; the same person got the same answer across lighting 23.8% → 73.3% of the time. Weakest cases: phone auto-exposure and photos with closed eyes. These are simulated photos, not real selfies, so validate on real labelled selfies before relying on the numbers.
 - **Filter check:** warns when a photo looks filtered (airbrushed skin with a sharp background, black-and-white, boosted colour or colour casts) and asks for a retake without a filter.
 - **Tune your plan (on the plan page):** one panel to change the budget per product and what you already use, together. Each budget option previews what it would give you (how many steps are covered and the total). Change several things, then press **Update my plan** once; the advisor rebuilds the plan, says how many steps changed, and keeps every safety rule. The plan starts at up to ₹700 per product.
 - **Save and resume:** answers are saved on the device after every step. Returning users see "Continue where I left off" (or "View my plan"), and **Delete my answers** clears everything.

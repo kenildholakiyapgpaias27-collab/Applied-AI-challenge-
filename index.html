@@ -776,6 +776,16 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
 .cremove{color:var(--muted)}
 .cmax{margin:10px 0 0}.cmax.flash{color:var(--warn);font-weight:600}
 @media (max-width:520px){.cgrid{grid-template-columns:minmax(0,1fr)}.cchead{grid-template-columns:52px minmax(0,1fr);row-gap:6px}.cchead .art{grid-row:1/3}.cbadge{grid-column:2;justify-self:start;padding:5px 8px}.cchead .art{width:52px;height:52px}.cfu{padding:0 12px 12px}}
+
+/* ---- skin tone result: one number on the Aaina scale ---- */
+.tonefinal{display:flex;gap:16px;align-items:center;background:var(--sunken);border-radius:20px;padding:16px 18px;max-width:560px}
+.tonefinal .bigsw{width:72px;height:72px}
+.tonenum{margin:2px 0 0;font:600 22px/1.2 var(--mono);letter-spacing:.04em;color:var(--ink)}
+.tonenum b{font-size:30px;color:var(--accent)}
+.tonename{margin:4px 0 0;font-size:14.5px;color:var(--muted)}
+.tonepick{margin-top:10px}
+.tcell{display:flex;flex-direction:column;align-items:center;gap:4px;width:58px}
+.tname{font-size:10.5px;line-height:1.2;color:var(--muted);text-align:center}
 </style>
 
 <div class="page">
@@ -1052,7 +1062,10 @@ function buildRoutine(when,prof=P){
    5. Face reader (port of the aaina_face_reader library)
    ===================================================================== */
 const MONK_HEX={1:"#f6ede4",2:"#f3e7db",3:"#f7ead0",4:"#eadaba",5:"#d7bd96",6:"#a07e56",7:"#825c43",8:"#604134",9:"#3a312a",10:"#292420"};
-const MONK_LABEL={1:"very light",2:"very light",3:"light",4:"light",5:"medium",6:"medium",7:"medium-deep",8:"deep",9:"deep",10:"very deep"};
+/* Aaina 10-level skin tone scale (fixed): LIGHT 1-3, MEDIUM 4-6, DEEP 7-10 */
+const TONE_NAME={1:"Very Light",2:"Light",3:"Light",4:"Light Medium",5:"Medium",6:"Medium Tan",7:"Tan",8:"Deep",9:"Dark",10:"Very Dark"};
+const TONE_BAND=t=>t<=3?"Light":t<=6?"Medium":"Deep";
+const MONK_LABEL=Object.fromEntries(Object.entries(TONE_NAME).map(([k,v])=>[k,v.toLowerCase()]));
 const lin=c=>{c/=255;return c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4)};
 const flab=t=>t>0.008856?Math.cbrt(t):7.787*t+16/116;
 function rgb2lab(r,g,b){const R=lin(r),G=lin(g),B=lin(b);const X=(R*0.4124+G*0.3576+B*0.1805)/0.95047,Y=R*0.2126+G*0.7152+B*0.0722,Z=(R*0.0193+G*0.1192+B*0.9505)/1.08883;const fx=flab(X),fy=flab(Y),fz=flab(Z);return[116*fy-16,500*(fx-fy),200*(fy-fz)]}
@@ -1062,7 +1075,7 @@ const MONK_LAB={};for(const t in MONK_HEX)MONK_LAB[t]=rgb2lab(...hex2rgb(MONK_HE
 const lch=([L,a,b])=>[L,Math.hypot(a,b),Math.atan2(b,a)*180/Math.PI];
 function toneDist(x,y){const[L1,C1,h1]=lch(x),[L2,C2,h2]=lch(y);const dH=2*Math.sqrt(Math.max(C1*C2,0))*Math.sin((h1-h2)*Math.PI/360);return Math.hypot(L1-L2,0.5*(C1-C2),0.5*dH)}
 const FR={minShortSide:480,minScene:45,maxHigh:0.06,maxLow:0.12,minSharp:18,maxCast:1.40,minSkin:0.40,maxCheekGap:9,maxSpread:1,maxAmb:0.80,utMargin:2.5,minConf:0.60,coolBelow:50,warmFrom:60,oliveFrom:72,maxAttempts:3,minOvalSkin:0.35,closeAmb:0.55,maxSceneWhite:0.30,nearRef:4};
-const TIPS={TOO_DARK:"Move somewhere brighter, ideally facing a window in daylight.",LOW_RESOLUTION:"Use your phone's main camera at full quality.",NO_FACE:"Fit your whole face inside the oval and look straight at the camera.",OVEREXPOSED:"Turn off the flash and move out of direct sunlight.",UNDEREXPOSED:"Find softer, even light; part of your face is in deep shadow.",BLURRY:"Hold the phone steady and tap your face to focus before taking it.",COLOUR_CAST:"The light looks yellow or coloured. Try natural daylight instead of indoor bulbs.",SKIN_HIDDEN:"Keep your cheeks and forehead clear of hair, glasses, masks or a heavy beard.",UNEVEN_LIGHT:"One side of your face is in shadow. Face the light so it falls evenly.",REGIONS_DISAGREE:"Your cheeks and forehead read as different shades, often from makeup or uneven light. Please use a bare face in even daylight.",TONE_AMBIGUOUS:"Your skin sits between two shades on our scale. One more photo in daylight will help.",UNDERTONE_AMBIGUOUS:"I can't tell your undertone clearly. Natural daylight without filters helps most.",LOW_CONFIDENCE:"I'm not confident enough in this reading. Please try again in natural daylight."};
+const TIPS={FACE_TOO_SMALL:"Move closer so your face fills the oval.",FACE_BLOWN_OUT:"Your face is washed out to white. Turn off the flash or step out of direct sun.",TOO_DARK:"Move somewhere brighter, ideally facing a window in daylight.",LOW_RESOLUTION:"Use your phone's main camera at full quality.",NO_FACE:"Fit your whole face inside the oval and look straight at the camera.",OVEREXPOSED:"Turn off the flash and move out of direct sunlight.",UNDEREXPOSED:"Find softer, even light; part of your face is in deep shadow.",BLURRY:"Hold the phone steady and tap your face to focus before taking it.",COLOUR_CAST:"The light looks yellow or coloured. Try natural daylight instead of indoor bulbs.",SKIN_HIDDEN:"Keep your cheeks and forehead clear of hair, glasses, masks or a heavy beard.",UNEVEN_LIGHT:"One side of your face is in shadow. Face the light so it falls evenly.",REGIONS_DISAGREE:"Your cheeks and forehead read as different shades, often from makeup or uneven light. Please use a bare face in even daylight.",TONE_AMBIGUOUS:"Your skin sits between two shades on our scale. One more photo in daylight will help.",UNDERTONE_AMBIGUOUS:"I can't tell your undertone clearly. Natural daylight without filters helps most.",LOW_CONFIDENCE:"I'm not confident enough in this reading. Please try again in natural daylight."};
 const JUDGEMENT=new Set(["TONE_AMBIGUOUS","UNDERTONE_AMBIGUOUS","LOW_CONFIDENCE"]);
 function isSkin(L,a,b){const C=Math.hypot(a,b),h=Math.atan2(b,a)*180/Math.PI;return L>3&&L<98.5&&a>-2&&b>1&&C>(L<35?1.5:3)&&h>10&&h<110}
 function median(arr){const s=Float64Array.from(arr).sort();const n=s.length;return n?(n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2):NaN}
@@ -1071,7 +1084,7 @@ function sampleRegion(img,name,x,y,w,h){const W=img.width,H=img.height,d=img.dat
 function scaled(src,sx,sy,sw,sh,tw){const th=Math.max(1,Math.round(sh*tw/sw));const c=document.createElement("canvas");c.width=tw;c.height=th;const g=c.getContext("2d",{willReadFrequently:true});g.imageSmoothingEnabled=true;g.imageSmoothingQuality="high";g.drawImage(src,sx,sy,sw,sh,0,0,tw,th);return g.getImageData(0,0,tw,th)}
 function estimateUndertone(lab){const[,a,b]=lab;const h=Math.atan2(b,a)*180/Math.PI;let ut,m,why;if(h<FR.coolBelow){ut="cool";m=FR.coolBelow-h;why="your skin leans pink-red rather than golden"}else if(h<FR.warmFrom){ut="neutral";m=Math.min(h-FR.coolBelow,FR.warmFrom-h);why="your skin has a balance of pink and golden tones"}else if(h<FR.oliveFrom){ut="warm";m=Math.min(h-FR.warmFrom,FR.oliveFrom-h);why="your skin leans golden-yellow rather than pink"}else{ut="olive";m=h-FR.oliveFrom;why="your skin leans golden with a slight green cast and very little redness"}return{ut,h,margin:m,why}}
 function estimateTone(lab){const r=Object.keys(MONK_LAB).map(t=>[+t,toneDist(lab,MONK_LAB[t])]).sort((p,q)=>p[1]-q[1]);return{tone:r[0][0],second:r[1][0],amb:r[1][1]>1e-6?r[0][1]/r[1][1]:1}}
-function readPhoto(src,oval){
+function readPhotoV1(src,oval){   // previous reader, kept only so the QA script can compare old vs new
   const W=src.width,H=src.height,full=src.getContext("2d",{willReadFrequently:true}).getImageData(0,0,W,H);const issues=[];
   if(Math.min(W,H)<FR.minShortSide)issues.push("LOW_RESOLUTION");
   const small=scaled(src,0,0,W,H,200);let lum=0;for(let k=0;k<small.data.length;k+=4)lum+=0.299*small.data[k]+0.587*small.data[k+1]+0.114*small.data[k+2];lum/=small.data.length/4;if(lum<FR.minScene)issues.push("TOO_DARK");
@@ -1103,6 +1116,117 @@ function readPhoto(src,oval){
   return{status:blocking.length?"RECAPTURE":"OK",issues,regions,lab,tone:T.tone,second:T.second,ut:U.ut,why:U.why,conf:+conf.toFixed(2),candidates:uniq([T.tone,T.second]).sort((a,b)=>a-b),
     utUnsure:issues.includes("UNDERTONE_AMBIGUOUS"),closeCall,amb:+T.amb.toFixed(2)};
 }
+
+/* =====================================================================
+   5b. Skin tone reader v2 — always one tone (1–10), very few retakes.
+   1. Light reference: the whites of the eyes reflect light almost the same way for everyone,
+      so they tell us the colour and brightness of the light falling on the face. Dividing the
+      skin by that reference removes warm/cool casts and over/under-exposure together.
+      No usable eye whites (closed eyes, glasses glare, tiny face)? Fall back to the background
+      (shades-of-grey colour balance at partial strength, gentle exposure correction).
+   2. Multi-region skin: forehead, both cheeks and chin; per region, keep only skin-coloured,
+      unclipped pixels and the middle 70% by brightness (drops shine and pores in shadow).
+      A region much darker than the rest (side shadow) is dropped.
+   3. Nearest of the 10 Aaina swatches in corrected colour. One number, always.
+   Retake only when the photo can't be read at all: no face in the oval, face too small,
+   face blown out to white, or too dark to hold colour.
+   ===================================================================== */
+const FR2={minFacePx:60,minOvalSkin:0.22,maxClipped:0.40,minFaceLevel:14,scleraRef:[0.86,0.84,0.79],minSclera:18,
+  gainClamp:[0.3,4.5],bgStrength:0.6,bgGainClamp:[0.72,1.45],shadowDrop:9};
+const toLin=c=>lin(c),toSrgb=c=>255*Math.min(1,Math.max(0,c<=0.0031308?12.92*c:1.055*Math.pow(c,1/2.4)-0.055));
+function inEllipse(u,v,cx,cy,rx,ry){return((u-cx)/rx)**2+((v-cy)/ry)**2<=1}
+function findSclera(img,fx,fy,fw,fh,skin,pre){
+  // Eye whites, per eye. First anchor on the iris (a compact dark blob): the white is the light, low-colour strip either side
+  // of it. That works even for very fair skin, which is about as light as the eye white. If there's no clear iris (deep skin,
+  // where the iris is about as dark as the skin), look for pixels clearly lighter than the skin instead.
+  const d=img.data,W=img.width,H=img.height,eyes=[];let clip=0;
+  const sL=skin[0],sC=Math.hypot(skin[1],skin[2]),sY=lab2rgb(...skin).map(toLin).reduce((t,v,i)=>t+v*[0.2126,0.7152,0.0722][i],0);
+  for(const [x0,x1] of [[0.16,0.48],[0.52,0.84]]){
+    const X0=Math.max(1,fx+x0*fw|0),X1=Math.min(W-1,fx+x1*fw|0),Y0=Math.max(1,fy+0.28*fh|0),Y1=Math.min(H-1,fy+0.58*fh|0),ww=X1-X0,hh=Y1-Y0;if(ww<6||hh<6)continue;
+    const L=new Float32Array(ww*hh),C=new Float32Array(ww*hh),Yv=new Float32Array(ww*hh),RGB=new Float32Array(ww*hh*3),CL=new Uint8Array(ww*hh);
+    for(let j=0;j<hh;j++)for(let i=0;i<ww;i++){let r=0,g=0,b=0,cl=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const k=((Y0+j+dy)*W+X0+i+dx)*4;r+=d[k];g+=d[k+1];b+=d[k+2];if(Math.min(d[k],d[k+1],d[k+2])>=250)cl++}
+      const q=j*ww+i,ln=[toLin(r/9)*pre[0],toLin(g/9)*pre[1],toLin(b/9)*pre[2]],lab=rgb2lab(...ln.map(toSrgb));L[q]=lab[0];C[q]=Math.hypot(lab[1],lab[2]);Yv[q]=0.2126*ln[0]+0.7152*ln[1]+0.0722*ln[2];RGB.set([r/9,g/9,b/9],q*3);CL[q]=cl>=7?2:cl?1:0;if(cl>=7)clip++}
+    const pick=(test)=>{const c=[];for(let q=0;q<ww*hh;q++)if(!CL[q]&&test(q))c.push(q);return c};
+    // a) iris-anchored
+    let cand=[];const dark=new Uint8Array(ww*hh);for(let q=0;q<ww*hh;q++)dark[q]=Yv[q]<0.30*sY?1:0;
+    const seen=new Uint8Array(ww*hh);let best=null;
+    for(let q0=0;q0<ww*hh;q0++){if(!dark[q0]||seen[q0])continue;const st=[q0];seen[q0]=1;let n=0,mx=1e9,Mx=-1,my=1e9,My=-1,sx=0,sy=0;
+      while(st.length){const q=st.pop(),x=q%ww,y=(q/ww)|0;n++;sx+=x;sy+=y;mx=Math.min(mx,x);Mx=Math.max(Mx,x);my=Math.min(my,y);My=Math.max(My,y);
+        for(const nq of[q-1,q+1,q-ww,q+ww]){if(nq<0||nq>=ww*hh||seen[nq]||!dark[nq])continue;if(Math.abs((nq%ww)-x)>1)continue;seen[nq]=1;st.push(nq)}}
+      const bw=Mx-mx+1,bh=My-my+1,fill=n/(bw*bh),ar=bw/bh;
+      if(n>=10&&ar>0.6&&ar<1.8&&fill>0.55){const cx=sx/n,cy=sy/n,dist=Math.hypot(cx-ww/2,cy-hh/2);if(!best||dist<best.dist)best={cx,cy,r:Math.sqrt(n/Math.PI),dist}}}
+    if(best){const {cx,cy,r}=best;cand=pick(q=>{const x=q%ww,y=(q/ww)|0,dx=Math.abs(x-cx);return Math.abs(y-cy)<=0.7*r&&dx>=1.25*r&&dx<=3.2*r&&!dark[q]});
+      cand.sort((p,q)=>(L[q]-1.5*C[q])-(L[p]-1.5*C[p]));cand=cand.slice(0,Math.ceil(cand.length*0.4));
+      if(cand.length>=6){const mL=median(cand.map(q=>L[q])),mC=median(cand.map(q=>C[q]));if(!(mL>=sL-12&&mC<=Math.max(sC,6)))cand=[]}}
+    // b) clearly lighter than the skin
+    if(cand.length<6){cand=pick(q=>L[q]>=sL+10&&C[q]<=sC+4);cand.sort((p,q)=>(L[q]-1.5*C[q])-(L[p]-1.5*C[p]));cand=cand.slice(0,Math.ceil(cand.length*0.35))}
+    if(cand.length>=6)eyes.push({px:cand.map(q=>[RGB[q*3],RGB[q*3+1],RGB[q*3+2]]),Y:median(cand.map(q=>Yv[q])),iris:!!best})}
+  let out=eyes.flatMap(e=>e.px);if(eyes.length===2&&Math.max(eyes[0].Y,eyes[1].Y)>1.25*Math.min(eyes[0].Y,eyes[1].Y))out=(eyes[0].Y>eyes[1].Y?eyes[0]:eyes[1]).px;   // one eye in shadow: trust the lit one
+  if(out.length>=FR2.minSclera)return{lin:[0,1,2].map(c=>median(out.map(p=>toLin(p[c])))),n:out.length,clipped:false,eyes:eyes.length};
+  if(clip>=FR2.minSclera)return{lin:[1,1,1],n:clip,clipped:true};      // eye whites blown to pure white: we only know they're at least this bright
+  return null}
+function bgIlluminant(img,fx,fy,fw,fh){
+  const d=img.data,W=img.width,H=img.height,cx=fx+fw/2,cy=fy+fh/2;let acc=[0,0,0],n=0;
+  for(let j=0;j<H;j+=2)for(let i=0;i<W;i+=2){if(inEllipse(i,j,cx,cy,fw*0.62,fh*0.62))continue;const k=(j*W+i)*4,r=d[k],g=d[k+1],b=d[k+2];
+    if(Math.max(r,g,b)>=250||Math.max(r,g,b)<15)continue;const l=[toLin(r),toLin(g),toLin(b)];for(let c=0;c<3;c++)acc[c]+=l[c]**4;n++}
+  if(n<300)return null;const e=acc.map(a=>Math.pow(a/n,1/4));const Y=0.2126*e[0]+0.7152*e[1]+0.0722*e[2];return{e,Y,n}}
+const SKIN_RG=Object.values(MONK_HEX).map(h=>{const l=hex2rgb(h).map(lin);return[l[1],l[0]/l[1]]}).sort((a,b)=>a[0]-b[0]);
+function skinRG(G){const t=SKIN_RG;if(G<=t[0][0])return t[0][1];for(let i=1;i<t.length;i++)if(G<=t[i][0]){const f=(G-t[i-1][0])/(t[i][0]-t[i-1][0]);return t[i-1][1]+f*(t[i][1]-t[i-1][1])}return t[t.length-1][1]}
+function readPhoto(src,oval){
+  const W=src.width,H=src.height,img=src.getContext("2d",{willReadFrequently:true}).getImageData(0,0,W,H),d=img.data;
+  const fw=oval.w*W,fh=oval.h*H,fx=oval.cx*W-fw/2,fy=oval.cy*H-fh/2,cx=fx+fw/2,cy=fy+fh/2;
+  const fail=code=>({status:"RECAPTURE",issues:[code],regions:[]});
+  if(fw<FR2.minFacePx)return fail("FACE_TOO_SMALL");
+  // raw face stats (inside the oval)
+  let inside=0,clipped=0,anyClip=0,maxSum=0;const step=Math.max(1,Math.round(fw/160));
+  for(let j=Math.max(0,fy|0);j<Math.min(H,fy+fh);j+=step)for(let i=Math.max(0,fx|0);i<Math.min(W,fx+fw);i+=step){if(!inEllipse(i,j,cx,cy,fw/2,fh/2))continue;const k=(j*W+i)*4;inside++;{const c=[d[k],d[k+1],d[k+2]].sort((x,y)=>y-x);if(c[1]>=254)clipped++;if(c[0]>=254)anyClip++}maxSum+=Math.max(d[k],d[k+1],d[k+2])}
+  if(!inside)return fail("NO_FACE");
+  if(clipped/inside>FR2.maxClipped)return fail("FACE_BLOWN_OUT");
+  if(maxSum/inside<FR2.minFaceLevel)return fail("TOO_DARK");
+  // 1. light reference -> per-channel gains in linear light
+  const bg=bgIlluminant(img,fx,fy,fw,fh);let pre=[1,1,1];
+  if(bg){const mean=(bg.e[0]+bg.e[1]+bg.e[2])/3;pre=bg.e.map(e=>Math.min(FR2.bgGainClamp[1],Math.max(FR2.bgGainClamp[0],Math.pow(mean/Math.max(1e-4,e),FR2.bgStrength))))}
+  const rough=sampleRegion(img,"cheek",fx+0.2*fw,fy+0.5*fh,0.6*fw,0.2*fh);
+  const roughSkin=rough.lab?rgb2lab(...lab2rgb(...rough.lab).map((v,c)=>toSrgb(toLin(v)*pre[c]))):[50,10,15];
+  const sc=findSclera(img,fx,fy,fw,fh,roughSkin,pre);let gains,method,notes=[];
+  if(sc&&!sc.clipped){gains=FR2.scleraRef.map((r,c)=>Math.min(FR2.gainClamp[1],Math.max(FR2.gainClamp[0],r/Math.max(1e-4,sc.lin[c]))));method="eye whites"}
+  else if(sc&&sc.clipped){const m=(FR2.scleraRef[0]+FR2.scleraRef[1]+FR2.scleraRef[2])/3;gains=pre.map(g=>g*m);method="eye whites (blown out)"}
+  else{gains=pre.slice();method="background";
+  }
+  if(anyClip/inside>0.6&&method!=="eye whites")return fail("FACE_BLOWN_OUT");   // most of the face clipped and no clean light reference: too risky to guess
+  const castStrength=Math.max(...gains)/Math.min(...gains),expo=(gains[0]+gains[1]+gains[2])/3;
+  if(castStrength>1.12)notes.push("COLOUR_CORRECTED");if(expo>1.2)notes.push("BRIGHTENED");if(expo<0.83)notes.push("DARKENED");
+  // corrected pixel -> Lab
+  const fix=(r,g,b)=>{const l=[toLin(r)*gains[0],toLin(g)*gains[1],toLin(b)*gains[2]];
+    if(r>=254&&g<254&&b<254)l[0]=l[1]*skinRG(l[1]);      // red clipped only (common on lit skin): rebuild it from green using real skin's red/green ratio
+    return rgb2lab(...l.map(toSrgb))};
+  // skin fraction in the oval after correction (a strong tint no longer hides the face)
+  let skin=0,tot=0;for(let j=Math.max(0,fy|0);j<Math.min(H,fy+fh);j+=step*2)for(let i=Math.max(0,fx|0);i<Math.min(W,fx+fw);i+=step*2){if(!inEllipse(i,j,cx,cy,fw/2*0.85,fh/2*0.85))continue;const k=(j*W+i)*4;tot++;if(isSkin(...fix(d[k],d[k+1],d[k+2]))||isSkin(...rgb2lab(d[k],d[k+1],d[k+2])))skin++}
+  if(!tot||skin/tot<FR2.minOvalSkin)return fail("NO_FACE");
+  // 2. multi-region skin sampling on corrected pixels
+  const s=Math.max(Math.round(0.13*fw),6);
+  const boxes=[["forehead left",fx+0.30*fw,fy+0.13*fh,0.18*fw,0.10*fh,"L"],["forehead right",fx+0.52*fw,fy+0.13*fh,0.18*fw,0.10*fh,"R"],
+    ["left cheek",fx+0.17*fw,fy+0.53*fh,s,s,"L"],["right cheek",fx+0.83*fw-s,fy+0.53*fh,s,s,"R"],
+    ["chin left",fx+0.38*fw,fy+0.82*fh,0.11*fw,0.08*fh,"L"],["chin right",fx+0.51*fw,fy+0.82*fh,0.11*fw,0.08*fh,"R"]];
+  const regions=boxes.map(([name,x,y,w,h,side])=>{const x0=Math.max(0,x|0),y0=Math.max(0,y|0),x1=Math.min(W,(x+w)|0),y1=Math.min(H,(y+h)|0),st=Math.max(1,Math.round(Math.min(x1-x0,y1-y0)/40));const px=[];let all=0;
+    for(let j=y0;j<y1;j+=st)for(let i=x0;i<x1;i+=st){const k=(j*W+i)*4;all++;if(d[k+1]>=254||d[k+2]>=254)continue;const lab=fix(d[k],d[k+1],d[k+2]);if(isSkin(...lab)||isSkin(...rgb2lab(d[k],d[k+1],d[k+2])))px.push(lab)}
+    const frac=all?px.length/all:0,box=[x,y,w,h];if(px.length<8)return{name,side,box,frac,lab:null};
+    const Ls=px.map(p=>p[0]),lo=quant(Ls,0.15),hi=quant(Ls,0.85);let keep=px.filter(p=>p[0]>=lo&&p[0]<=hi);if(keep.length<5)keep=px;
+    return{name,side,box,frac,lab:[0,1,2].map(c=>median(keep.map(p=>p[c])))}});
+  let use=regions.filter(r=>r.lab&&r.frac>=0.25);if(!use.length)use=regions.filter(r=>r.lab);
+  if(!use.length)return fail("SKIN_HIDDEN");
+  {const sideL=sd=>{const v=use.filter(r=>r.side===sd).map(r=>r.lab[0]);return v.length?median(v):null};const l=sideL("L"),r=sideL("R");
+   if(l!=null&&r!=null&&Math.abs(l-r)>FR2.shadowDrop){const lit=l>r?"L":"R";use=use.filter(x=>x.side===lit);notes.push("SHADOW_IGNORED")}}   // one side in shadow: read the lit side
+  if(use.length>=3){const mL=median(use.map(r=>r.lab[0]));const ok=use.filter(r=>Math.abs(r.lab[0]-mL)<=FR2.shadowDrop*1.5);if(ok.length>=2)use=ok}
+  const lab=[0,1,2].map(c=>median(use.map(r=>r.lab[c])));
+  // 3. nearest Aaina swatch
+  const T=estimateTone(lab),U=estimateUndertone(lab);
+  const rt=use.map(r=>estimateTone(r.lab).tone),spread=Math.max(...rt)-Math.min(...rt);
+  const conf=Math.max(0.3,Math.min(0.99,(sc?1:0.75)*(1-0.4*Math.max(0,(T.amb-0.5)/0.5))*(spread<=1?1:0.8)*(use.length>=3?1:0.85)));
+  for(const r of regions)r.frac=r.lab&&use.includes(r)?Math.max(r.frac,FR.minSkin):Math.min(r.frac,FR.minSkin-0.01);   // for the on-photo boxes: green = used
+  return{status:"OK",tone:T.tone,issues:[],notes,regions,lab:lab.map(v=>+v.toFixed(1)),method,conf:+conf.toFixed(2),ut:U.ut,second:T.second,amb:+T.amb.toFixed(2),gains:gains.map(g=>+g.toFixed(3))};
+}
+
 let photoAttempts=[];
 function sessionRead(res){
   photoAttempts.push(res);
@@ -1350,7 +1474,7 @@ const STEP={
       opts:FACE_SKIN.map(([label,sub,value])=>({label,sub,value}))}),
     apply:v=>{P.skin=v;P.skinConfirmed=true},show:()=>cap(P.skin)||"–"},
   tone:{title:"Your skin",side:"Skin tone",q:()=>({ask:"What's your skin tone?",help:"Tap **the closest shade**. Deeper skin marks more easily, so this changes **which ingredients and sunscreens** I pick.",tone:true}),
-    show:()=>{if(!P.tone)return"Skipped";const src=P.toneSource||"";const m=/(\d) selfies/.exec(src);return`Tone ${P.tone} (${MONK_LABEL[P.tone]})${m?`, from ${m[1]} selfies`:/selfie/.test(src)?", from selfie":""}`}},
+    show:()=>{if(!P.tone)return"Skipped";const src=P.toneSource||"";const m=/(\d) selfies/.exec(src);return`Tone ${P.tone} (${TONE_NAME[P.tone]})${m?`, from ${m[1]} selfies`:/selfie/.test(src)?", from selfie":""}`}},
   shelf:{title:"Your routine",side:"Already using",q:()=>({ask:"What are you already using on your face?",help:"I'll **build around what you have**, skip steps you've already covered, and make sure nothing new **clashes** with it.",shelf:true}),
     apply:v=>{P.shelf=v},show:()=>{const it=shelfItems();return it.length?it.map(o=>o.short).join(", "):"Nothing yet"}},
   budget:{title:"Budget",side:"Budget",q:()=>({ask:"What's your budget per product?",help:"I'll keep **all three products** under this price.",
@@ -1582,24 +1706,24 @@ const PHOTO_TIPS=[
   "Pull hair back from your forehead and cheeks, and take one straight on.",
 ];
 const CAM=SVG('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>');
-function swBtn(t,{size="",pressed=false,label=true,onClick}={}){const b=document.createElement("button");b.type="button";b.className="tsw "+size;b.style.background=MONK_HEX[t];b.style.color=t>=6?"#fff":"#2a1f1a";b.textContent=label?t:"";b.setAttribute("aria-label",`Tone ${t}, ${MONK_LABEL[t]}`);b.setAttribute("aria-pressed",String(pressed));if(onClick)b.onclick=onClick;return b}
+function swBtn(t,{size="",pressed=false,label=true,onClick}={}){const b=document.createElement("button");b.type="button";b.className="tsw "+size;b.style.background=MONK_HEX[t];b.style.color=t>=6?"#fff":"#2a1f1a";b.textContent=label?t:"";b.setAttribute("aria-label",`Skin tone ${t}, ${TONE_NAME[t]}`);b.setAttribute("aria-pressed",String(pressed));if(onClick)b.onclick=onClick;return b}
 function thumbOf(src){const c=document.createElement("canvas");const s=96/Math.max(src.width,src.height);c.width=Math.round(src.width*s);c.height=Math.round(src.height*s);c.getContext("2d").drawImage(src,0,0,c.width,c.height);return c}
 
 function toneWidget(){
   const w=document.createElement("div");w.className="qbody";
   const area=document.createElement("div");area.className="tonearea";w.appendChild(area);
   area.addEventListener("pickscale",()=>choose());
-  let reads=[],target=1,failures=0;      // reads: accepted photo readings (numbers + thumbnail only, in memory)
+  let failures=0;
 
   const finish=(t,ut,label)=>{P.tone=t;P.undertone=ut||P.undertone||null;answer("tone",t,label)};
 
   /* 1. choose: scale or selfie */
   const choose=()=>{
-    reads=[];target=1;failures=0;area.innerHTML="";
+    failures=0;area.innerHTML="";
     const sc=document.createElement("div");sc.className="tonescale";
     for(const[g,ts]of TONE_GROUPS){const col=document.createElement("div");col.className="tgroup";col.innerHTML=`<span class="tglbl">${g}</span>`;
       const row=document.createElement("div");row.className="trow";
-      for(const t of ts)row.appendChild(swBtn(t,{pressed:P.tone===t,onClick:()=>{P.toneSource="you picked";finish(t,null,`Tone ${t} (${MONK_LABEL[t]})`)}}));
+      for(const t of ts){const cell=document.createElement("div");cell.className="tcell";cell.appendChild(swBtn(t,{pressed:P.tone===t,onClick:()=>{P.toneSource="you picked";finish(t,null,`Skin tone ${t} (${TONE_NAME[t]})`)}}));cell.insertAdjacentHTML("beforeend",`<span class="tname">${TONE_NAME[t]}</span>`);row.appendChild(cell)}
       col.appendChild(row);sc.appendChild(col)}
     area.appendChild(sc);
     area.insertAdjacentHTML("beforeend",`<p class="qhelp" style="margin:0">Compare with your jawline in daylight. Most people pick one a little lighter than they are.</p>`);
@@ -1620,130 +1744,37 @@ function toneWidget(){
     a.append(yes,no);area.appendChild(a);focusEl(area);
   };
 
-  /* 3. capture one photo (first, or one of several) */
-  const capture=()=>{
-    area.innerHTML="";
-    const n=reads.length+1,multi=target>1;
-    if(multi){
-      area.insertAdjacentHTML("beforeend",`<div class="mphead"><div><div class="eyebrow">Photo ${n} of ${target}</div><p class="mptip">${esc(PHOTO_TIPS[Math.min(n-1,PHOTO_TIPS.length-1)])}</p></div><div class="mpdots">${Array.from({length:target},(_,i)=>`<span class="${i<reads.length?"done":i===reads.length?"now":""}"></span>`).join("")}</div></div>`);
-      area.appendChild(strip());
-    }
-    area.appendChild(photoCard((res,src)=>onPhoto(res,src),{multi,cta:multi?`Add photo ${n}`:"Check my skin tone"}));
-    focusEl(area);
-  };
-  const strip=()=>{const s=document.createElement("div");s.className="mpstrip";
-    reads.forEach((r,i)=>{const d=document.createElement("div");d.className="mpthumb";d.appendChild(r.thumb);d.insertAdjacentHTML("beforeend",`<span class="mpread" style="background:${MONK_HEX[r.tone]};color:${r.tone>=6?"#fff":"#2a1f1a"}">${r.tone}</span><span class="small muted">Photo ${i+1}</span>`);s.appendChild(d)});
-    return s};
+  /* 3. capture the photo */
+  const capture=()=>{area.innerHTML="";area.appendChild(photoCard((res,src)=>onPhoto(res,src)));focusEl(area)};
 
-  /* 4. read a photo */
+  /* 4. read a photo: one tone, or (rarely) a retake when the photo can't be read at all */
   const onPhoto=(res,src)=>{
     area.querySelector(".readout")?.remove();
-    const q=QUALITY_ONLY(res);
-    if(res.status==="RECAPTURE"&&(q.length||!res.lab)){            // photo quality problem: ask for a retake, it doesn't count
+    if(res.status!=="OK"){
       failures++;
       const out=document.createElement("div");out.className="readout";
-      const tips=uniq(q.length?q:res.issues).map(c=>TIPS[c]).filter(Boolean).slice(0,3);
-      out.innerHTML=`<div class="notice"><b>Let's retake this one.</b> It isn't clear enough to read.<ul class="tips">${tips.map(t=>`<li>${esc(t)}</li>`).join("")}</ul><span class="small muted">This photo hasn't been counted or saved.</span></div>`;
-      if(failures>=3){const a=document.createElement("div");a.className="qactions";const p=document.createElement("button");p.type="button";p.className="btn";p.textContent="I'll pick my tone instead";p.onclick=choose;a.appendChild(p);out.appendChild(a)}
+      const tips=uniq(res.issues).map(c=>TIPS[c]).filter(Boolean).slice(0,2);
+      out.innerHTML=`<div class="notice"><b>Let's retake this one.</b> I can't read your skin in this photo.<ul class="tips">${tips.map(t=>`<li>${esc(t)}</li>`).join("")}</ul><span class="small muted">This photo hasn't been counted or saved.</span></div>`;
+      if(failures>=2){const a=document.createElement("div");a.className="qactions";const p=document.createElement("button");p.type="button";p.className="btn";p.textContent="I'll pick my shade instead";p.onclick=choose;a.appendChild(p);out.appendChild(a)}
       area.appendChild(out);focusEl(out);return;
     }
-    failures=0;
-    reads.push({lab:res.lab,tone:res.tone,second:res.second,ut:res.ut,conf:res.conf,issues:res.issues,thumb:thumbOf(src)});
-    if(reads.length<target){capture();return}
-    if(target===1)firstResult(res);else combinedResult();
+    failures=0;area.appendChild(toneResult(res));
   };
 
-  /* 5a. first photo result: clear, or torn between two */
-  const firstResult=res=>{
-    const torn=res.issues.includes("TONE_AMBIGUOUS")||res.issues.includes("LOW_CONFIDENCE");
+  /* 5. the result: exactly one number on the Aaina scale */
+  const toneResult=res=>{
+    const tone=res.tone;let cur=tone;
     const out=document.createElement("div");out.className="readout";
-    if(torn){
-      const [a,b]=res.candidates.length>1?res.candidates:[res.tone,res.second].sort((x,y)=>x-y);
-      out.innerHTML=`<div class="notice info"><b>I'm torn between tone ${a} and tone ${b}.</b> Lighting in a single photo can tip it either way.</div>`;
-      const pick=document.createElement("div");pick.className="torn";
-      for(const t of[a,b]){const card=document.createElement("button");card.type="button";card.className="torncard";card.innerHTML=`<span class="bigsw" style="background:${MONK_HEX[t]}"></span><b>Tone ${t}</b><span class="small muted">${MONK_LABEL[t]}</span>`;
-        card.onclick=()=>{P.toneSource="you chose after a selfie";finish(t,res.ut,`Tone ${t} (${MONK_LABEL[t]})`)};pick.appendChild(card)}
-      out.appendChild(pick);
-      out.appendChild(morePhotos("Not sure which? Add more photos and I'll compare them for a steadier reading:"));
-    } else if(res.closeCall){
-      // two neighbouring tones are almost equally close: show the best match first and let the user confirm with one tap
-      const other=res.second;
-      out.innerHTML=`<div class="notice info"><b>You look closest to tone ${res.tone}</b>, but tone ${other} is very close. Which matches your jawline better?</div>`;
-      const pick=document.createElement("div");pick.className="torn";
-      for(const t of[res.tone,other]){const card=document.createElement("button");card.type="button";card.className="torncard"+(t===res.tone?" best":"");card.innerHTML=`<span class="bigsw" style="background:${MONK_HEX[t]}"></span><b>Tone ${t}</b><span class="small muted">${t===res.tone?"Best match · ":""}${MONK_LABEL[t]}</span>`;
-        card.onclick=()=>{P.toneSource=t===res.tone?"selfie (confirmed by you)":"you chose after a selfie";finish(t,res.utUnsure?null:res.ut,`Tone ${t} (${MONK_LABEL[t]})`)};pick.appendChild(card)}
-      out.appendChild(pick);
-    } else {
-      let utSel=res.utUnsure?null:res.ut;
-      const rc=resultCard(res.tone,()=>utSel,res.utUnsure?`Your skin tone looks like <b>${res.tone} on the 1–10 scale (${MONK_LABEL[res.tone]})</b>.`:`Your skin tone looks like <b>${res.tone} on the 1–10 scale (${MONK_LABEL[res.tone]})</b> with ${/^[aeiou]/.test(res.ut)?"an":"a"} <b>${res.ut} undertone</b>, because ${esc(res.why)}.`,"From your selfie","selfie");out.appendChild(rc);
-      if(res.utUnsure){
-        // the tone is clear; only the undertone is borderline, so ask one quick question instead of a retake
-        const u=document.createElement("div");u.className="utask";
-        u.innerHTML=`<p class="small" style="margin:0 0 8px"><b>One quick check:</b> your undertone is borderline in this light. Which sounds more like you? <span class="muted">(optional)</span></p>`;
-        const row=document.createElement("div");row.className="utrow";
-        for(const [k,l,d] of [["warm","Warm","Gold jewellery suits me"],["cool","Cool","Silver suits me"],["neutral","Neutral","Both suit me"],["olive","Olive","Slightly green-grey"]]){
-          const b=document.createElement("button");b.type="button";b.className="utchip";b.setAttribute("aria-pressed","false");b.innerHTML=`<b>${l}</b><span>${d}</span>`;
-          b.onclick=()=>{utSel=k;row.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)))};row.appendChild(b)}
-        u.appendChild(row);rc.insertBefore(u,rc.querySelector(".qactions"));
-      }
-      out.appendChild(morePhotos("Want extra certainty? Add a few more photos:",true));
-    }
-    area.appendChild(out);focusEl(out);
-  };
-  const morePhotos=(lead,quiet=false)=>{
-    const box=document.createElement("div");box.className="more"+(quiet?" quiet":"");
-    box.innerHTML=`<p class="small" style="margin:0 0 8px">${esc(lead)}</p>`;
-    const g=document.createElement("div");g.className="opts";
-    for(const[nn,label,sub]of[[3,"3 photos","More accurate · 2 more, about 30 seconds"],[5,"5 photos","Most accurate · 4 more, best for tricky lighting"]]){
-      const b=document.createElement("button");b.type="button";b.className="opt";b.innerHTML=`<b>${CAM} ${label}</b><span>${sub}</span>`;
-      b.onclick=()=>{target=nn;capture()};g.appendChild(b)}
-    box.appendChild(g);return box;
-  };
-
-  /* 5b. combine several photos */
-  const combinedResult=()=>{
-    const labs=reads.map(r=>r.lab);const lab=[0,1,2].map(c=>median(labs.map(l=>l[c])));
-    const T=estimateTone(lab),U=estimateUndertone(lab);
-    const votes={};for(const r of reads)votes[r.tone]=(votes[r.tone]||0)+1;
-    const ranked=Object.entries(votes).map(([t,n])=>[+t,n]).sort((a,b)=>b[1]-a[1]||Math.abs(a[0]-T.tone)-Math.abs(b[0]-T.tone));
-    const n=reads.length,top=ranked[0];
-    const agree=votes[T.tone]||0;
-    const clear=T.amb<=FR.maxAmb||agree/n>=0.6;
-    const final=clear?(agree/n>=0.6||!top?T.tone:top[0]):null;
-    const utVotes={};for(const r of reads)utVotes[r.ut]=(utVotes[r.ut]||0)+1;
-    const out=document.createElement("div");out.className="readout";
-    out.appendChild(strip());
-    out.appendChild(voteChart(votes,n,final));
-    if(final){
-      const k=votes[final]||0;
-      out.appendChild(resultCard(final,U.ut,`Across your ${n} photos, your skin tone reads as <b>${final} on the 1–10 scale (${MONK_LABEL[final]})</b> with ${/^[aeiou]/.test(U.ut)?"an":"a"} <b>${U.ut} undertone</b>. ${k} of ${n} photos landed on tone ${final}${k<n?", and I combined the colour from all of them":""}.`,`Based on ${n} photos`,`${n} selfies`));
-    } else {
-      const [a,b]=ranked.length>1?[ranked[0][0],ranked[1][0]].sort((x,y)=>x-y):[T.tone,T.second].sort((x,y)=>x-y);
-      out.insertAdjacentHTML("beforeend",`<div class="notice info"><b>Your photos are split between tone ${a} and tone ${b}.</b> You're right on the line, so either will work well. Tap the one closer to your jawline in daylight.</div>`);
-      const pick=document.createElement("div");pick.className="torn";
-      for(const t of[a,b]){const card=document.createElement("button");card.type="button";card.className="torncard";card.innerHTML=`<span class="bigsw" style="background:${MONK_HEX[t]}"></span><b>Tone ${t}</b><span class="small muted">${votes[t]||0} of ${n} photos</span>`;
-        card.onclick=()=>{P.toneSource=`you chose after ${n} selfies`;finish(t,U.ut,`Tone ${t} (${MONK_LABEL[t]})`)};pick.appendChild(card)}
-      out.appendChild(pick);
-      if(target<5){const m=document.createElement("button");m.type="button";m.className="btn ghost";m.textContent="Add 2 more photos";m.onclick=()=>{target=5;capture()};out.appendChild(m)}
-    }
-    area.innerHTML="";area.appendChild(out);focusEl(out);
-  };
-  const voteChart=(votes,n,final)=>{
-    const max=Math.max(...Object.values(votes));const tones=Object.keys(votes).map(Number);const lo=Math.max(1,Math.min(...tones)-1),hi=Math.min(10,Math.max(...tones)+1);
-    const d=document.createElement("div");d.className="votes";d.setAttribute("role","img");d.setAttribute("aria-label",`Photo readings: ${Object.entries(votes).map(([t,c])=>`${c} at tone ${t}`).join(", ")}`);
-    let h=`<div class="eyebrow">How your ${n} photos read</div><div class="vbars">`;
-    for(let t=lo;t<=hi;t++){const c=votes[t]||0;h+=`<div class="vcol${t===final?" win":""}"><span class="vn">${c||""}</span><span class="vbar" style="height:${c?Math.round(8+56*c/max):3}px;background:${c?MONK_HEX[t]:"var(--line)"}"></span><span class="vt">${t}</span></div>`}
-    d.innerHTML=h+"</div>";return d;
-  };
-  const resultCard=(tone,ut,text,eyebrow,src)=>{
-    let cur=tone;const wrap=document.createElement("div");wrap.style.display="flex";wrap.style.flexDirection="column";wrap.style.gap="10px";
-    wrap.innerHTML=`<div class="toneresult"><span class="bigsw" style="background:${MONK_HEX[tone]}"></span><div><div class="eyebrow">${esc(eyebrow)}</div><p style="margin:2px 0 0">${text}</p><p class="small muted" style="margin:4px 0 0">Not quite right? Tap a different tone.</p></div></div>`;
-    const row=document.createElement("div");row.className="trow";
-    for(let t=1;t<=10;t++)row.appendChild(swBtn(t,{size:"sm",pressed:t===tone,onClick:()=>{cur=t;row.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(+x.textContent===t)));wrap.querySelector(".bigsw").style.background=MONK_HEX[t]}}));
-    wrap.appendChild(row);
-    const a=document.createElement("div");a.className="qactions";const ok=document.createElement("button");ok.type="button";ok.className="btn primary";ok.textContent="Looks right, continue";
-    ok.onclick=()=>{P.toneSource=cur===tone?src:`${src}, corrected by you`;finish(cur,typeof ut==="function"?ut():ut,`Tone ${cur} (${MONK_LABEL[cur]})${cur===tone?`, from ${src==="selfie"?"my selfie":"my "+src}`:""}`)};
-    a.appendChild(ok);wrap.appendChild(a);return wrap;
+    out.innerHTML=`<div class="tonefinal" role="status"><span class="bigsw"></span><div><div class="eyebrow">From your selfie</div><p class="tonenum">SKIN TONE: <b>${tone}</b></p><p class="tonename"></p></div></div>
+      <div class="tonepick" hidden><div class="trow"></div></div>
+      <div class="qactions"><button type="button" class="btn primary" data-ok>Continue</button><button type="button" class="btn ghost picklink" data-fix>Not right? Choose another shade</button></div>`;
+    const paint=()=>{out.querySelector(".bigsw").style.background=MONK_HEX[cur];out.querySelector(".tonenum b").textContent=cur;out.querySelector(".tonename").textContent=`${TONE_NAME[cur]} · ${TONE_BAND(cur)}`;
+      out.querySelectorAll(".tonepick .tsw").forEach(x=>x.setAttribute("aria-pressed",String(+x.textContent===cur)))};
+    const row=out.querySelector(".tonepick .trow");for(let t=1;t<=10;t++)row.appendChild(swBtn(t,{size:"sm",pressed:t===tone,onClick:()=>{cur=t;paint()}}));
+    out.querySelector("[data-fix]").onclick=e=>{out.querySelector(".tonepick").hidden=false;e.target.hidden=true};
+    out.querySelector("[data-ok]").onclick=()=>{P.toneSource=cur===tone?"selfie":"selfie, corrected by you";P.toneRead={tone,method:res.method,conf:res.conf,notes:res.notes};
+      finish(cur,cur===tone?res.ut:null,`Skin tone ${cur} (${TONE_NAME[cur]})${cur===tone?", from my selfie":""}`)};
+    paint();focusEl(out);return out;
   };
   if(OPEN_SELFIE){OPEN_SELFIE=false;consent()}else choose();return w;
 }
@@ -1773,7 +1804,7 @@ function detectFilter(src,oval){
 }
 function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
   const box=document.createElement("div");box.className="photo";
-  box.innerHTML=`<div class="stage"><canvas width="900" height="1200"></canvas><div class="empty">${SVG('<circle cx="12" cy="9" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>').replace("<svg",'<svg class="ph"')}${multi?"<span>Take the next photo.</span>":"<b>Selfie without a filter, please.</b><span>Face a window in daylight. Turn off beauty mode and filters.</span>"}</div></div>
+  box.innerHTML=`<div class="stage"><canvas width="900" height="1200"></canvas><div class="empty">${SVG('<circle cx="12" cy="9" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>').replace("<svg",'<svg class="ph"')}${multi?"<span>Take the next photo.</span>":"<b>Selfie without a filter, please.</b><span>Face a window, eyes open, looking at the camera. Turn off beauty mode and filters.</span>"}</div></div>
   <div class="sizer" hidden><label>Oval</label><input type="range" min="0.25" max="0.85" step="0.01" value="0.55" aria-label="Oval size"><span>Drag the oval onto your face</span></div>
   <div class="camwrap" hidden><video playsinline muted autoplay></video><div class="qactions"><button type="button" class="btn primary" data-snap>${CAM}Capture</button><button type="button" class="btn" data-camx>Cancel</button></div></div>
   <div class="qactions" data-src><button type="button" class="btn primary" data-cam>${CAM}<span data-cap>Open camera</span></button><label class="btn filebtn">${SVG('<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>')}<span>Upload a photo</span><input type="file" accept="image/*"></label><button type="button" class="btn primary" data-read hidden>${esc(cta)}</button></div>

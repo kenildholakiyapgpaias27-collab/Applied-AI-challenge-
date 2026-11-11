@@ -1,0 +1,259 @@
+{
+ "all": {
+  "v1": {
+   "n": 450,
+   "rejected": 280,
+   "reject_rate": 62.2,
+   "exact": 44.7,
+   "within1": 69.4,
+   "band": 72.9,
+   "answered_exact": 16.9,
+   "answered_within1": 26.2
+  },
+  "v2": {
+   "n": 450,
+   "rejected": 22,
+   "reject_rate": 4.9,
+   "exact": 65.4,
+   "within1": 88.3,
+   "band": 86.4,
+   "answered_exact": 62.2,
+   "answered_within1": 84.0
+  }
+ },
+ "by_condition": {
+  "daylight": {
+   "v1": {
+    "n": 50,
+    "rejected": 11,
+    "reject_rate": 22.0,
+    "exact": 100.0,
+    "within1": 100.0,
+    "band": 100.0,
+    "answered_exact": 78.0,
+    "answered_within1": 78.0
+   },
+   "v2": {
+    "n": 50,
+    "rejected": 0,
+    "reject_rate": 0.0,
+    "exact": 86.0,
+    "within1": 98.0,
+    "band": 94.0,
+    "answered_exact": 86.0,
+    "answered_within1": 98.0
+   }
+  },
+  "warm_bulb": {
+   "v1": {
+    "n": 50,
+    "rejected": 24,
+    "reject_rate": 48.0,
+    "exact": 30.8,
+    "within1": 65.4,
+    "band": 53.8,
+    "answered_exact": 16.0,
+    "answered_within1": 34.0
+   },
+   "v2": {
+    "n": 50,
+    "rejected": 0,
+    "reject_rate": 0.0,
+    "exact": 56.0,
+    "within1": 84.0,
+    "band": 82.0,
+    "answered_exact": 56.0,
+    "answered_within1": 84.0
+   }
+  },
+  "cool_shade": {
+   "v1": {
+    "n": 50,
+    "rejected": 34,
+    "reject_rate": 68.0,
+    "exact": 93.8,
+    "within1": 100.0,
+    "band": 100.0,
+    "answered_exact": 30.0,
+    "answered_within1": 32.0
+   },
+   "v2": {
+    "n": 50,
+    "rejected": 0,
+    "reject_rate": 0.0,
+    "exact": 76.0,
+    "within1": 96.0,
+    "band": 94.0,
+    "answered_exact": 76.0,
+    "answered_within1": 96.0
+   }
+  },
+  "dim_room": {
+   "v1": {
+    "n": 50,
+    "rejected": 25,
+    "reject_rate": 50.0,
+    "exact": 8.0,
+    "within1": 28.0,
+    "band": 44.0,
+    "answered_exact": 4.0,
+    "answered_within1": 14.0
+   },
+   "v2": {
+    "n": 50,
+    "rejected": 0,
+    "reject_rate": 0.0,
+    "exact": 60.0,
+    "within1": 82.0,
+    "band": 84.0,
+    "answered_exact": 60.0,
+    "answered_within1": 82.0
+   }
+  },
+  "dim_warm": {
+   "v1": {
+    "n": 50,
+    "rejected": 29,
+    "reject_rate": 58.0,
+    "exact": 14.3,
+    "within1": 33.3,
+    "band": 47.6,
+    "answered_exact": 6.0,
+    "answered_within1": 14.0
+   },
+   "v2": {
+    "n": 50,
+    "rejected": 0,
+    "reject_rate": 0.0,
+    "exact": 64.0,
+    "within1": 84.0,
+    "band": 84.0,
+    "answered_exact": 64.0,
+    "answered_within1": 84.0
+   }
+  },
+  "bright_sun": {
+   "v1": {
+    "n": 50,
+    "rejected": 40,
+    "reject_rate": 80.0,
+    "exact": 10.0,
+    "within1": 100.0,
+    "band": 90.0,
+    "answered_exact": 2.0,
+    "answered_within1": 20.0
+   },
+   "v2": {
+    "n": 50,
+    "rejected": 22,
+    "reject_rate": 44.0,
+    "exact": 64.3,
+    "within1": 85.7,
+    "band": 89.3,
+    "answered_exact": 36.0,
+    "answered_within1": 48.0
+   }
+  },
+  "phone_auto_exposure": {
+   "v1": {
+    "n": 50,
+    "rejected": 25,
+    "reject_rate": 50.0,
+    "exact": 16.0,
+    "within1": 56.0,
+    "band": 68.0,
+    "answered_exact": 8.0,
+    "answered_within1": 28.0
+   },
+   "v2": {
+    "n": 50,
+    "rejected": 0,
+    "reject_rate": 0.0,
+    "exact": 34.0,
+    "within1": 80.0,
+    "band": 72.0,
+    "answered_exact": 34.0,
+    "answered_within1": 80.0
+   }
+  },
+  "side_shadow": {
+   "v1": {
+    "n": 50,
+    "rejected": 42,
+    "reject_rate": 84.0,
+    "exact": 50.0,
+    "within1": 100.0,
+    "band": 100.0,
+    "answered_exact": 8.0,
+    "answered_within1": 16.0
+   },
+   "v2": {
+    "n": 50,
+    "rejected": 0,
+    "reject_rate": 0.0,
+    "exact": 64.0,
+    "within1": 88.0,
+    "band": 86.0,
+    "answered_exact": 64.0,
+    "answered_within1": 88.0
+   }
+  },
+  "low_res": {
+   "v1": {
+    "n": 50,
+    "rejected": 50,
+    "reject_rate": 100.0,
+    "exact": 0.0,
+    "within1": 0.0,
+    "band": 0.0,
+    "answered_exact": 0.0,
+    "answered_within1": 0.0
+   },
+   "v2": {
+    "n": 50,
+    "rejected": 0,
+    "reject_rate": 0.0,
+    "exact": 84.0,
+    "within1": 96.0,
+    "band": 94.0,
+    "answered_exact": 84.0,
+    "answered_within1": 96.0
+   }
+  }
+ },
+ "eyes_closed_v2": {
+  "n": 90,
+  "rejected": 6,
+  "reject_rate": 6.7,
+  "exact": 47.6,
+  "within1": 67.9,
+  "band": 70.2,
+  "answered_exact": 44.4,
+  "answered_within1": 63.3
+ },
+ "eyes_open_v2": {
+  "n": 360,
+  "rejected": 16,
+  "reject_rate": 4.4,
+  "exact": 69.8,
+  "within1": 93.3,
+  "band": 90.4,
+  "answered_exact": 66.7,
+  "answered_within1": 89.2
+ },
+ "consistency": {
+  "v1": {
+   "people": 50,
+   "avg_share_same_answer": 23.8,
+   "avg_spread": 1.8
+  },
+  "v2": {
+   "people": 50,
+   "avg_share_same_answer": 73.3,
+   "avg_spread": 2.06
+  }
+ },
+ "v2_rejections": {
+  "FACE_BLOWN_OUT": 22
+ }
+}

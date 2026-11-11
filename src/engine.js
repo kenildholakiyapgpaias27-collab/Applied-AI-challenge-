@@ -161,7 +161,10 @@ function buildRoutine(when,prof=P){
    5. Face reader (port of the aaina_face_reader library)
    ===================================================================== */
 const MONK_HEX={1:"#f6ede4",2:"#f3e7db",3:"#f7ead0",4:"#eadaba",5:"#d7bd96",6:"#a07e56",7:"#825c43",8:"#604134",9:"#3a312a",10:"#292420"};
-const MONK_LABEL={1:"very light",2:"very light",3:"light",4:"light",5:"medium",6:"medium",7:"medium-deep",8:"deep",9:"deep",10:"very deep"};
+/* Aaina 10-level skin tone scale (fixed): LIGHT 1-3, MEDIUM 4-6, DEEP 7-10 */
+const TONE_NAME={1:"Very Light",2:"Light",3:"Light",4:"Light Medium",5:"Medium",6:"Medium Tan",7:"Tan",8:"Deep",9:"Dark",10:"Very Dark"};
+const TONE_BAND=t=>t<=3?"Light":t<=6?"Medium":"Deep";
+const MONK_LABEL=Object.fromEntries(Object.entries(TONE_NAME).map(([k,v])=>[k,v.toLowerCase()]));
 const lin=c=>{c/=255;return c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4)};
 const flab=t=>t>0.008856?Math.cbrt(t):7.787*t+16/116;
 function rgb2lab(r,g,b){const R=lin(r),G=lin(g),B=lin(b);const X=(R*0.4124+G*0.3576+B*0.1805)/0.95047,Y=R*0.2126+G*0.7152+B*0.0722,Z=(R*0.0193+G*0.1192+B*0.9505)/1.08883;const fx=flab(X),fy=flab(Y),fz=flab(Z);return[116*fy-16,500*(fx-fy),200*(fy-fz)]}
@@ -171,7 +174,7 @@ const MONK_LAB={};for(const t in MONK_HEX)MONK_LAB[t]=rgb2lab(...hex2rgb(MONK_HE
 const lch=([L,a,b])=>[L,Math.hypot(a,b),Math.atan2(b,a)*180/Math.PI];
 function toneDist(x,y){const[L1,C1,h1]=lch(x),[L2,C2,h2]=lch(y);const dH=2*Math.sqrt(Math.max(C1*C2,0))*Math.sin((h1-h2)*Math.PI/360);return Math.hypot(L1-L2,0.5*(C1-C2),0.5*dH)}
 const FR={minShortSide:480,minScene:45,maxHigh:0.06,maxLow:0.12,minSharp:18,maxCast:1.40,minSkin:0.40,maxCheekGap:9,maxSpread:1,maxAmb:0.80,utMargin:2.5,minConf:0.60,coolBelow:50,warmFrom:60,oliveFrom:72,maxAttempts:3,minOvalSkin:0.35,closeAmb:0.55,maxSceneWhite:0.30,nearRef:4};
-const TIPS={TOO_DARK:"Move somewhere brighter, ideally facing a window in daylight.",LOW_RESOLUTION:"Use your phone's main camera at full quality.",NO_FACE:"Fit your whole face inside the oval and look straight at the camera.",OVEREXPOSED:"Turn off the flash and move out of direct sunlight.",UNDEREXPOSED:"Find softer, even light; part of your face is in deep shadow.",BLURRY:"Hold the phone steady and tap your face to focus before taking it.",COLOUR_CAST:"The light looks yellow or coloured. Try natural daylight instead of indoor bulbs.",SKIN_HIDDEN:"Keep your cheeks and forehead clear of hair, glasses, masks or a heavy beard.",UNEVEN_LIGHT:"One side of your face is in shadow. Face the light so it falls evenly.",REGIONS_DISAGREE:"Your cheeks and forehead read as different shades, often from makeup or uneven light. Please use a bare face in even daylight.",TONE_AMBIGUOUS:"Your skin sits between two shades on our scale. One more photo in daylight will help.",UNDERTONE_AMBIGUOUS:"I can't tell your undertone clearly. Natural daylight without filters helps most.",LOW_CONFIDENCE:"I'm not confident enough in this reading. Please try again in natural daylight."};
+const TIPS={FACE_TOO_SMALL:"Move closer so your face fills the oval.",FACE_BLOWN_OUT:"Your face is washed out to white. Turn off the flash or step out of direct sun.",TOO_DARK:"Move somewhere brighter, ideally facing a window in daylight.",LOW_RESOLUTION:"Use your phone's main camera at full quality.",NO_FACE:"Fit your whole face inside the oval and look straight at the camera.",OVEREXPOSED:"Turn off the flash and move out of direct sunlight.",UNDEREXPOSED:"Find softer, even light; part of your face is in deep shadow.",BLURRY:"Hold the phone steady and tap your face to focus before taking it.",COLOUR_CAST:"The light looks yellow or coloured. Try natural daylight instead of indoor bulbs.",SKIN_HIDDEN:"Keep your cheeks and forehead clear of hair, glasses, masks or a heavy beard.",UNEVEN_LIGHT:"One side of your face is in shadow. Face the light so it falls evenly.",REGIONS_DISAGREE:"Your cheeks and forehead read as different shades, often from makeup or uneven light. Please use a bare face in even daylight.",TONE_AMBIGUOUS:"Your skin sits between two shades on our scale. One more photo in daylight will help.",UNDERTONE_AMBIGUOUS:"I can't tell your undertone clearly. Natural daylight without filters helps most.",LOW_CONFIDENCE:"I'm not confident enough in this reading. Please try again in natural daylight."};
 const JUDGEMENT=new Set(["TONE_AMBIGUOUS","UNDERTONE_AMBIGUOUS","LOW_CONFIDENCE"]);
 function isSkin(L,a,b){const C=Math.hypot(a,b),h=Math.atan2(b,a)*180/Math.PI;return L>3&&L<98.5&&a>-2&&b>1&&C>(L<35?1.5:3)&&h>10&&h<110}
 function median(arr){const s=Float64Array.from(arr).sort();const n=s.length;return n?(n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2):NaN}
@@ -180,7 +183,7 @@ function sampleRegion(img,name,x,y,w,h){const W=img.width,H=img.height,d=img.dat
 function scaled(src,sx,sy,sw,sh,tw){const th=Math.max(1,Math.round(sh*tw/sw));const c=document.createElement("canvas");c.width=tw;c.height=th;const g=c.getContext("2d",{willReadFrequently:true});g.imageSmoothingEnabled=true;g.imageSmoothingQuality="high";g.drawImage(src,sx,sy,sw,sh,0,0,tw,th);return g.getImageData(0,0,tw,th)}
 function estimateUndertone(lab){const[,a,b]=lab;const h=Math.atan2(b,a)*180/Math.PI;let ut,m,why;if(h<FR.coolBelow){ut="cool";m=FR.coolBelow-h;why="your skin leans pink-red rather than golden"}else if(h<FR.warmFrom){ut="neutral";m=Math.min(h-FR.coolBelow,FR.warmFrom-h);why="your skin has a balance of pink and golden tones"}else if(h<FR.oliveFrom){ut="warm";m=Math.min(h-FR.warmFrom,FR.oliveFrom-h);why="your skin leans golden-yellow rather than pink"}else{ut="olive";m=h-FR.oliveFrom;why="your skin leans golden with a slight green cast and very little redness"}return{ut,h,margin:m,why}}
 function estimateTone(lab){const r=Object.keys(MONK_LAB).map(t=>[+t,toneDist(lab,MONK_LAB[t])]).sort((p,q)=>p[1]-q[1]);return{tone:r[0][0],second:r[1][0],amb:r[1][1]>1e-6?r[0][1]/r[1][1]:1}}
-function readPhoto(src,oval){
+function readPhotoV1(src,oval){   // previous reader, kept only so the QA script can compare old vs new
   const W=src.width,H=src.height,full=src.getContext("2d",{willReadFrequently:true}).getImageData(0,0,W,H);const issues=[];
   if(Math.min(W,H)<FR.minShortSide)issues.push("LOW_RESOLUTION");
   const small=scaled(src,0,0,W,H,200);let lum=0;for(let k=0;k<small.data.length;k+=4)lum+=0.299*small.data[k]+0.587*small.data[k+1]+0.114*small.data[k+2];lum/=small.data.length/4;if(lum<FR.minScene)issues.push("TOO_DARK");
@@ -212,6 +215,117 @@ function readPhoto(src,oval){
   return{status:blocking.length?"RECAPTURE":"OK",issues,regions,lab,tone:T.tone,second:T.second,ut:U.ut,why:U.why,conf:+conf.toFixed(2),candidates:uniq([T.tone,T.second]).sort((a,b)=>a-b),
     utUnsure:issues.includes("UNDERTONE_AMBIGUOUS"),closeCall,amb:+T.amb.toFixed(2)};
 }
+
+/* =====================================================================
+   5b. Skin tone reader v2 — always one tone (1–10), very few retakes.
+   1. Light reference: the whites of the eyes reflect light almost the same way for everyone,
+      so they tell us the colour and brightness of the light falling on the face. Dividing the
+      skin by that reference removes warm/cool casts and over/under-exposure together.
+      No usable eye whites (closed eyes, glasses glare, tiny face)? Fall back to the background
+      (shades-of-grey colour balance at partial strength, gentle exposure correction).
+   2. Multi-region skin: forehead, both cheeks and chin; per region, keep only skin-coloured,
+      unclipped pixels and the middle 70% by brightness (drops shine and pores in shadow).
+      A region much darker than the rest (side shadow) is dropped.
+   3. Nearest of the 10 Aaina swatches in corrected colour. One number, always.
+   Retake only when the photo can't be read at all: no face in the oval, face too small,
+   face blown out to white, or too dark to hold colour.
+   ===================================================================== */
+const FR2={minFacePx:60,minOvalSkin:0.22,maxClipped:0.40,minFaceLevel:14,scleraRef:[0.86,0.84,0.79],minSclera:18,
+  gainClamp:[0.3,4.5],bgStrength:0.6,bgGainClamp:[0.72,1.45],shadowDrop:9};
+const toLin=c=>lin(c),toSrgb=c=>255*Math.min(1,Math.max(0,c<=0.0031308?12.92*c:1.055*Math.pow(c,1/2.4)-0.055));
+function inEllipse(u,v,cx,cy,rx,ry){return((u-cx)/rx)**2+((v-cy)/ry)**2<=1}
+function findSclera(img,fx,fy,fw,fh,skin,pre){
+  // Eye whites, per eye. First anchor on the iris (a compact dark blob): the white is the light, low-colour strip either side
+  // of it. That works even for very fair skin, which is about as light as the eye white. If there's no clear iris (deep skin,
+  // where the iris is about as dark as the skin), look for pixels clearly lighter than the skin instead.
+  const d=img.data,W=img.width,H=img.height,eyes=[];let clip=0;
+  const sL=skin[0],sC=Math.hypot(skin[1],skin[2]),sY=lab2rgb(...skin).map(toLin).reduce((t,v,i)=>t+v*[0.2126,0.7152,0.0722][i],0);
+  for(const [x0,x1] of [[0.16,0.48],[0.52,0.84]]){
+    const X0=Math.max(1,fx+x0*fw|0),X1=Math.min(W-1,fx+x1*fw|0),Y0=Math.max(1,fy+0.28*fh|0),Y1=Math.min(H-1,fy+0.58*fh|0),ww=X1-X0,hh=Y1-Y0;if(ww<6||hh<6)continue;
+    const L=new Float32Array(ww*hh),C=new Float32Array(ww*hh),Yv=new Float32Array(ww*hh),RGB=new Float32Array(ww*hh*3),CL=new Uint8Array(ww*hh);
+    for(let j=0;j<hh;j++)for(let i=0;i<ww;i++){let r=0,g=0,b=0,cl=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const k=((Y0+j+dy)*W+X0+i+dx)*4;r+=d[k];g+=d[k+1];b+=d[k+2];if(Math.min(d[k],d[k+1],d[k+2])>=250)cl++}
+      const q=j*ww+i,ln=[toLin(r/9)*pre[0],toLin(g/9)*pre[1],toLin(b/9)*pre[2]],lab=rgb2lab(...ln.map(toSrgb));L[q]=lab[0];C[q]=Math.hypot(lab[1],lab[2]);Yv[q]=0.2126*ln[0]+0.7152*ln[1]+0.0722*ln[2];RGB.set([r/9,g/9,b/9],q*3);CL[q]=cl>=7?2:cl?1:0;if(cl>=7)clip++}
+    const pick=(test)=>{const c=[];for(let q=0;q<ww*hh;q++)if(!CL[q]&&test(q))c.push(q);return c};
+    // a) iris-anchored
+    let cand=[];const dark=new Uint8Array(ww*hh);for(let q=0;q<ww*hh;q++)dark[q]=Yv[q]<0.30*sY?1:0;
+    const seen=new Uint8Array(ww*hh);let best=null;
+    for(let q0=0;q0<ww*hh;q0++){if(!dark[q0]||seen[q0])continue;const st=[q0];seen[q0]=1;let n=0,mx=1e9,Mx=-1,my=1e9,My=-1,sx=0,sy=0;
+      while(st.length){const q=st.pop(),x=q%ww,y=(q/ww)|0;n++;sx+=x;sy+=y;mx=Math.min(mx,x);Mx=Math.max(Mx,x);my=Math.min(my,y);My=Math.max(My,y);
+        for(const nq of[q-1,q+1,q-ww,q+ww]){if(nq<0||nq>=ww*hh||seen[nq]||!dark[nq])continue;if(Math.abs((nq%ww)-x)>1)continue;seen[nq]=1;st.push(nq)}}
+      const bw=Mx-mx+1,bh=My-my+1,fill=n/(bw*bh),ar=bw/bh;
+      if(n>=10&&ar>0.6&&ar<1.8&&fill>0.55){const cx=sx/n,cy=sy/n,dist=Math.hypot(cx-ww/2,cy-hh/2);if(!best||dist<best.dist)best={cx,cy,r:Math.sqrt(n/Math.PI),dist}}}
+    if(best){const {cx,cy,r}=best;cand=pick(q=>{const x=q%ww,y=(q/ww)|0,dx=Math.abs(x-cx);return Math.abs(y-cy)<=0.7*r&&dx>=1.25*r&&dx<=3.2*r&&!dark[q]});
+      cand.sort((p,q)=>(L[q]-1.5*C[q])-(L[p]-1.5*C[p]));cand=cand.slice(0,Math.ceil(cand.length*0.4));
+      if(cand.length>=6){const mL=median(cand.map(q=>L[q])),mC=median(cand.map(q=>C[q]));if(!(mL>=sL-12&&mC<=Math.max(sC,6)))cand=[]}}
+    // b) clearly lighter than the skin
+    if(cand.length<6){cand=pick(q=>L[q]>=sL+10&&C[q]<=sC+4);cand.sort((p,q)=>(L[q]-1.5*C[q])-(L[p]-1.5*C[p]));cand=cand.slice(0,Math.ceil(cand.length*0.35))}
+    if(cand.length>=6)eyes.push({px:cand.map(q=>[RGB[q*3],RGB[q*3+1],RGB[q*3+2]]),Y:median(cand.map(q=>Yv[q])),iris:!!best})}
+  let out=eyes.flatMap(e=>e.px);if(eyes.length===2&&Math.max(eyes[0].Y,eyes[1].Y)>1.25*Math.min(eyes[0].Y,eyes[1].Y))out=(eyes[0].Y>eyes[1].Y?eyes[0]:eyes[1]).px;   // one eye in shadow: trust the lit one
+  if(out.length>=FR2.minSclera)return{lin:[0,1,2].map(c=>median(out.map(p=>toLin(p[c])))),n:out.length,clipped:false,eyes:eyes.length};
+  if(clip>=FR2.minSclera)return{lin:[1,1,1],n:clip,clipped:true};      // eye whites blown to pure white: we only know they're at least this bright
+  return null}
+function bgIlluminant(img,fx,fy,fw,fh){
+  const d=img.data,W=img.width,H=img.height,cx=fx+fw/2,cy=fy+fh/2;let acc=[0,0,0],n=0;
+  for(let j=0;j<H;j+=2)for(let i=0;i<W;i+=2){if(inEllipse(i,j,cx,cy,fw*0.62,fh*0.62))continue;const k=(j*W+i)*4,r=d[k],g=d[k+1],b=d[k+2];
+    if(Math.max(r,g,b)>=250||Math.max(r,g,b)<15)continue;const l=[toLin(r),toLin(g),toLin(b)];for(let c=0;c<3;c++)acc[c]+=l[c]**4;n++}
+  if(n<300)return null;const e=acc.map(a=>Math.pow(a/n,1/4));const Y=0.2126*e[0]+0.7152*e[1]+0.0722*e[2];return{e,Y,n}}
+const SKIN_RG=Object.values(MONK_HEX).map(h=>{const l=hex2rgb(h).map(lin);return[l[1],l[0]/l[1]]}).sort((a,b)=>a[0]-b[0]);
+function skinRG(G){const t=SKIN_RG;if(G<=t[0][0])return t[0][1];for(let i=1;i<t.length;i++)if(G<=t[i][0]){const f=(G-t[i-1][0])/(t[i][0]-t[i-1][0]);return t[i-1][1]+f*(t[i][1]-t[i-1][1])}return t[t.length-1][1]}
+function readPhoto(src,oval){
+  const W=src.width,H=src.height,img=src.getContext("2d",{willReadFrequently:true}).getImageData(0,0,W,H),d=img.data;
+  const fw=oval.w*W,fh=oval.h*H,fx=oval.cx*W-fw/2,fy=oval.cy*H-fh/2,cx=fx+fw/2,cy=fy+fh/2;
+  const fail=code=>({status:"RECAPTURE",issues:[code],regions:[]});
+  if(fw<FR2.minFacePx)return fail("FACE_TOO_SMALL");
+  // raw face stats (inside the oval)
+  let inside=0,clipped=0,anyClip=0,maxSum=0;const step=Math.max(1,Math.round(fw/160));
+  for(let j=Math.max(0,fy|0);j<Math.min(H,fy+fh);j+=step)for(let i=Math.max(0,fx|0);i<Math.min(W,fx+fw);i+=step){if(!inEllipse(i,j,cx,cy,fw/2,fh/2))continue;const k=(j*W+i)*4;inside++;{const c=[d[k],d[k+1],d[k+2]].sort((x,y)=>y-x);if(c[1]>=254)clipped++;if(c[0]>=254)anyClip++}maxSum+=Math.max(d[k],d[k+1],d[k+2])}
+  if(!inside)return fail("NO_FACE");
+  if(clipped/inside>FR2.maxClipped)return fail("FACE_BLOWN_OUT");
+  if(maxSum/inside<FR2.minFaceLevel)return fail("TOO_DARK");
+  // 1. light reference -> per-channel gains in linear light
+  const bg=bgIlluminant(img,fx,fy,fw,fh);let pre=[1,1,1];
+  if(bg){const mean=(bg.e[0]+bg.e[1]+bg.e[2])/3;pre=bg.e.map(e=>Math.min(FR2.bgGainClamp[1],Math.max(FR2.bgGainClamp[0],Math.pow(mean/Math.max(1e-4,e),FR2.bgStrength))))}
+  const rough=sampleRegion(img,"cheek",fx+0.2*fw,fy+0.5*fh,0.6*fw,0.2*fh);
+  const roughSkin=rough.lab?rgb2lab(...lab2rgb(...rough.lab).map((v,c)=>toSrgb(toLin(v)*pre[c]))):[50,10,15];
+  const sc=findSclera(img,fx,fy,fw,fh,roughSkin,pre);let gains,method,notes=[];
+  if(sc&&!sc.clipped){gains=FR2.scleraRef.map((r,c)=>Math.min(FR2.gainClamp[1],Math.max(FR2.gainClamp[0],r/Math.max(1e-4,sc.lin[c]))));method="eye whites"}
+  else if(sc&&sc.clipped){const m=(FR2.scleraRef[0]+FR2.scleraRef[1]+FR2.scleraRef[2])/3;gains=pre.map(g=>g*m);method="eye whites (blown out)"}
+  else{gains=pre.slice();method="background";
+  }
+  if(anyClip/inside>0.6&&method!=="eye whites")return fail("FACE_BLOWN_OUT");   // most of the face clipped and no clean light reference: too risky to guess
+  const castStrength=Math.max(...gains)/Math.min(...gains),expo=(gains[0]+gains[1]+gains[2])/3;
+  if(castStrength>1.12)notes.push("COLOUR_CORRECTED");if(expo>1.2)notes.push("BRIGHTENED");if(expo<0.83)notes.push("DARKENED");
+  // corrected pixel -> Lab
+  const fix=(r,g,b)=>{const l=[toLin(r)*gains[0],toLin(g)*gains[1],toLin(b)*gains[2]];
+    if(r>=254&&g<254&&b<254)l[0]=l[1]*skinRG(l[1]);      // red clipped only (common on lit skin): rebuild it from green using real skin's red/green ratio
+    return rgb2lab(...l.map(toSrgb))};
+  // skin fraction in the oval after correction (a strong tint no longer hides the face)
+  let skin=0,tot=0;for(let j=Math.max(0,fy|0);j<Math.min(H,fy+fh);j+=step*2)for(let i=Math.max(0,fx|0);i<Math.min(W,fx+fw);i+=step*2){if(!inEllipse(i,j,cx,cy,fw/2*0.85,fh/2*0.85))continue;const k=(j*W+i)*4;tot++;if(isSkin(...fix(d[k],d[k+1],d[k+2]))||isSkin(...rgb2lab(d[k],d[k+1],d[k+2])))skin++}
+  if(!tot||skin/tot<FR2.minOvalSkin)return fail("NO_FACE");
+  // 2. multi-region skin sampling on corrected pixels
+  const s=Math.max(Math.round(0.13*fw),6);
+  const boxes=[["forehead left",fx+0.30*fw,fy+0.13*fh,0.18*fw,0.10*fh,"L"],["forehead right",fx+0.52*fw,fy+0.13*fh,0.18*fw,0.10*fh,"R"],
+    ["left cheek",fx+0.17*fw,fy+0.53*fh,s,s,"L"],["right cheek",fx+0.83*fw-s,fy+0.53*fh,s,s,"R"],
+    ["chin left",fx+0.38*fw,fy+0.82*fh,0.11*fw,0.08*fh,"L"],["chin right",fx+0.51*fw,fy+0.82*fh,0.11*fw,0.08*fh,"R"]];
+  const regions=boxes.map(([name,x,y,w,h,side])=>{const x0=Math.max(0,x|0),y0=Math.max(0,y|0),x1=Math.min(W,(x+w)|0),y1=Math.min(H,(y+h)|0),st=Math.max(1,Math.round(Math.min(x1-x0,y1-y0)/40));const px=[];let all=0;
+    for(let j=y0;j<y1;j+=st)for(let i=x0;i<x1;i+=st){const k=(j*W+i)*4;all++;if(d[k+1]>=254||d[k+2]>=254)continue;const lab=fix(d[k],d[k+1],d[k+2]);if(isSkin(...lab)||isSkin(...rgb2lab(d[k],d[k+1],d[k+2])))px.push(lab)}
+    const frac=all?px.length/all:0,box=[x,y,w,h];if(px.length<8)return{name,side,box,frac,lab:null};
+    const Ls=px.map(p=>p[0]),lo=quant(Ls,0.15),hi=quant(Ls,0.85);let keep=px.filter(p=>p[0]>=lo&&p[0]<=hi);if(keep.length<5)keep=px;
+    return{name,side,box,frac,lab:[0,1,2].map(c=>median(keep.map(p=>p[c])))}});
+  let use=regions.filter(r=>r.lab&&r.frac>=0.25);if(!use.length)use=regions.filter(r=>r.lab);
+  if(!use.length)return fail("SKIN_HIDDEN");
+  {const sideL=sd=>{const v=use.filter(r=>r.side===sd).map(r=>r.lab[0]);return v.length?median(v):null};const l=sideL("L"),r=sideL("R");
+   if(l!=null&&r!=null&&Math.abs(l-r)>FR2.shadowDrop){const lit=l>r?"L":"R";use=use.filter(x=>x.side===lit);notes.push("SHADOW_IGNORED")}}   // one side in shadow: read the lit side
+  if(use.length>=3){const mL=median(use.map(r=>r.lab[0]));const ok=use.filter(r=>Math.abs(r.lab[0]-mL)<=FR2.shadowDrop*1.5);if(ok.length>=2)use=ok}
+  const lab=[0,1,2].map(c=>median(use.map(r=>r.lab[c])));
+  // 3. nearest Aaina swatch
+  const T=estimateTone(lab),U=estimateUndertone(lab);
+  const rt=use.map(r=>estimateTone(r.lab).tone),spread=Math.max(...rt)-Math.min(...rt);
+  const conf=Math.max(0.3,Math.min(0.99,(sc?1:0.75)*(1-0.4*Math.max(0,(T.amb-0.5)/0.5))*(spread<=1?1:0.8)*(use.length>=3?1:0.85)));
+  for(const r of regions)r.frac=r.lab&&use.includes(r)?Math.max(r.frac,FR.minSkin):Math.min(r.frac,FR.minSkin-0.01);   // for the on-photo boxes: green = used
+  return{status:"OK",tone:T.tone,issues:[],notes,regions,lab:lab.map(v=>+v.toFixed(1)),method,conf:+conf.toFixed(2),ut:U.ut,second:T.second,amb:+T.amb.toFixed(2),gains:gains.map(g=>+g.toFixed(3))};
+}
+
 let photoAttempts=[];
 function sessionRead(res){
   photoAttempts.push(res);
