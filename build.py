@@ -10,7 +10,7 @@ read = lambda p: (ROOT / p).read_text(encoding="utf-8")
 
 page = (read("src/shell.html")
         .replace("__CATALOGUE__", read("data/catalogue.json"))
-        .replace("__INDIA__", read("src/india.js"))
+        .replace("__INDIA__", read("src/india.js") + "\n" + read("src/climate.js"))
         .replace("__ENGINE__", read("src/engine.js"))
         .replace("__APP__", read("src/app.js")))
 

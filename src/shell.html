@@ -852,6 +852,14 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
 .tune[open]{border:1.5px solid var(--accent)}
 @media (max-width:560px){.tune>summary{grid-template-columns:auto minmax(0,1fr)}.tune-cta{grid-column:1/-1;justify-content:center}}
 @media (prefers-reduced-motion:reduce){.tune:not([open]) .tune-cta{animation:none}}
+
+/* ---- typical-month climate strip ---- */
+.wxyear{grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:3px!important}
+.wxyear .wxd{opacity:.55}.wxyear .wxd.now{opacity:1}
+.wxyear .wxd.now .wxday{background:var(--accent);color:#fff;border-radius:6px;padding:1px 4px;font-weight:700}
+.wxyear .wxd.now .wxbar i{background:var(--accent)!important}
+@media (max-width:520px){.wxyear .wxhi,.wxyear .wxlo,.wxyear .wxday{font-size:9px}}
+.exbox{max-width:400px}.exbox h3{font-size:24px}
 </style>
 
 <div class="page">
