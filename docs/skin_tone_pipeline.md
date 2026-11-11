@@ -18,8 +18,8 @@ Why not a deep network: the page runs on the phone with no libraries, the only f
 | previous | 2.9% | 78.5% | 87.8% | 12.2% | 79.6% |
 | new (mask + mapping layer) | 3.3% | 84.1% | 93.5% | 6.5% | 85.0% |
 
-| condition | previous: recapture, exact, within one, off by 2+ | new |
-|---|---|---|
+| condition | previous: recapture | exact | within one | off by 2+ | new: recapture | exact | within one | off by 2+ |
+|---|---|---|---|---|---|---|---|---|
 | daylight | 0.0% | 90.0% | 95.0% | 5.0% | 0.0% | 90.0% | 95.0% | 5.0% |
 | warm bulb | 0.0% | 82.5% | 95.0% | 5.0% | 0.0% | 82.5% | 95.0% | 5.0% |
 | dim room | 0.0% | 92.5% | 97.5% | 2.5% | 0.0% | 92.5% | 97.5% | 2.5% |
@@ -33,7 +33,7 @@ Why not a deep network: the page runs on the phone with no libraries, the only f
 | beauty filter | 27.5% | 27.6% | 86.2% | 13.8% | 27.5% | 27.6% | 86.2% | 13.8% |
 | colour filter | 7.5% | 89.2% | 97.3% | 2.7% | 7.5% | 89.2% | 97.3% | 2.7% |
 
-**Product shades** (12 base-makeup products per photo, 464 photos): the exact closest library shade was chosen 80.0% of the time; when it wasn't, the pick was on average only 0.74 ΔE further away; average depth error 0.21.
+**Product shades** (12 base-makeup products per photo, 464 photos): the exact closest library shade was chosen 80.0% of the time; across all photos the pick was on average 0.74 ΔE further from the skin than the ideal shade (under 1 ΔE is hard to see); average depth error 0.21.
 **Filters**: the beauty filter was flagged in 40 of 40 photos (the app then asks for an unfiltered selfie); colour tints were caught in only 4 of 40, but the light correction kept those readings accurate.
 **Confidence**: average 0.84 when exact vs 0.7 when off by two or more: it separates only weakly, so it is used for recapture of clearly poor photos, not to fine-tune.
 
