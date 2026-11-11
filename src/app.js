@@ -116,7 +116,7 @@ function actives(p){const src=(p.a||"")+" || "+(p.i||"");const out=[];for(const[
 /* ---------- state ---------- */
 let PROB=null,SUB=null,PREF={boost:[]},FLOW=[],DONE=new Set(),stepNow=null,PL=null,turn=0;
 const thread=$("thread");
-const DEFAULT_STEPS=["problem","follow","extra","avoid","react","preg","location","skin","tone"];   // budget and "already using" are set on the plan page
+const DEFAULT_STEPS=["problem","follow","extra","safety","location","skin","tone"];   // budget and "already using" are set on the plan page
 let STEPS=[...DEFAULT_STEPS];
 const FACE_SKIN=[["Shiny all over","Oily skin","oily"],["Shiny T-zone, normal cheeks","Combination skin","combination"],["Tight, rough or flaky","Dry skin","dry"],["Comfortable","Normal skin","normal"]];
 const SK_CATS=["Cleanser","Serum","Moisturiser","Sunscreen","Exfoliant","Toner","Spot treatment","Eye cream"];
@@ -143,6 +143,10 @@ const STEP={
   preg:{title:"Safety",side:"Pregnancy caution",q:()=>({ask:"Should I be pregnancy-cautious?",help:"This only means I skip **retinoids and strong salicylic acid**. Your answer stays on this page.",
       opts:[{label:"Yes, be cautious",value:true},{label:"No",value:false},{label:"Prefer not to say",sub:"I'll stay cautious to be safe",value:null}]}),
     apply:v=>{P.pregnancy=v},show:()=>P.pregnancy===null?"Cautious (not answered)":P.pregnancy?"Yes":"No"},
+  safety:{title:"Safety check",side:"Safety check",q:()=>({ask:"Quick safety check",help:"Answer all four so **every product is safe for you**. Tap **None** where nothing applies.",safety:true}),
+    apply:v=>{STEP.avoid.apply(v.avoid);STEP.react.apply(PREF.noRet?uniq([...v.react,"retinoids"]):v.react);STEP.preg.apply(v.preg);P.redflags=v.sym;
+      if(v.sym.length){PREF.escalate=true;PREF.gentle=true}else if(!PROBLEMS[PROB]?.follow.opts[FOLLOW_IDX]?.[2]?.escalate)PREF.escalate=false},
+    show:()=>[STEP.avoid.show(),P.reactions.length?P.reactions.map(cap).join(", "):"",P.pregnancy===false?"":"Pregnancy-cautious",(P.redflags||[]).length?"Warning signs":""].filter(x=>x&&x!=="Nothing").join(" · ")||"No restrictions"},
   location:{title:"Location",side:"Location",q:()=>({ask:"Which state and city do you live in?",help:"**Humidity and winter dryness** change which textures work for you.",location:true}),
     show:()=>P.city?`${P.city}, ${P.state}`:"Skipped"},
   skin:{title:"Your skin",side:"Skin type",q:()=>({ask:"How does your skin feel by midday, without products?",help:"Think of **midday, before any products**. Describing what you notice is more reliable than picking a label.",
@@ -297,7 +301,7 @@ function ask(key){
   lockAll();const s=STEP[key],Q=s.q();const idx=STEPS.indexOf(key)+1;
   const box=document.createElement("div");box.className="q";box.dataset.step=key;
   box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">Q${idx} of ${STEPS.length} · ${esc(s.title)}${STEPS.length-idx===0?" · last one":""}</span><h3 class="qtitle">${esc(Q.ask)}</h3>${Q.help?`<p class="qhelp">${fmt(Q.help)}</p>`:""}</div></div>`;
-  box.appendChild(Q.location?locationWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():optionsWidget(key,Q));
+  box.appendChild(Q.location?locationWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():Q.safety?safetyWidget():optionsWidget(key,Q));
   const nav=document.createElement("div");nav.className="qnav";nav.innerHTML=`<button type="button" class="btn backcta">${SVG('<path d="M15 6l-6 6 6 6"/>')}Back</button><span class="qnav-step">Question ${idx} of ${STEPS.length}</span>`;
   nav.querySelector("button").onclick=goBack;box.appendChild(nav);
   newBlock(key).appendChild(box);progress();requestAnimationFrame(()=>thread.scrollTo({top:0}));
@@ -325,7 +329,8 @@ function answer(key,val,label){
 }
 function afterNote(key){
   if(key==="problem")return[`<p>${nm("","," )} ${NAME?EMPATHY[PROB][0].toLowerCase()+EMPATHY[PROB].slice(1):EMPATHY[PROB]}</p><p class="small muted">A few quick questions so I can choose <b>the right three</b> for you.</p>`];
-  if(key==="preg")return[`Thank you${nm(", ")}. <b>That's the important safety part done.</b> Now a little about where you live and your skin.`];
+  if(key==="safety"&&(P.redflags||[]).length)return[`<p><b>Please see a dermatologist soon${nm(", ")}.</b> ${esc(cap((P.redflags||[]).map(k=>(SYMPTOMS.find(x=>x[0]===k)||[,k])[1].toLowerCase()).join(", ")))} ${P.redflags.length>1?"are signs that need":"is a sign that needs"} a doctor to look at it, and can need treatment I can't give. Meanwhile I'll keep your plan gentle and low-irritation.</p>`,"escalate"];
+  if(key==="safety"||key==="preg")return[`Thank you${nm(", ")}. <b>That's the important safety part done.</b> Now a little about where you live and your skin.`];
   if(key==="follow"&&PREF.escalate)return["<p>Deep, painful lumps are best looked at by a dermatologist, as they can scar and may need treatment I can't give. I'll still suggest a gentle, low-irritation plan for day-to-day care.</p>","escalate"];
   if(key==="follow"&&P.sensitive&&P.avoidFrag&&PROB==="redness")return["That sounds uncomfortable. I'll keep everything fragrance-free and extra gentle."];
   {const left=STEPS.filter(k=>!DONE.has(k)).length;
@@ -841,7 +846,7 @@ function explainHTML(){
 }
 
 /* ---------- side panel ---------- */
-const SHORT={shelf:"Routine",problem:"Concern",follow:"Details",extra:"Also",avoid:"Avoid",react:"Reactions",preg:"Pregnancy",location:"Location",skin:"Skin type",tone:"Skin tone",budget:"Budget"};
+const SHORT={safety:"Safety",shelf:"Routine",problem:"Concern",follow:"Details",extra:"Also",avoid:"Avoid",react:"Reactions",preg:"Pregnancy",location:"Location",skin:"Skin type",tone:"Skin tone",budget:"Budget"};
 function renderSide(){
   const j=$("journey");if(!j)return;j.innerHTML="";
   const ol=document.createElement("ol");
@@ -1115,6 +1120,61 @@ function wireUpgrades(box){
 }
 
 /* =====================================================================
+   ONE-PAGE SAFETY CHECK — avoid, past reactions, pregnancy and warning
+   signs on a single screen. Every section needs an answer ("None" counts),
+   so nothing can be skipped by scrolling past it.
+   ===================================================================== */
+const SYMPTOMS=[["pain","Painful or swollen"],["spread","Spreading"],["bleed","Bleeding, pus or open sores"],["mole","A mole that's changing"],["fever","With fever"]];
+const REACT_TOP=["glycolic acid","salicylic acid","vitamin c","retinoids","niacinamide"];
+function safetyWidget(){
+  const w=document.createElement("div");w.className="qbody safety";
+  const av=STEP.avoid.q(),pre={avoid:new Set(av.pre),react:new Set(P.reactions),sym:new Set(P.redflags||[])};
+  const from={sens:PREF.forceSens?"From your earlier answer":"",frag:PREF.forceFrag?"From your earlier answer":"",retinoids:PREF.noRet?"From your earlier answer":""};
+  const chip=(sec,v,l,sub)=>`<label class="sc"><input type="checkbox" data-sec="${sec}" value="${v}" ${pre[sec].has(v)?"checked":""}><span><b>${esc(l)}</b>${sub?`<small>${esc(sub)}</small>`:""}</span></label>`;
+  const none=sec=>`<label class="sc none"><input type="checkbox" data-sec="${sec}" value="__none"><span><b>None</b></span></label>`;
+  const rest=Object.keys(REACTIONS).filter(r=>!REACT_TOP.includes(r));
+  w.innerHTML=`
+   <section class="sg" data-g="avoid"><h4><span class="sn">1</span>Anything I should avoid?</h4>
+     <div class="scs">${av.opts.map(o=>chip("avoid",o.value,o.label,from[o.value]||o.sub)).join("")}${none("avoid")}</div></section>
+   <section class="sg" data-g="react"><h4><span class="sn">2</span>Ever reacted to any of these?</h4>
+     <div class="scs">${REACT_TOP.map(r=>chip("react",r,cap(r),from[r])).join("")}<span class="more" hidden>${rest.map(r=>chip("react",r,cap(r),"")).join("")}</span>
+       <button type="button" class="btn ghost smore">+ ${rest.length} more</button>${none("react")}</div></section>
+   <section class="sg" data-g="preg"><h4><span class="sn">3</span>Should I be pregnancy-cautious?</h4>
+     <div class="scs">${[["true","Yes, be cautious",""],["false","No",""],["null","Prefer not to say","I'll stay cautious"]].map(([v,l,s])=>`<label class="sc"><input type="radio" name="spreg" data-sec="preg" value="${v}" ${DONE.has("safety")&&String(P.pregnancy)===v?"checked":""}><span><b>${l}</b>${s?`<small>${s}</small>`:""}</span></label>`).join("")}</div>
+     <p class="small muted sgnote">This only means I skip retinoids and strong salicylic acid.</p></section>
+   <section class="sg" data-g="sym"><h4><span class="sn">4</span>Is any of this happening right now?</h4>
+     <div class="scs">${SYMPTOMS.map(([v,l])=>chip("sym",v,l,"")).join("")}${none("sym")}</div>
+     <div class="notice escalate symnote" hidden><b>Please see a dermatologist soon.</b> These signs need a doctor to look at them, and can need treatment I can't give. I'll keep your plan gentle in the meantime.</div></section>
+   <div class="safesum" aria-live="polite"></div>
+   <div class="qactions"><button type="button" class="btn primary" data-go disabled>Continue</button><span class="small muted" data-left></span></div>`;
+  const more=w.querySelector(".more"),smore=w.querySelector(".smore");
+  if(rest.some(r=>pre.react.has(r)))more.hidden=false,smore.hidden=true;
+  smore.onclick=()=>{more.hidden=false;smore.hidden=true};
+  const vals=sec=>[...w.querySelectorAll(`input[data-sec="${sec}"]:checked`)].map(x=>x.value).filter(v=>v!=="__none");
+  const answered=sec=>sec==="preg"?!!w.querySelector('input[name="spreg"]:checked'):!!w.querySelector(`input[data-sec="${sec}"]:checked`);
+  const go=w.querySelector("[data-go]"),left=w.querySelector("[data-left]"),sum=w.querySelector(".safesum"),symnote=w.querySelector(".symnote");
+  const NAMES={avoid:"what to avoid",react:"past reactions",preg:"pregnancy",sym:"warning signs"};
+  const update=()=>{
+    const miss=["avoid","react","preg","sym"].filter(s=>!answered(s));
+    w.querySelectorAll(".sg").forEach(g=>g.classList.toggle("todo",miss.includes(g.dataset.g)&&g.dataset.touched==="1"));
+    go.disabled=!!miss.length;left.textContent=miss.length?`Still to answer: ${miss.map(m=>NAMES[m]).join(", ")}. "None" counts.`:"";
+    const a=vals("avoid"),r=vals("react"),pg=w.querySelector('input[name="spreg"]:checked')?.value,sy=vals("sym");
+    const preg=pg==="true"||pg==="null";const skip=[a.includes("frag")&&"fragrance",a.includes("eo")&&"essential oils",a.includes("pores")&&"pore-clogging formulas",...r.filter(x=>!(preg&&(x==="retinoids"||x==="salicylic acid"))),preg&&"retinoids and strong salicylic acid"].filter(Boolean);
+    sum.innerHTML=skip.length||a.includes("sens")?`${SVG('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>')}<span>I'll skip <b>${esc(uniq(skip).join(", ")||"nothing extra")}</b>${a.includes("sens")?" and keep everything <b>gentle</b>":""}.</span>`:"";
+    symnote.hidden=!sy.length;
+  };
+  w.addEventListener("change",e=>{const x=e.target,sec=x.dataset.sec;if(!sec)return;x.closest(".sg").dataset.touched="1";
+    if(sec!=="preg"){if(x.value==="__none"&&x.checked)w.querySelectorAll(`input[data-sec="${sec}"]`).forEach(y=>{if(y!==x)y.checked=false});
+      else if(x.checked)w.querySelector(`input[data-sec="${sec}"][value="__none"]`).checked=false}
+    update()});
+  go.onclick=()=>{const pg=w.querySelector('input[name="spreg"]:checked').value;
+    const v={avoid:vals("avoid"),react:vals("react"),preg:pg==="true"?true:pg==="false"?false:null,sym:vals("sym")};
+    const bits=[v.avoid.length?`${v.avoid.length} to avoid`:null,v.react.length?`${v.react.length} reaction${v.react.length>1?"s":""}`:null,v.preg!==false?"pregnancy-cautious":null,v.sym.length?"warning signs":null].filter(Boolean);
+    w.querySelectorAll(".sg").forEach(g=>g.dataset.touched="1");answer("safety",v,bits.join(", ")||"No restrictions")};
+  update();return w;
+}
+
+/* =====================================================================
    TUNE YOUR PLAN — budget and "already using" live on the plan page.
    Users change several things at once, preview what each budget gives,
    then apply them together.
@@ -1320,7 +1380,7 @@ function restoreState(d){
   NAME=d.NAME;nameAsked=true;PROB=d.PROB;SUB=d.SUB;FOLLOW_IDX=d.FOLLOW_IDX;PREF={boost:[]};
   if(PROB&&FOLLOW_IDX!=null&&PROBLEMS[PROB]?.follow.opts[FOLLOW_IDX])STEP.follow.apply(FOLLOW_IDX);
   P=Object.assign(emptyProfile(),d.P||{});DONE=new Set(d.DONE||[]);
-  STEPS=[...DEFAULT_STEPS];
+  STEPS=[...DEFAULT_STEPS];if(DONE.has("avoid")&&DONE.has("react")&&DONE.has("preg"))DONE.add("safety");
   META=Object.assign({planAt:null,planProb:null,checks:[]},d.META||{});RESTORE_IDS=d.planIds||null;
 }
 function renderResume(){
