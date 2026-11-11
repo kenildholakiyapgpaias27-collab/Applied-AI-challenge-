@@ -116,7 +116,7 @@ function actives(p){const src=(p.a||"")+" || "+(p.i||"");const out=[];for(const[
 /* ---------- state ---------- */
 let PROB=null,SUB=null,PREF={boost:[]},FLOW=[],DONE=new Set(),stepNow=null,PL=null,turn=0;
 const thread=$("thread");
-const DEFAULT_STEPS=["problem","follow","extra","avoid","react","preg","location","skin","tone","shelf","budget"];
+const DEFAULT_STEPS=["problem","follow","extra","avoid","react","preg","location","skin","tone"];   // budget and "already using" are set on the plan page
 let STEPS=[...DEFAULT_STEPS];
 const FACE_SKIN=[["Shiny all over","Oily skin","oily"],["Shiny T-zone, normal cheeks","Combination skin","combination"],["Tight, rough or flaky","Dry skin","dry"],["Comfortable","Normal skin","normal"]];
 const SK_CATS=["Cleanser","Serum","Moisturiser","Sunscreen","Exfoliant","Toner","Spot treatment","Eye cream"];
@@ -652,6 +652,7 @@ function buildPlan(silent){
   lockAll();progress();
   const def=PROBLEMS[PROB].plan;
   const order=[...def.keys()].sort((a,b)=>(def[b].primary?1:0)-(def[a].primary?1:0));
+  if(!P.budgetChosen&&P.budget==null&&!P.budgetDefaulted){P.budget=DEFAULT_BUDGET;P.budgetDefaulted=true}
   const shelf=shelfItems(),safe=shelf.filter(o=>o.safe);SHELF_ACTS=new Set(safe.flatMap(o=>o.acts));
   const ctx={used:new Set(),ret:safe.some(o=>o.ret),acid:safe.some(o=>o.acid),bp:safe.some(o=>o.bp)};const slots=[];const kept=new Set();
   const want=RESTORE_IDS;RESTORE_IDS=null;
@@ -732,6 +733,7 @@ function renderPlan(){
   const applied=[P.avoidFrag&&"Fragrance-free",P.avoidEO&&"No essential oils",P.noClog&&"Won't clog pores",P.reactions.length&&"No "+P.reactions.join(", "),P.pregnancy!==false&&"Pregnancy-safe",P.skin&&cap(P.skin)+" skin",P.city&&(P.weather?`${P.city} weather, last 7 days`:`${P.city} climate`),P.budget&&`Each under ${rupee(P.budget)}`].filter(Boolean);
   let h=`<div class="phero"><div class="eyebrow">${NAME?`${esc(NAME)}, your plan is ready`:"Your plan is ready"}</div><h3>${PL.slots.every(s=>s.keep)?`You already have all three steps for ${esc(prob.label.toLowerCase())}`:`Three steps for ${esc(prob.label.toLowerCase())}`}</h3><p class="lead">${SUB?`Made for what you described: ${esc(SUB.toLowerCase())}. `:""}Each product has one clear job, and together they take just a few minutes a day.</p>
     <div class="applied">${applied.map(x=>`<span class="chip ok">✓ ${esc(x)}</span>`).join("")}</div></div>
+    ${tuneHTML()}
     <div class="pcards">${PL.slots.map((s,i)=>cardHTML(i,s)).join("")}</div>
     ${extrasHTML()}
     <div class="total"><span>${!keptN&&!exN?"Total for all three":newN===0?"Nothing new to buy":`Total for ${newN===1?"the new product":`the ${newN} new products`}`}${keptN?`<small>${keptN===PL.slots.length?"You already have all three steps covered":`You're keeping ${keptN} from your routine`}${keptN&&!exN?". See the upgrade picks and combos below.":""}</small>`:""}</span><b>${rupee(total)}</b></div>${combosHTML()}${shareBarHTML()}${shelfPlanNote()}`;
@@ -750,7 +752,7 @@ function renderPlan(){
   add("How's it going? Check in",()=>openCheckin());
   add("Check a product",()=>{$("askInput").focus();$("askInput").placeholder="Type a product name or code, e.g. P1025"});
   box.appendChild(nx);
-  box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));wireShare(box);wireUpgrades(box);
+  box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));wireShare(box);wireUpgrades(box);wireTune(box);
   box.querySelectorAll(".relax").forEach(b=>b.onclick=()=>{const nb=b.dataset.nb==="none"?null:+b.dataset.nb;P.budget=nb;botSay(`Done${nm(", ")}. I've raised your budget to ${nb?`${rupee(nb)} per product`:"no limit"} and rebuilt your plan. Every product still passes all your other checks.`);buildPlan();saveState()});
   box.querySelectorAll(".newone").forEach(b=>b.onclick=()=>{const s=PL.slots[+b.dataset.i];const p=s.list.find(x=>!PL.ctx.used.has(x.id)&&!clash(x,PL.ctx));if(!p)return;s.keep=null;s.p=p;s.idx=s.list.indexOf(p);PL.ctx.used.add(p.id);renderPlan();saveState()});
   newBlock("plan").appendChild(box);stepNow=null;renderSide();saveState();requestAnimationFrame(()=>box.scrollIntoView({block:"start",behavior:"smooth"}));
@@ -1113,6 +1115,69 @@ function wireUpgrades(box){
 }
 
 /* =====================================================================
+   TUNE YOUR PLAN — budget and "already using" live on the plan page.
+   Users change several things at once, preview what each budget gives,
+   then apply them together.
+   ===================================================================== */
+const BUDGET_OPTS=[[400,"Up to ₹400"],[700,"Up to ₹700"],[1200,"Up to ₹1,200"],[null,"No limit"]];
+const DEFAULT_BUDGET=700;
+function previewPlan(budget,shelf){
+  // build a plan for a hypothetical budget/shelf without touching what's on screen
+  const keep={PL,budget:P.budget,shelf:P.shelf,META:JSON.parse(JSON.stringify(META)),RI:RESTORE_IDS};
+  P.budget=budget;P.shelf=shelf;RESTORE_IDS=null;
+  try{buildPlan(true);const s=PL.slots;return{covered:s.filter(x=>x.p||x.keep).length,total:s.reduce((t,x)=>t+(x.p?.p||0),0),kept:s.filter(x=>x.keep).length}}
+  finally{PL=keep.PL;P.budget=keep.budget;P.shelf=keep.shelf;META=keep.META;RESTORE_IDS=keep.RI;SHELF_ACTS=new Set((PL.shelf||[]).filter(o=>o.safe).flatMap(o=>o.acts))}
+}
+function tuneHTML(){
+  const own=new Set((P.shelf||[]).filter(x=>x.type).map(x=>x.type)),ownIds=(P.shelf||[]).filter(x=>x.id).map(x=>x.id);
+  const prev=BUDGET_OPTS.map(([b])=>previewPlan(b,P.shelf||[]));
+  return`<details class="tune" ${TUNE_OPEN?"open":""}><summary><span class="tune-t">${SVG('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>')}Tune your plan</span>
+      <span class="tune-sum">Budget: <b>${P.budget?`up to ${rupee(P.budget)}`:"no limit"}</b> · Already using: <b>${(P.shelf||[]).length?(P.shelf||[]).length+" product"+((P.shelf||[]).length>1?"s":""):"nothing yet"}</b></span></summary>
+    <div class="tune-body">
+      <fieldset class="tune-g"><legend>Budget per product</legend><div class="tune-budget">
+        ${BUDGET_OPTS.map(([b,l],k)=>`<label class="tb"><input type="radio" name="tbud" value="${b===null?"none":b}" ${P.budget===b||(b===null&&!P.budget)?"checked":""}><span><b>${l}</b><small>${prev[k].covered<3?`${prev[k].covered} of 3 steps`:"All 3 steps"} · ${rupee(prev[k].total)} total${prev[k].kept?` · keeps ${prev[k].kept}`:""}</small></span></label>`).join("")}
+      </div></fieldset>
+      <fieldset class="tune-g"><legend>Already using <span class="muted">(I'll keep what fits and avoid clashes)</span></legend>
+        <div class="tune-own">${SHELF_TYPES.map(t=>`<label class="to"><input type="checkbox" value="${t.k}" ${own.has(t.k)?"checked":""}><span>${esc(t.label)}</span></label>`).join("")}</div>
+        <div class="shelfrow tune-find"><input type="search" list="tuneList" placeholder="Or add a product by name" aria-label="Add a product you already use"><button type="button" class="btn" data-tadd>Add</button></div>
+        <datalist id="tuneList">${CAT.map(p=>`<option value="${esc(p.n)}"></option>`).join("")}</datalist>
+        <div class="shelfchips" data-tchips>${ownIds.map(id=>`<span class="schip" data-id="${id}">${esc(BY_ID[id].n)}<button type="button" aria-label="Remove">×</button></span>`).join("")}</div>
+      </fieldset>
+      <div class="tune-act"><button type="button" class="btn primary" data-tapply disabled>Update my plan</button><button type="button" class="btn ghost" data-treset disabled>Undo changes</button><span class="small muted" data-tnote></span></div>
+    </div></details>`;
+}
+let TUNE_OPEN=false;
+function wireTune(box){
+  const t=box.querySelector(".tune");if(!t)return;
+  t.addEventListener("toggle",()=>{TUNE_OPEN=t.open});
+  const start=JSON.stringify({b:P.budget??null,s:P.shelf||[]});
+  const read=()=>{const v=t.querySelector('input[name="tbud"]:checked').value;
+    const types=[...t.querySelectorAll(".tune-own input:checked")].map(x=>({type:x.value})),ids=[...t.querySelectorAll("[data-tchips] .schip")].map(x=>({id:x.dataset.id}));
+    return{b:v==="none"?null:+v,s:[...types,...ids]}};
+  const apply=t.querySelector("[data-tapply]"),reset=t.querySelector("[data-treset]"),note=t.querySelector("[data-tnote]");
+  const sync=()=>{const cur=read(),n=(cur.b!==(P.budget??null)?1:0)+(JSON.stringify(cur.s)!==JSON.stringify(P.shelf||[])?1:0);
+    apply.disabled=reset.disabled=!n;apply.textContent=n?`Update my plan (${n} change${n>1?"s":""})`:"Update my plan";note.textContent=n?"Change as many things as you like, then update once.":""};
+  t.addEventListener("change",sync);
+  const addChip=id=>{if(t.querySelector(`.schip[data-id="${id}"]`))return;const c=document.createElement("span");c.className="schip";c.dataset.id=id;c.innerHTML=`${esc(BY_ID[id].n)}<button type="button" aria-label="Remove">×</button>`;t.querySelector("[data-tchips]").appendChild(c);sync()};
+  t.querySelector("[data-tchips]").addEventListener("click",e=>{if(e.target.tagName==="BUTTON"){e.target.parentElement.remove();sync()}});
+  const find=t.querySelector(".tune-find input");
+  const add=()=>{const v=find.value.trim();if(!v)return;const p=CAT.find(p=>p.n.toLowerCase()===v.toLowerCase())||findProduct(v);if(!p){note.textContent="I couldn't find that one. Pick the closest type above.";return}addChip(p.id);find.value=""};
+  t.querySelector("[data-tadd]").onclick=add;find.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();add()}});
+  find.addEventListener("input",()=>{if(CAT.some(p=>p.n.toLowerCase()===find.value.trim().toLowerCase()))add()});
+  reset.onclick=()=>{TUNE_OPEN=true;renderPlan()};
+  apply.onclick=()=>{
+    const cur=read(),bits=[],before=JSON.stringify(PL.slots.map(s=>s.keep?"k":s.p?.id));
+    if(cur.b!==(P.budget??null))bits.push(cur.b?`budget up to <b>${rupee(cur.b)}</b> per product`:"<b>no budget limit</b>");
+    if(JSON.stringify(cur.s)!==JSON.stringify(P.shelf||[]))bits.push(cur.s.length?`what you already use (<b>${cur.s.length}</b>)`:"nothing already in use");
+    P.budget=cur.b;P.budgetChosen=true;P.shelf=cur.s;RESTORE_IDS=null;TUNE_OPEN=false;
+    buildPlan(true);
+    const after=PL.slots.map(s=>s.keep?"k":s.p?.id),changed=JSON.parse(before).filter((x,i)=>x!==after[i]).length;
+    botSay(`Updated your plan for ${bits.join(" and ")}. ${changed?`<b>${changed} step${changed>1?"s":""} changed</b>; everything still passes all your safety checks.`:"Your products didn't need to change."}`);
+    renderPlan();saveState();
+  };
+}
+
+/* =====================================================================
    SHARE — WhatsApp text (no private answers) and a branded PDF
    ===================================================================== */
 function planShareText(){
@@ -1255,13 +1320,13 @@ function restoreState(d){
   NAME=d.NAME;nameAsked=true;PROB=d.PROB;SUB=d.SUB;FOLLOW_IDX=d.FOLLOW_IDX;PREF={boost:[]};
   if(PROB&&FOLLOW_IDX!=null&&PROBLEMS[PROB]?.follow.opts[FOLLOW_IDX])STEP.follow.apply(FOLLOW_IDX);
   P=Object.assign(emptyProfile(),d.P||{});DONE=new Set(d.DONE||[]);
-  STEPS=Array.isArray(d.STEPS)&&DEFAULT_STEPS.every(k=>d.STEPS.includes(k))?d.STEPS:[...DEFAULT_STEPS];
+  STEPS=[...DEFAULT_STEPS];
   META=Object.assign({planAt:null,planProb:null,checks:[]},d.META||{});RESTORE_IDS=d.planIds||null;
 }
 function renderResume(){
   const box=$("resume");if(!box)return;const d=loadState();
   if(!d||!d.NAME||!(d.DONE||[]).length){box.hidden=true;box.innerHTML="";return}
-  const steps=Array.isArray(d.STEPS)?d.STEPS:DEFAULT_STEPS,done=steps.filter(k=>(d.DONE||[]).includes(k)).length,finished=done>=steps.length&&d.PROB;
+  const steps=DEFAULT_STEPS,done=steps.filter(k=>(d.DONE||[]).includes(k)).length,finished=done>=steps.length&&d.PROB;
   const nextIdx=steps.findIndex(k=>!(d.DONE||[]).includes(k))+1;const prob=d.PROB&&PROBLEMS[d.PROB]?PROBLEMS[d.PROB].label.toLowerCase():null;
   const due=finished?dueCheck(d.META):null;
   const sNow=finished&&d.P?.seasonAlert&&d.P?.state?seasonFor(d.P.state,d.P.climate):null,sChanged=sNow&&d.META?.planSeason&&sNow.key!==d.META.planSeason;

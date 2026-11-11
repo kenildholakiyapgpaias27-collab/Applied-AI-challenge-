@@ -8,7 +8,7 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
 ## What it does
 
 - **Personal start:** asks your first name and greets you by time of day.
-- **An 11-step journey (Q1–Q11):** a progress bar shows each step, one question at a time, with a Back button on every screen.
+- **A 9-step journey (Q1–Q9):** a progress bar shows each step, one question at a time, with a Back button on every screen.
   1. Main concern (illustrated cards)
   2. Concern-specific follow-up
   3. Anything else to help with
@@ -18,11 +18,12 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
   7. State and city (962 Indian cities, with search; climate shapes texture choices)
   8. Skin type
   9. Skin tone (Monk 1–10 scale, or a selfie)
-  10. Your current routine (product types or specific products you already own)
-  11. Budget
+
+  Budget and "already using" are not questions any more: they live on the plan page (see **Tune your plan**).
 - **Selfie skin-tone reader:** uses the camera or a photo upload after explicit consent. It reads skin tone and undertone from the face region, asks for a retake when lighting is poor, and offers 3 or 5 photos when the reading falls between two shades.
 - **Smarter photo checks:** a borderline undertone no longer forces a retake (you get one optional question instead), near-identical neighbouring tones (such as Monk 1 and 2) are shown side by side for a one-tap confirm, blown-out scenes and colour casts are named correctly so the retake advice fits the problem.
 - **Filter check:** warns when a photo looks filtered (airbrushed skin with a sharp background, black-and-white, boosted colour or colour casts) and asks for a retake without a filter.
+- **Tune your plan (on the plan page):** one panel to change the budget per product and what you already use, together. Each budget option previews what it would give you (how many steps are covered and the total). Change several things, then press **Update my plan** once; the advisor rebuilds the plan, says how many steps changed, and keeps every safety rule. The plan starts at up to ₹700 per product.
 - **Save and resume:** answers are saved on the device after every step. Returning users see "Continue where I left off" (or "View my plan"), and **Delete my answers** clears everything.
 - **Builds around what you already use:** if you already own a product that covers a step and passes your checks, the plan keeps it instead of selling you another. New picks never clash with your routine (retinoid + acids, retinoid + benzoyl peroxide), avoid doubling up on actives you already use, and warn you about owned products that fail your safety answers.
 - **Upgrade picks and combos for products you already own:** every "Already yours" step shows an **Upgrade pick**: the best product for that step that passes your checks, with reasons it's better than what you have (for example, it adds an ingredient that targets your concern, it's made for your concern or skin type, it has SPF 50, or it suits this week's weather). **Switch to this** swaps it in. When you already own one or more steps, the plan also offers two **combos** (a *Quick boost* and a *Full routine upgrade*) of add-on products, such as a lightweight moisturiser, a weekly exfoliant or a mask, chosen to work with your existing routine without clashing, with prices and how your morning, night and weekly routine would look. **Add to my plan** adds them as add-ons, which are counted in the total, saved, shared and included in the PDF.
