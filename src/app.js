@@ -314,7 +314,9 @@ function ask(key){
   lockAll();const s=STEP[key],Q=s.q();const idx=STEPS.indexOf(key)+1;
   const box=document.createElement("div");box.className="q";box.dataset.step=key;
   box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">Q${idx} of ${STEPS.length} · ${esc(s.title)}${STEPS.length-idx===0?" · last one":""}</span><h3 class="qtitle">${esc(Q.ask)}</h3>${Q.help?`<p class="qhelp">${fmt(Q.help)}</p>`:""}</div></div>`;
+  const sl=PROB&&key!=="concerns"?shortlistPanel(key):null;SL_PANEL=sl;
   box.appendChild(Q.location?locationWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():Q.safety?safetyWidget():Q.concerns?concernsWidget():optionsWidget(key,Q));
+  if(sl){box.classList.add("hassl");box.appendChild(sl)}else if(key==="concerns")SL_PREV=null;
   const nav=document.createElement("div");nav.className="qnav";nav.innerHTML=`<button type="button" class="btn backcta">${SVG('<path d="M15 6l-6 6 6 6"/>')}Back</button><span class="qnav-step">Question ${idx} of ${STEPS.length}</span>`;
   nav.querySelector("button").onclick=goBack;box.appendChild(nav);
   newBlock(key).appendChild(box);progress();requestAnimationFrame(()=>thread.scrollTo({top:0}));
@@ -1132,6 +1134,9 @@ function safetyWidget(){
     const preg=pg==="true"||pg==="null";const skip=[a.includes("frag")&&"fragrance",a.includes("eo")&&"essential oils",a.includes("pores")&&"pore-clogging formulas",...r.filter(x=>!(preg&&(x==="retinoids"||x==="salicylic acid"))),preg&&"retinoids and strong salicylic acid"].filter(Boolean);
     sum.innerHTML=skip.length||a.includes("sens")?`${SVG('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>')}<span>I'll skip <b>${esc(uniq(skip).join(", ")||"nothing extra")}</b>${a.includes("sens")?" and keep everything <b>gentle</b>":""}.</span>`:"";
     symnote.hidden=!sy.length;
+    if(SL_PANEL){const prof=Object.assign({},P,{avoidFrag:a.includes("frag")||!!PREF.forceFrag,avoidEO:a.includes("eo"),sensitive:a.includes("sens")||!!PREF.forceSens,noClog:a.includes("pores"),
+      reactions:PREF.noRet?uniq([...r,"retinoids"]):r,pregnancy:pg==="true"?true:pg==="null"?null:false});
+      fillShortlist(SL_PANEL,prof,{live:true,touched:[...w.querySelectorAll(".sg")].some(g=>g.dataset.touched==="1")})}
   };
   w.addEventListener("change",e=>{const x=e.target,sec=x.dataset.sec;if(!sec)return;x.closest(".sg").dataset.touched="1";
     if(sec!=="preg"){if(x.value==="__none"&&x.checked)w.querySelectorAll(`input[data-sec="${sec}"]`).forEach(y=>{if(y!==x)y.checked=false});
@@ -1143,6 +1148,52 @@ function safetyWidget(){
     w.querySelectorAll(".sg").forEach(g=>g.dataset.touched="1");answer("safety",v,bits.join(", ")||"No restrictions")};
   update();return w;
 }
+
+/* =====================================================================
+   LIVE SHORTLIST — on every step after the concerns: the products that
+   lead right now, and the ones set aside because of the user's answers,
+   with the reason. Answers that aren't given yet never set anything aside.
+   ===================================================================== */
+let SL_PREV=null,SL_PANEL=null;
+const SL_REASON={B1:"Fragrance",B2:"Essential oils",B3:"Ingredient you reacted to",A2:"Pregnancy caution",B4:"No ingredient list",B6:"Not for your skin type",B7:"Drying alcohol",C5:"Over budget"};
+function previewProfile(base=P){
+  const done=k=>DONE.has(k);
+  return Object.assign({},base,{
+    pregnancy:done("safety")||base!==P?base.pregnancy:false,                 // not asked yet: don't hold anything back for it
+    skinConfirmed:base.skin?base.skinConfirmed:true,                          // skin type not asked yet: don't rule out by it
+    budget:base.budget??DEFAULT_BUDGET})}
+function shortlistData(prof){
+  const slots=PROBLEMS[PROB].plan,cats=new Set(slots.flatMap(x=>x.cats));
+  const pool=CAT.filter(p=>cats.has(p.c)&&!p.sp);
+  const ok=[],out=[];for(const p of pool){const c=check(p,prof);(c.ok?ok:out).push({p,code:c.ok?null:c.blocks[0][0],why:c.ok?null:c.blocks[0][1]})}
+  const keep=P;let picks=[];
+  try{P=Object.assign({},P,prof);const used=new Set();
+    picks=slots.map(sl=>{const best=ok.filter(o=>sl.cats.includes(o.p.c)&&!used.has(o.p.id)).map(o=>[o.p,slotScore(o.p,sl)]).sort((a,b)=>b[1]-a[1])[0];if(best)used.add(best[0].id);return{role:sl.role,p:best?best[0]:null}})}
+  finally{P=keep}
+  return{total:pool.length,ok,out,picks}}
+function slName(p){return esc(p.n.startsWith(p.b)?p.n:`${p.b} ${p.n}`)}
+function shortlistPanel(key){
+  const d=document.createElement("details");d.className="shortlist";d.open=matchMedia("(min-width: 1100px)").matches;
+  fillShortlist(d,previewProfile(),{step:key});return d}
+function fillShortlist(el,prof,{live=false,touched=false,step=null}={}){
+  const pr=live?previewProfile(prof):prof,D=shortlistData(pr),okIds=new Set(D.ok.map(o=>o.p.id));
+  let delta="";
+  if(SL_PREV){const lost=[...SL_PREV].filter(id=>!okIds.has(id)).length,gained=[...okIds].filter(id=>!SL_PREV.has(id)).length;
+    if(live&&touched)delta=lost||gained?`These answers ${lost?`set aside <b>${lost}</b>`:""}${lost&&gained?" and ":""}${gained?`bring back <b>${gained}</b>`:""} so far`:`No products set aside by these answers yet`;
+    else if(!live)delta=lost||gained?`Your last answer ${lost?`set aside <b>${lost}</b>`:""}${lost&&gained?" and ":""}${gained?`added <b>${gained}</b>`:""}`:`Your last answer kept every option open`}
+  if(!live)SL_PREV=okIds,el.dataset.prev=JSON.stringify([...okIds]);
+  else if(el.dataset.prev&&!SL_PREV)SL_PREV=new Set(JSON.parse(el.dataset.prev));
+  const groups={};for(const o of D.out)(groups[o.code]=groups[o.code]||[]).push(o);
+  const g=Object.entries(groups).sort((a,b)=>b[1].length-a[1].length);
+  el.innerHTML=`<summary><span class="slic">${SVG('<path d="M4 7h16M4 12h10M4 17h6"/>')}</span><span class="sltop"><span class="eyebrow">Your shortlist so far</span><span class="slcount"><b>${D.ok.length}</b> match · <b>${D.out.length}</b> set aside</span></span><span class="slchev">${SVG('<path d="M6 9l6 6 6-6"/>')}</span></summary>
+    <div class="slbody">
+      <div class="slbar" role="img" aria-label="${D.ok.length} of ${D.total} products still match"><span style="width:${(100*D.ok.length/Math.max(1,D.total)).toFixed(1)}%"></span></div>
+      ${delta?`<p class="sldelta">${delta}.</p>`:""}
+      <h5>Leading right now</h5>
+      <ul class="slpicks">${D.picks.map(x=>`<li><i class="slrole">${esc(x.role)}</i>${x.p?`<span class="slp"><b>${slName(x.p)}</b><small>${esc(x.p.c)} · ₹${x.p.p}</small></span>`:`<span class="slp"><small>Nothing safe yet</small></span>`}</li>`).join("")}</ul>
+      ${g.length?`<h5>Set aside for you</h5><ul class="slout">${g.slice(0,4).map(([c,arr])=>`<li><span class="slrs"><b>${esc(SL_REASON[c]||"Doesn't pass your checks")}</b><em>${arr.length}</em></span><span class="slex">${arr.slice(0,2).map(o=>`<s>${slName(o.p)}</s>`).join("")}</span></li>`).join("")}</ul>`:`<p class="small muted" style="margin:0">Nothing set aside yet. Your answers will narrow it down.</p>`}
+      <p class="slnote">${pr.budget&&!P.budgetChosen?`Budget starts at ₹${pr.budget} per product; you can change it on your plan. `:""}Final picks come after the last question.</p>
+    </div>`}
 
 /* =====================================================================
    TUNE YOUR PLAN — budget and "already using" live on the plan page.
