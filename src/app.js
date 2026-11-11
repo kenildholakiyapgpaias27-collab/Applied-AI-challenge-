@@ -266,6 +266,59 @@ const EMPATHY={
   "dark circles":"Let's help your eyes look <b>as rested</b> as you'd like them to feel.",
 };
 let OPEN_SELFIE=false;
+/* ---------- a warm, personal line at the top of every question ---------- */
+function stepGreeting(key){
+  const n=NAME?esc(NAME):"",N=n?`, ${n}`:"",prob=PROB&&PROBLEMS[PROB]?PROBLEMS[PROB].label.toLowerCase():null;
+  const left=STEPS.filter(k=>!DONE.has(k)).length,matched=SL_PREV?SL_PREV.size:0,city=P.city?esc(P.city):null;
+  const others=(P.concerns||[]).slice(1).map(k=>PROBLEMS[k].label.toLowerCase());
+  switch(key){
+    case"concerns":return PROB?`Let's look at this again${N}. Take your time; nothing you've told me is lost.`:`This little moment is just for you${N}. There are no wrong answers, only <b>what your skin is telling you</b>.`;
+    case"safety":{const e=prob?EMPATHY[PROB]:"";return`Thank you for trusting me with this${N}. ${e}${others.length?` I'll look after your ${esc(others.join(" and "))} too.`:""} Now the part I care about most: <b>making sure nothing I suggest could hurt your skin</b>.`}
+    case"location":return PREF.escalate?`You're being really sensible about this${N}. <b>I'll keep everything gentle</b> while you get it checked.${matched?` ${matched} products have already passed your safety checks.`:""}`
+      :`That was the most important part, and you did it beautifully${N}. ${matched?`<b>${matched} products</b> have already passed your safety checks. `:""}Now, where you live changes what your skin needs.`;
+    case"skin":return`${left<=2?"You're so close":"More than halfway"}${N}! ${city?`I'm already matching textures to <b>${city}'s weather</b>. `:""}${left===2?"<b>Just two quick questions</b> and your plan is ready.":""}`;
+    case"tone":return`<b>Last one${N}</b>, and then I'll show you your plan. ${prob?`Your routine for ${esc(prob)} is almost ready`:"Your routine is almost ready"}, and every pick has been checked against what you told me.`;
+    default:return left===1?`<b>Last one${N}!</b> Your plan is ready right after this.`:`You're doing great${N}.`}
+}
+
+/* ---------- before you go: a caring note if someone tries to leave mid-way ---------- */
+let EXIT_SHOWN={progress:false,plan:false},PLAN_SAVED=false;
+try{const x=JSON.parse(sessionStorage.getItem("aaina.exit")||"null");if(x)EXIT_SHOWN=x}catch{}
+function exitKind(){if(!nameAsked||document.querySelector(".exitm"))return null;
+  if(stepNow&&!EXIT_SHOWN.progress)return"progress";
+  if(!stepNow&&PL&&!PLAN_SAVED&&!EXIT_SHOWN.plan)return"plan";return null}
+function showExit(kind){
+  EXIT_SHOWN[kind]=true;try{sessionStorage.setItem("aaina.exit",JSON.stringify(EXIT_SHOWN))}catch{}
+  const n=NAME?esc(NAME):"",prob=PROB&&PROBLEMS[PROB]?PROBLEMS[PROB].label.toLowerCase():null;
+  const done=STEPS.filter(k=>DONE.has(k)).length,tot=STEPS.length,left=tot-done,matched=SL_PREV?SL_PREV.size:0;
+  const m=document.createElement("div");m.className="exitm";m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");m.setAttribute("aria-labelledby","exitT");
+  let body;
+  if(kind==="progress")body=`<div class="exic">${SVG('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>')}</div>
+    <h3 id="exitT">${n?`${n}, you're`:"You're"} so close to a routine made just for you</h3>
+    <div class="exprog"><span style="width:${Math.round(100*done/tot)}%"></span></div><p class="exsmall">${done} of ${tot} done · about ${Math.max(15,left*15)} seconds left</p>
+    <p>${prob?`You came here because of your <b>${esc(prob)}</b>, and that matters.`:"You came here to take care of your skin, and that matters."} ${left===1?"<b>Just one question</b> is":`<b>Just ${left} quick questions</b> are`} left before I can show you three products chosen for you${matched?`, from <b>${matched}</b> that have already passed your safety checks`:""}.</p>
+    <p class="exsoft">If now isn't the right time, that's completely okay. Everything you've told me is <b>saved on this device</b>, so you can pick up exactly where you left off.</p>
+    <div class="qactions"><button type="button" class="btn primary" data-stay>Finish my plan</button><button type="button" class="btn ghost" data-leave>I'll come back later</button></div>`;
+  else body=`<div class="exic">${SVG('<path d="M5 12l4 4 10-10"/>')}</div>
+    <h3 id="exitT">Take your plan with you${n?`, ${n}`:""}</h3>
+    <p>You put real care into this. Save your routine so it's right there when you're ${prob?`ready to start on your ${esc(prob)}`:"ready to start"}, or in the shop.</p>
+    <div class="qactions"><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(planShareText())}" target="_blank" rel="noopener" data-x>Send to my WhatsApp</a><button type="button" class="btn" data-xpdf>Save as PDF</button><button type="button" class="btn ghost" data-leave>Not now</button></div><p class="exsmall" data-xmsg role="status"></p>`;
+  m.innerHTML=`<div class="exbox">${body}</div>`;document.body.appendChild(m);
+  const close=()=>{m.remove();document.removeEventListener("keydown",onKey)};const onKey=e=>{if(e.key==="Escape")close()};document.addEventListener("keydown",onKey);
+  m.addEventListener("click",e=>{if(e.target===m)close()});
+  m.querySelector("[data-stay]")?.addEventListener("click",()=>{close();const q=[...thread.querySelectorAll(".q:not(.answered)")].pop();if(q)q.scrollIntoView({block:"start",behavior:"smooth"})});
+  m.querySelector("[data-leave]").addEventListener("click",()=>{close();saveState()});
+  m.querySelector("[data-x]")?.addEventListener("click",()=>{PLAN_SAVED=true;setTimeout(close,300)});
+  m.querySelector("[data-xpdf]")?.addEventListener("click",async e=>{e.currentTarget.disabled=true;const t=await savePlanPDF();PLAN_SAVED=true;m.querySelector("[data-xmsg]").textContent=t||"";setTimeout(close,1400)});
+  (m.querySelector("[data-stay]")||m.querySelector("[data-xpdf]")).focus();
+}
+function maybeExit(){const k=exitKind();if(k){showExit(k);return true}return false}
+// desktop: the pointer heads out of the top of the page (towards the tabs or the close button)
+document.addEventListener("mouseout",e=>{if(!e.relatedTarget&&e.clientY<=8)maybeExit()});
+// phones: the Back button. One extra history entry catches it; leaving still works on the next press.
+let EXIT_TRAP=false;
+function armExitTrap(){if(EXIT_TRAP)return;try{history.pushState({aaina:1},"");EXIT_TRAP=true}catch{}}
+window.addEventListener("popstate",()=>{if(!EXIT_TRAP)return;EXIT_TRAP=false;if(maybeExit())armExitTrap()});
 function showWelcome(){
   const d=dayPart();$("greetText").textContent=d.hello;$("greetIc").innerHTML=d.ic;$("greetSub").textContent=d.line;
   $("welcome").hidden=false;$("advisor").hidden=true;renderResume();$("nameInput").value=NAME||"";$("nameGo").disabled=!cleanName(NAME||"");
@@ -307,16 +360,18 @@ function progress(){const d=STEPS.filter(k=>DONE.has(k)).length,left=STEPS.lengt
 
 function next(){
   if(!nameAsked){progress();askName();return}
+  armExitTrap();
   stepNow=STEPS.find(k=>!DONE.has(k))||null;renderSide();updateTitle();
   if(stepNow)ask(stepNow);else buildPlan();
 }
 function ask(key){
   lockAll();const s=STEP[key],Q=s.q();const idx=STEPS.indexOf(key)+1;
   const box=document.createElement("div");box.className="q";box.dataset.step=key;
-  box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">Q${idx} of ${STEPS.length} · ${esc(s.title)}${STEPS.length-idx===0?" · last one":""}</span><h3 class="qtitle">${esc(Q.ask)}</h3>${Q.help?`<p class="qhelp">${fmt(Q.help)}</p>`:""}</div></div>`;
+  box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">Q${idx} of ${STEPS.length} · ${esc(s.title)}${STEPS.length-idx===0?" · last one":""}</span><p class="qgreet" hidden></p><h3 class="qtitle">${esc(Q.ask)}</h3>${Q.help?`<p class="qhelp">${fmt(Q.help)}</p>`:""}</div></div>`;
   const sl=PROB&&key!=="concerns"?shortlistPanel(key):null;SL_PANEL=sl;
   box.appendChild(Q.location?locationWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():Q.safety?safetyWidget():Q.concerns?concernsWidget():optionsWidget(key,Q));
   if(sl){box.classList.add("hassl");box.appendChild(sl)}else if(key==="concerns")SL_PREV=null;
+  {const g=stepGreeting(key),el=box.querySelector(".qgreet");if(g&&el){el.innerHTML=`<span class="qgic">${SVG('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>')}</span><span>${g}</span>`;el.hidden=false}}
   const nav=document.createElement("div");nav.className="qnav";nav.innerHTML=`<button type="button" class="btn backcta">${SVG('<path d="M15 6l-6 6 6 6"/>')}Back</button><span class="qnav-step">Question ${idx} of ${STEPS.length}</span>`;
   nav.querySelector("button").onclick=goBack;box.appendChild(nav);
   newBlock(key).appendChild(box);progress();requestAnimationFrame(()=>thread.scrollTo({top:0}));
@@ -346,15 +401,12 @@ function afterNote(key){
   if(key==="concerns"){const esc_=(P.concerns||[]).map(k=>[k,PROBLEMS[k].follow.opts[P.concernFU[k]]]).find(([,o])=>o&&o[2]?.escalate);
     if(esc_)return[`<p>Because you mentioned <b>${esc(esc_[1][0].toLowerCase())}</b>, please have a dermatologist look at them, as they can scar and may need treatment I can't give. I'll still suggest a gentle, low-irritation plan for day-to-day care.</p>`,"escalate"];
     const more=P.concerns.slice(1).map(k=>PROBLEMS[k].label.toLowerCase());
-    return[`<p>${nm("","," )} ${NAME?EMPATHY[PROB][0].toLowerCase()+EMPATHY[PROB].slice(1):EMPATHY[PROB]}</p>${more.length?`<p class="small muted">I'll build the plan around <b>${esc(PROBLEMS[PROB].label.toLowerCase())}</b> and lean towards products that also help with <b>${esc(more.join(" and "))}</b>.</p>`:""}`]}
+    return more.length?[`<p class="small">I'll build the plan around <b>${esc(PROBLEMS[PROB].label.toLowerCase())}</b> and lean towards products that also help with <b>${esc(more.join(" and "))}</b>.</p>`]:null}
   if(key==="problem")return[`<p>${nm("","," )} ${NAME?EMPATHY[PROB][0].toLowerCase()+EMPATHY[PROB].slice(1):EMPATHY[PROB]}</p><p class="small muted">A few quick questions so I can choose <b>the right three</b> for you.</p>`];
   if(key==="safety"&&(P.redflags||[]).length)return[`<p><b>Please see a dermatologist soon${nm(", ")}.</b> ${esc(cap((P.redflags||[]).map(k=>(SYMPTOMS.find(x=>x[0]===k)||[,k])[1].toLowerCase()).join(", ")))} ${P.redflags.length>1?"are signs that need":"is a sign that needs"} a doctor to look at it, and can need treatment I can't give. Meanwhile I'll keep your plan gentle and low-irritation.</p>`,"escalate"];
-  if(key==="safety"||key==="preg")return[`Thank you${nm(", ")}. <b>That's the important safety part done.</b> Now a little about where you live and your skin.`];
+  if(key==="preg")return[`Thank you${nm(", ")}. <b>That's the important safety part done.</b>`];
   if(key==="follow"&&PREF.escalate)return["<p>Deep, painful lumps are best looked at by a dermatologist, as they can scar and may need treatment I can't give. I'll still suggest a gentle, low-irritation plan for day-to-day care.</p>","escalate"];
   if(key==="follow"&&P.sensitive&&P.avoidFrag&&PROB==="redness")return["That sounds uncomfortable. I'll keep everything fragrance-free and extra gentle."];
-  {const left=STEPS.filter(k=>!DONE.has(k)).length;
-   if(left===1)return[`<b>Last question${nm(", ")}!</b> Your plan is ready right after this.`];
-   if(left===2&&key!=="problem")return[`You're doing great${nm(", ")}. <b>Just two more</b> and your plan is ready.`];}
   if(key==="follow")return[`Thanks, that really helps me narrow it down.`];
   if(key==="location"&&P.city&&P.weather){const w=P.weather;return[`Over the last 7 days ${esc(P.city)} has been <b>${esc(wxHeadline(w).toLowerCase())}</b> (${esc(wxShort(w))}). I'll pick textures for that${P.seasonAlert?", and remind you to refresh your plan when the weather turns":""}.`]}
   if(key==="location"&&P.city){const se=seasonFor();return[`${esc(P.city)} is mostly <b>${CLIMATE_SAY[P.climate]}</b>${se?`, and it's <b>${esc(se.say)}</b> there now`:""}. I'll pick textures to suit${P.seasonAlert&&se?`, and remind you to refresh your plan when ${esc(se.nextSay)} arrives`:""}.`]}
@@ -1279,6 +1331,7 @@ function shareBarHTML(){
 }
 function wireShare(box){
   const msg=box.querySelector("[data-sharemsg]");const say=t=>{msg.textContent=t;clearTimeout(say.t);say.t=setTimeout(()=>msg.textContent="",4000)};
+  box.addEventListener("click",e=>{if(e.target.closest("[data-wa],[data-pdf],[data-copy]"))PLAN_SAVED=true});
   box.querySelector("[data-wa]").addEventListener("click",e=>{
     if(navigator.share&&matchMedia("(pointer:coarse)").matches){e.preventDefault();navigator.share({text:planShareText()}).catch(()=>{})}});
   box.querySelector("[data-copy]").onclick=async()=>{const t=planShareText();

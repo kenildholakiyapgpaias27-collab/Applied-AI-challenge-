@@ -812,6 +812,24 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
   .q.hassl>.shortlist{grid-column:2;grid-row:1/span 3;position:sticky;top:12px}
 }
 @media (max-width:1099px){.q.hassl>.shortlist{order:5}.q.hassl>.qnav{order:6}}
+
+/* ---- personal greeting at the top of each question ---- */
+.qgreet{display:flex;gap:10px;align-items:flex-start;margin:8px 0 4px;padding:10px 14px;border-radius:14px;background:linear-gradient(100deg,var(--accent-soft),transparent 85%);font-size:15px;line-height:1.5;color:var(--ink);max-width:640px}
+.qgreet[hidden]{display:none}
+.qgic{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--surface);color:var(--accent);margin-top:1px}.qgic svg{width:14px;height:14px}
+.qgreet b{color:var(--accent)}
+/* ---- before you go ---- */
+.exitm{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:16px;background:rgba(40,12,28,.45);backdrop-filter:blur(3px);animation:exfade .2s ease}
+.exbox{background:var(--surface);border-radius:24px;max-width:460px;width:100%;padding:26px 24px 20px;box-shadow:0 24px 60px rgba(60,10,40,.3);display:flex;flex-direction:column;gap:10px;animation:expop .25s ease}
+.exbox h3{margin:0;font:400 26px/1.2 var(--display,Georgia,serif);color:var(--ink)}
+.exbox p{margin:0;font-size:15px;line-height:1.55;color:var(--ink)}.exbox p b{color:var(--accent)}
+.exbox .exsoft{color:var(--muted);font-size:14px}
+.exic{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}.exic svg{width:24px;height:24px}
+.exprog{height:8px;border-radius:99px;background:var(--line);overflow:hidden}.exprog span{display:block;height:100%;background:var(--accent);border-radius:99px}
+.exsmall{font-size:12.5px!important;color:var(--muted)!important}
+.exbox .qactions{margin-top:6px;flex-wrap:wrap}
+@keyframes exfade{from{opacity:0}}@keyframes expop{from{opacity:0;transform:translateY(10px) scale(.98)}}
+@media (prefers-reduced-motion:reduce){.exitm,.exbox{animation:none}}
 </style>
 
 <div class="page">
