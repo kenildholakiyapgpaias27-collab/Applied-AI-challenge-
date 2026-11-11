@@ -8,8 +8,9 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
 ## What it does
 
 - **Personal start:** asks your first name and greets you by time of day.
-- **A 7-step journey (Q1–Q7):** concern, follow-up, other concerns, safety check, location, skin type, skin tone. A progress bar shows each step, one question at a time, with a Back button on every screen.
-- **One-page safety check (Q4):** everything that keeps a product safe is answered together: ingredients to avoid, past reactions, pregnancy caution and warning signs happening right now (pain, spreading, bleeding, a changing mole, fever). Every section must be answered (**None** counts) before Continue unlocks, and a live line sums up what will be skipped. Earlier answers carry in (for example "I'd rather avoid retinol" pre-ticks retinoids). Any warning sign shows a dermatologist notice and keeps the plan gentle.
+- **A 5-step journey (Q1–Q5):** skin concerns, safety check, location, skin type, skin tone. A progress bar shows each step, one question at a time, with a Back button on every screen.
+- **One-page skin concerns (Q1):** tap a concern and its follow-up question opens inside the same card (for example, Breakouts → "What do your breakouts usually look like?"). Pick up to three concerns; the first is the main concern the plan is built around, and any other can be made the main one with one tap. Safety signals from every concern count (a "deep, painful lumps" answer triggers the dermatologist notice even when acne isn't the main concern), while ingredient nudges from the other concerns count at half weight. Continue unlocks once every picked concern's follow-up is answered.
+- **One-page safety check (Q2):** everything that keeps a product safe is answered together: ingredients to avoid, past reactions, pregnancy caution and warning signs happening right now (pain, spreading, bleeding, a changing mole, fever). Every section must be answered (**None** counts) before Continue unlocks, and a live line sums up what will be skipped. Earlier answers carry in (for example "I'd rather avoid retinol" pre-ticks retinoids). Any warning sign shows a dermatologist notice and keeps the plan gentle.
   1. Main concern (illustrated cards)
   2. Concern-specific follow-up
   3. Anything else to help with

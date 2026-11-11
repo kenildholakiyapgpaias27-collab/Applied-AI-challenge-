@@ -753,6 +753,29 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
 @media (max-width:520px){.opts.big{grid-template-columns:minmax(0,1fr)}.thread{padding:18px 14px}}
 .jn.final.done .jc{color:var(--accent-ink)}
 @media (max-width:520px){.tabs{display:none}.brandtext small{letter-spacing:.08em}.chathead h2{font-size:20px}.chathead{padding:12px 14px}.chathead .eta{display:none}}@keyframes flash{0%{box-shadow:0 0 0 0 var(--accent)}100%{box-shadow:0 0 0 14px transparent}}
+
+/* ---- concerns: pick up to three, follow-up opens inside each ---- */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;grid-auto-flow:dense}
+.cc{border:1px solid var(--line);border-radius:16px;background:var(--surface);transition:border-color .2s,box-shadow .2s;min-width:0}
+.cc.on{grid-column:1/-1;border:2px solid var(--accent);box-shadow:0 6px 20px color-mix(in srgb,var(--accent) 12%,transparent)}
+.cchead{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:16px}
+.cchead:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cc:not(.on) .cchead:hover{background:var(--accent-soft)}
+.cchead.full{opacity:.5}
+.cchead .art{width:64px;height:64px;display:block}.cchead .art svg{width:100%;height:100%;display:block}
+.cct{display:flex;flex-direction:column;gap:2px;min-width:0}.cct b{font-size:16px;color:var(--ink);font-weight:600}.cct small{font-size:13.5px;color:var(--muted);line-height:1.4}
+.cbadge{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;font-style:normal;padding:6px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.cbadge.main{background:var(--accent);color:#fff}
+.cfu{padding:0 16px 14px 16px;border-top:1px dashed var(--line);margin:0 2px}
+.cfuq p{margin:12px 0 8px;font-weight:600;font-size:15px;color:var(--ink)}
+.cfu .scs{display:flex;flex-wrap:wrap;gap:8px}
+.cfudone{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14.5px}.cfudone svg{width:18px;height:18px;color:#1f6b45;flex:none}
+.cfoot{display:flex;gap:16px;justify-content:flex-end;margin-top:10px}
+.linkbtn{all:unset;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.linkbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.cremove{color:var(--muted)}
+.cmax{margin:10px 0 0}.cmax.flash{color:var(--warn);font-weight:600}
+@media (max-width:520px){.cgrid{grid-template-columns:minmax(0,1fr)}.cchead{grid-template-columns:52px minmax(0,1fr);row-gap:6px}.cchead .art{grid-row:1/3}.cbadge{grid-column:2;justify-self:start;padding:5px 8px}.cchead .art{width:52px;height:52px}.cfu{padding:0 12px 12px}}
 </style>
 
 <div class="page">

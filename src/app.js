@@ -116,10 +116,11 @@ function actives(p){const src=(p.a||"")+" || "+(p.i||"");const out=[];for(const[
 /* ---------- state ---------- */
 let PROB=null,SUB=null,PREF={boost:[]},FLOW=[],DONE=new Set(),stepNow=null,PL=null,turn=0;
 const thread=$("thread");
-const DEFAULT_STEPS=["problem","follow","extra","safety","location","skin","tone"];   // budget and "already using" are set on the plan page
+const DEFAULT_STEPS=["concerns","safety","location","skin","tone"];   // budget and "already using" are set on the plan page
 let STEPS=[...DEFAULT_STEPS];
 const FACE_SKIN=[["Shiny all over","Oily skin","oily"],["Shiny T-zone, normal cheeks","Combination skin","combination"],["Tight, rough or flaky","Dry skin","dry"],["Comfortable","Normal skin","normal"]];
 const SK_CATS=["Cleanser","Serum","Moisturiser","Sunscreen","Exfoliant","Toner","Spot treatment","Eye cream"];
+const MAX_CONCERNS=3;
 const STEP={
   problem:{title:"Your skin",side:"Main concern",q:()=>({ask:"What's bothering your skin the most right now?",help:"Pick **the one that bothers you most**. You can also describe it in your own words below.",
       opts:Object.entries(PROBLEMS).map(([k,v])=>({label:v.label,sub:v.sub,value:k}))}),
@@ -132,6 +133,18 @@ const STEP={
   extra:{title:"Your skin",side:"Also bothering you",q:()=>{const others=Object.entries(PROBLEMS).filter(([k])=>k!==PROB).map(([k,v])=>({label:v.label,value:k}));
       return{ask:"Anything else you'd like the plan to help with?",help:"Optional. Pick **up to two**, and I'll lean towards products that also help with these.",multi:true,max:2,opts:others,none:"No, just that",pre:P.concerns.filter(c=>c!==PROB)}},
     apply:v=>{P.concerns=uniq([PROB,...v])},show:()=>P.concerns.filter(c=>c!==PROB).map(c=>PROBLEMS[c].label).join(", ")||"Nothing else"},
+  concerns:{title:"Your skin",side:"Skin concerns",q:()=>({ask:"What's bothering your skin?",help:"Tap a concern and answer **one quick follow-up** inside it. You can pick **up to three**; the first is your **main concern**.",concerns:true}),
+    apply:v=>{const list=uniq([v.main,...v.list]).filter(k=>PROBLEMS[k]&&v.fu[k]!=null).slice(0,MAX_CONCERNS);
+      STEP.problem.apply(list[0]);FOLLOW_IDX=v.fu[list[0]];STEP.follow.apply(FOLLOW_IDX);
+      for(const k of list.slice(1)){const fx=PROBLEMS[k].follow.opts[v.fu[k]][2]||{};          // other concerns: safety flags count fully, ingredient nudges at half weight
+        PREF.boost.push(...(fx.boost||[]).map(([r,w])=>[r,w*0.5]));
+        for(const f of["gentle","noRet","noStrongRet","escalate"])if(fx[f])PREF[f]=true;
+        if(fx.spf&&(!PREF.spf||fx.spf>PREF.spf))PREF.spf=fx.spf;
+        if(fx.sensitive){PREF.forceSens=true;P.sensitive=true}if(fx.frag){PREF.forceFrag=true;P.avoidFrag=true}
+        if(fx.noRet&&!P.reactions.includes("retinoids"))P.reactions=[...P.reactions,"retinoids"]}
+      PREF.fuEscalate=!!PREF.escalate;P.concerns=list;P.concernFU=Object.fromEntries(list.map(k=>[k,v.fu[k]]));
+      if((P.redflags||[]).length){PREF.escalate=true;PREF.gentle=true}},
+    show:()=>(P.concerns||[]).filter(k=>PROBLEMS[k]).map((k,i)=>PROBLEMS[k].label+(i===0&&P.concerns.length>1?" (main)":"")).join(", ")||"–"},
   avoid:{title:"Safety",side:"Avoid",q:()=>({ask:"Should I avoid any of these?",help:"Pick all that apply. I check **every product's full ingredient list**, not just the label.",multi:true,
       opts:[{label:"Fragrance",sub:"Including hidden fragrance like linalool",value:"frag"},{label:"Essential oils",sub:"Tea tree, lavender, citrus and more",value:"eo"},{label:"Sensitive skin",sub:"Gentler picks and patch-test tips",value:"sens"},{label:"Pores clog easily",sub:"Skip pore-clogging formulas",value:"pores"}],
       none:"None of these",pre:[P.avoidFrag&&"frag",P.avoidEO&&"eo",P.sensitive&&"sens",P.noClog&&"pores"].filter(Boolean)}),
@@ -145,7 +158,7 @@ const STEP={
     apply:v=>{P.pregnancy=v},show:()=>P.pregnancy===null?"Cautious (not answered)":P.pregnancy?"Yes":"No"},
   safety:{title:"Safety check",side:"Safety check",q:()=>({ask:"Quick safety check",help:"Answer all four so **every product is safe for you**. Tap **None** where nothing applies.",safety:true}),
     apply:v=>{STEP.avoid.apply(v.avoid);STEP.react.apply(PREF.noRet?uniq([...v.react,"retinoids"]):v.react);STEP.preg.apply(v.preg);P.redflags=v.sym;
-      if(v.sym.length){PREF.escalate=true;PREF.gentle=true}else if(!PROBLEMS[PROB]?.follow.opts[FOLLOW_IDX]?.[2]?.escalate)PREF.escalate=false},
+      if(v.sym.length){PREF.escalate=true;PREF.gentle=true}else PREF.escalate=PREF.fuEscalate??!!PROBLEMS[PROB]?.follow.opts[FOLLOW_IDX]?.[2]?.escalate},
     show:()=>[STEP.avoid.show(),P.reactions.length?P.reactions.map(cap).join(", "):"",P.pregnancy===false?"":"Pregnancy-cautious",(P.redflags||[]).length?"Warning signs":""].filter(x=>x&&x!=="Nothing").join(" · ")||"No restrictions"},
   location:{title:"Location",side:"Location",q:()=>({ask:"Which state and city do you live in?",help:"**Humidity and winter dryness** change which textures work for you.",location:true}),
     show:()=>P.city?`${P.city}, ${P.state}`:"Skipped"},
@@ -263,7 +276,7 @@ function cleanName(v){const n=String(v||"").replace(/[^\p{L}\p{M}' .-]/gu,"").tr
 function setName(n,startKey){
   NAME=n;nameAsked=true;
   $("welcome").hidden=true;$("advisor").hidden=false;thread.innerHTML="";CUR_BLOCK=null;
-  if(startKey&&startKey!=="problem"){STEPS=[startKey,...STEPS.filter(k=>k!==startKey)];if(startKey==="tone")OPEN_SELFIE=true}
+  if(startKey&&startKey!=="concerns"){STEPS=[startKey,...STEPS.filter(k=>k!==startKey)];if(startKey==="tone")OPEN_SELFIE=true}
   const d=dayPart();
   botSay(n?`<p>${d.hello.replace("!","")}, <b>${esc(n)}</b>! Lovely to meet you. Tell me what's bothering your skin, and I'll put together <b>three products that work together</b>, then explain exactly why I chose each one.</p><p class="small muted">It takes about two minutes, and every pick is checked against what you tell me.</p>`
           :`<p>${d.hello} No problem at all. ${startKey==="tone"?"Let's start with your skin tone, then I'll ask what's bothering your skin":startKey==="skin"?"Let's start with your skin type, then I'll ask what's bothering your skin":"Tell me what's bothering your skin"}, and I'll put together <b>three products that work together</b>, then explain exactly why I chose each one.</p><p class="small muted">It takes about two minutes, and every pick is checked against what you tell me.</p>`);
@@ -301,7 +314,7 @@ function ask(key){
   lockAll();const s=STEP[key],Q=s.q();const idx=STEPS.indexOf(key)+1;
   const box=document.createElement("div");box.className="q";box.dataset.step=key;
   box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">Q${idx} of ${STEPS.length} · ${esc(s.title)}${STEPS.length-idx===0?" · last one":""}</span><h3 class="qtitle">${esc(Q.ask)}</h3>${Q.help?`<p class="qhelp">${fmt(Q.help)}</p>`:""}</div></div>`;
-  box.appendChild(Q.location?locationWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():Q.safety?safetyWidget():optionsWidget(key,Q));
+  box.appendChild(Q.location?locationWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():Q.safety?safetyWidget():Q.concerns?concernsWidget():optionsWidget(key,Q));
   const nav=document.createElement("div");nav.className="qnav";nav.innerHTML=`<button type="button" class="btn backcta">${SVG('<path d="M15 6l-6 6 6 6"/>')}Back</button><span class="qnav-step">Question ${idx} of ${STEPS.length}</span>`;
   nav.querySelector("button").onclick=goBack;box.appendChild(nav);
   newBlock(key).appendChild(box);progress();requestAnimationFrame(()=>thread.scrollTo({top:0}));
@@ -328,6 +341,10 @@ function answer(key,val,label){
   next();saveState();
 }
 function afterNote(key){
+  if(key==="concerns"){const esc_=(P.concerns||[]).map(k=>[k,PROBLEMS[k].follow.opts[P.concernFU[k]]]).find(([,o])=>o&&o[2]?.escalate);
+    if(esc_)return[`<p>Because you mentioned <b>${esc(esc_[1][0].toLowerCase())}</b>, please have a dermatologist look at them, as they can scar and may need treatment I can't give. I'll still suggest a gentle, low-irritation plan for day-to-day care.</p>`,"escalate"];
+    const more=P.concerns.slice(1).map(k=>PROBLEMS[k].label.toLowerCase());
+    return[`<p>${nm("","," )} ${NAME?EMPATHY[PROB][0].toLowerCase()+EMPATHY[PROB].slice(1):EMPATHY[PROB]}</p>${more.length?`<p class="small muted">I'll build the plan around <b>${esc(PROBLEMS[PROB].label.toLowerCase())}</b> and lean towards products that also help with <b>${esc(more.join(" and "))}</b>.</p>`:""}`]}
   if(key==="problem")return[`<p>${nm("","," )} ${NAME?EMPATHY[PROB][0].toLowerCase()+EMPATHY[PROB].slice(1):EMPATHY[PROB]}</p><p class="small muted">A few quick questions so I can choose <b>the right three</b> for you.</p>`];
   if(key==="safety"&&(P.redflags||[]).length)return[`<p><b>Please see a dermatologist soon${nm(", ")}.</b> ${esc(cap((P.redflags||[]).map(k=>(SYMPTOMS.find(x=>x[0]===k)||[,k])[1].toLowerCase()).join(", ")))} ${P.redflags.length>1?"are signs that need":"is a sign that needs"} a doctor to look at it, and can need treatment I can't give. Meanwhile I'll keep your plan gentle and low-irritation.</p>`,"escalate"];
   if(key==="safety"||key==="preg")return[`Thank you${nm(", ")}. <b>That's the important safety part done.</b> Now a little about where you live and your skin.`];
@@ -753,7 +770,7 @@ function renderPlan(){
   box.innerHTML=h;
   const nx=document.createElement("div");nx.className="next";
   const add=(label,fn,primary)=>{const b=document.createElement("button");b.type="button";b.className="btn"+(primary?" primary":"");b.textContent=label;b.onclick=fn;nx.appendChild(b)};
-  add("Plan for another concern",()=>{meSay("Plan for another concern");DONE.delete("problem");DONE.delete("follow");DONE.delete("extra");PROB=null;botSay(`Of course${nm(", ")}. I'll keep your safety, location and skin answers, so this one is quicker.`);next()},true);
+  add("Plan for another concern",()=>{meSay("Plan for another concern");DONE.delete("concerns");P.concerns=[];P.concernFU={};PROB=null;botSay(`Of course${nm(", ")}. I'll keep your safety, location and skin answers, so this one is quicker.`);next()},true);
   add("How's it going? Check in",()=>openCheckin());
   add("Check a product",()=>{$("askInput").focus();$("askInput").placeholder="Type a product name or code, e.g. P1025"});
   box.appendChild(nx);
@@ -846,7 +863,7 @@ function explainHTML(){
 }
 
 /* ---------- side panel ---------- */
-const SHORT={safety:"Safety",shelf:"Routine",problem:"Concern",follow:"Details",extra:"Also",avoid:"Avoid",react:"Reactions",preg:"Pregnancy",location:"Location",skin:"Skin type",tone:"Skin tone",budget:"Budget"};
+const SHORT={concerns:"Concerns",safety:"Safety",shelf:"Routine",problem:"Concern",follow:"Details",extra:"Also",avoid:"Avoid",react:"Reactions",preg:"Pregnancy",location:"Location",skin:"Skin type",tone:"Skin tone",budget:"Budget"};
 function renderSide(){
   const j=$("journey");if(!j)return;j.innerHTML="";
   const ol=document.createElement("ol");
@@ -1126,6 +1143,52 @@ function wireUpgrades(box){
    ===================================================================== */
 const SYMPTOMS=[["pain","Painful or swollen"],["spread","Spreading"],["bleed","Bleeding, pus or open sores"],["mole","A mole that's changing"],["fever","With fever"]];
 const REACT_TOP=["glycolic acid","salicylic acid","vitamin c","retinoids","niacinamide"];
+let TYPED_CONCERNS=null;
+function concernsWidget(){
+  const w=document.createElement("div");w.className="qbody concerns";
+  let order=TYPED_CONCERNS?[...TYPED_CONCERNS]:(P.concerns||[]).filter(k=>PROBLEMS[k]);
+  const fu=Object.assign({},P.concernFU||{});for(const k of Object.keys(fu))if(!order.includes(k))delete fu[k];TYPED_CONCERNS=null;
+  const open=new Set(order.filter(k=>fu[k]==null));
+  w.innerHTML=`<div class="cgrid">${Object.entries(PROBLEMS).map(([k,v])=>`
+    <div class="cc" data-k="${k}">
+      <button type="button" class="cchead" aria-pressed="false"><i class="art">${artFor("problem",{value:k})||""}</i><span class="cct"><b>${esc(v.label)}</b><small>${esc(v.sub)}</small></span><em class="cbadge" hidden></em></button>
+      <div class="cfu" hidden>
+        <div class="cfuq"><p>${esc(v.follow.ask)}</p><div class="scs">${v.follow.opts.map(([l,sub],i)=>`<label class="sc"><input type="radio" name="fu_${k}" value="${i}"><span><b>${esc(l)}</b><small>${esc(sub)}</small></span></label>`).join("")}</div></div>
+        <div class="cfudone" hidden>${SVG('<path d="M5 12l4 4 10-10"/>')}<span></span><button type="button" class="linkbtn cchange">Change</button></div>
+        <div class="cfoot"><button type="button" class="linkbtn cmain" hidden>Make this my main concern</button><button type="button" class="linkbtn cremove">Remove</button></div>
+      </div>
+    </div>`).join("")}</div>
+    <p class="small muted cmax" hidden>You can pick up to ${MAX_CONCERNS}. Remove one to add another.</p>
+    <div class="qactions"><button type="button" class="btn primary" data-go disabled>Continue</button><span class="small muted" data-left></span></div>`;
+  const go=w.querySelector("[data-go]"),left=w.querySelector("[data-left]"),cmax=w.querySelector(".cmax");
+  const card=k=>w.querySelector(`.cc[data-k="${k}"]`);
+  const paint=()=>{
+    for(const [k,v] of Object.entries(PROBLEMS)){const c=card(k),i=order.indexOf(k),on=i>=0;
+      c.classList.toggle("on",on);c.style.order=on?String(i-10):"";c.querySelector(".cchead").setAttribute("aria-pressed",String(on));
+      const b=c.querySelector(".cbadge");b.hidden=!on;b.textContent=i===0?"Main concern":"Also";b.classList.toggle("main",i===0);
+      c.querySelector(".cfu").hidden=!on;c.querySelector(".cmain").hidden=i<=0;
+      const answered=fu[k]!=null,showQ=on&&(!answered||open.has(k));
+      c.querySelector(".cfuq").hidden=!showQ;const d=c.querySelector(".cfudone");d.hidden=!(on&&answered&&!showQ);
+      if(answered)d.querySelector("span").innerHTML=`<b>${esc(v.follow.opts[fu[k]][0])}</b>`;
+      c.querySelectorAll(`input[name="fu_${k}"]`).forEach(x=>x.checked=answered&&+x.value===fu[k])}
+    const miss=order.filter(k=>fu[k]==null);
+    go.disabled=!order.length||!!miss.length;
+    go.textContent=order.length>1?`Continue with ${order.length} concerns`:"Continue";
+    left.textContent=!order.length?"Pick at least one concern.":miss.length?`Answer the question inside ${miss.map(k=>PROBLEMS[k].label.toLowerCase()).join(" and ")}.`:"";
+    cmax.hidden=order.length<MAX_CONCERNS;
+    w.querySelectorAll(".cc:not(.on) .cchead").forEach(b=>b.classList.toggle("full",order.length>=MAX_CONCERNS))};
+  w.addEventListener("click",e=>{const c=e.target.closest(".cc");if(!c)return;const k=c.dataset.k;
+    if(e.target.closest(".cchead")){if(order.includes(k))return void card(k).querySelector(".cfu").scrollIntoView({block:"nearest",behavior:"smooth"});
+      if(order.length>=MAX_CONCERNS){cmax.classList.remove("flash");void cmax.offsetWidth;cmax.classList.add("flash");return}
+      order.push(k);open.add(k);paint();requestAnimationFrame(()=>c.scrollIntoView({block:"nearest",behavior:"smooth"}));return}
+    if(e.target.closest(".cremove")){order=order.filter(x=>x!==k);delete fu[k];open.delete(k);paint();return}
+    if(e.target.closest(".cmain")){order=[k,...order.filter(x=>x!==k)];paint();return}
+    if(e.target.closest(".cchange")){open.add(k);paint();return}});
+  w.addEventListener("change",e=>{const x=e.target;if(!x.name?.startsWith("fu_"))return;const k=x.name.slice(3);fu[k]=+x.value;open.delete(k);paint();
+    const nx=order.find(q=>fu[q]==null);if(nx)card(nx).scrollIntoView({block:"nearest",behavior:"smooth"});else go.scrollIntoView({block:"nearest",behavior:"smooth"})});
+  go.onclick=()=>answer("concerns",{main:order[0],list:order,fu},order.map(k=>`${PROBLEMS[k].label}: ${PROBLEMS[k].follow.opts[fu[k]][0]}`).join("; "));
+  paint();return w;
+}
 function safetyWidget(){
   const w=document.createElement("div");w.className="qbody safety";
   const av=STEP.avoid.q(),pre={avoid:new Set(av.pre),react:new Set(P.reactions),sym:new Set(P.redflags||[])};
@@ -1380,6 +1443,8 @@ function restoreState(d){
   NAME=d.NAME;nameAsked=true;PROB=d.PROB;SUB=d.SUB;FOLLOW_IDX=d.FOLLOW_IDX;PREF={boost:[]};
   if(PROB&&FOLLOW_IDX!=null&&PROBLEMS[PROB]?.follow.opts[FOLLOW_IDX])STEP.follow.apply(FOLLOW_IDX);
   P=Object.assign(emptyProfile(),d.P||{});DONE=new Set(d.DONE||[]);
+  if(!DONE.has("concerns")&&DONE.has("problem")&&DONE.has("follow")&&PROB&&FOLLOW_IDX!=null){DONE.add("concerns");P.concerns=[PROB];P.concernFU={[PROB]:FOLLOW_IDX}}  // saves from the older 3-step version
+  if(DONE.has("concerns")&&P.concernFU&&PROB)STEP.concerns.apply({main:PROB,list:P.concerns||[PROB],fu:P.concernFU});
   STEPS=[...DEFAULT_STEPS];if(DONE.has("avoid")&&DONE.has("react")&&DONE.has("preg"))DONE.add("safety");
   META=Object.assign({planAt:null,planProb:null,checks:[]},d.META||{});RESTORE_IDS=d.planIds||null;
 }
@@ -1538,6 +1603,7 @@ function handleTyped(text){
   if(G.del.test(t)){$("deleteBtn").click();return}
   const p=findProduct(t);if(p){productCheck(p);return refocus()}
   const slots=parseSlots(t);
+  if(stepNow==="concerns"&&slots.concerns&&slots.concerns.length){const cs=uniq(slots.concerns.filter(x=>PROBLEMS[x])).slice(0,MAX_CONCERNS);if(cs.length){TYPED_CONCERNS=cs;botSay(`I've ticked <b>${esc(cs.map(k=>PROBLEMS[k].label.toLowerCase()).join(" and "))}</b>. Answer the quick follow-up inside ${cs.length>1?"each":"it"} and tap Continue.`);return ask("concerns")}}
   if(stepNow==="problem"&&slots.concerns&&slots.concerns.length){const c=slots.concerns.find(x=>PROBLEMS[x]);if(c){STEP.problem.apply(c);DONE.add("problem");P.concerns=uniq([c,...slots.concerns.filter(x=>PROBLEMS[x])]).slice(0,3);if(P.concerns.length>1)DONE.add("extra");botSay(afterNote("problem")[0]);return next()}}
   if(stepNow==="location"){const hit=findCity(t);if(hit){P.state=hit.state;P.city=hit.city;P.climate=hit.climate;DONE.add("location");botSay(afterNote("location")[0]);return next()}}
   if(stepNow==="react"&&slots.reactions){P.reactions=uniq([...P.reactions,...slots.reactions]);DONE.add("react");botSay(`Noted: I'll avoid ${esc(slots.reactions.join(", "))}.`);return next()}
