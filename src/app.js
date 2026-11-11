@@ -1264,8 +1264,17 @@ function previewPlan(budget,shelf){
 function tuneHTML(){
   const own=new Set((P.shelf||[]).filter(x=>x.type).map(x=>x.type)),ownIds=(P.shelf||[]).filter(x=>x.id).map(x=>x.id);
   const prev=BUDGET_OPTS.map(([b])=>previewPlan(b,P.shelf||[]));
-  return`<details class="tune" ${TUNE_OPEN?"open":""}><summary><span class="tune-t">${SVG('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>')}Tune your plan</span>
-      <span class="tune-sum">Budget: <b>${P.budget?`up to ${rupee(P.budget)}`:"no limit"}</b> · Already using: <b>${(P.shelf||[]).length?(P.shelf||[]).length+" product"+((P.shelf||[]).length>1?"s":""):"nothing yet"}</b></span></summary>
+  const curK=BUDGET_OPTS.findIndex(([x])=>x===(P.budget??null)),cur=prev[curK]||prev[1];
+  const better=BUDGET_OPTS.map(([x,l],k)=>({x,l,p:prev[k]})).find(o=>o.p.covered>cur.covered&&(o.x===null||(P.budget&&o.x>P.budget)));
+  const nShelf=(P.shelf||[]).length;
+  const hint=better?`<b>${better.p.covered-cur.covered} more step${better.p.covered-cur.covered>1?"s":""}</b> can be filled at ${esc(better.l.toLowerCase())}. Tap to compare.`
+    :!nShelf?`Already own a cleanser or sunscreen? <b>Tell me and save money</b>; I'll build around it.`
+    :`Try another budget or update what you use. <b>Your plan rebuilds in one tap.</b>`;
+  return`<details class="tune" ${TUNE_OPEN?"open":""}><summary>
+      <span class="tune-ic">${SVG('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>')}</span>
+      <span class="tune-main"><span class="tune-t">Tune your plan</span><span class="tune-hint">${hint}</span>
+        <span class="tune-chips"><span class="tchip">${SVG('<path d="M7 5h10M7 9h10M9 5c4 0 4 8 0 8H7l7 6"/>')}Budget: <b>${P.budget?`up to ${rupee(P.budget)}`:"no limit"}</b></span><span class="tchip">${SVG('<path d="M5 8h14l-1.5 11h-11z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>')}Already using: <b>${nShelf?nShelf+" product"+(nShelf>1?"s":""):"nothing yet"}</b></span></span></span>
+      <span class="tune-cta"><span class="tc-open">Change</span><span class="tc-close">Close</span>${SVG('<path d="M6 9l6 6 6-6"/>')}</span></summary>
     <div class="tune-body">
       <fieldset class="tune-g"><legend>Budget per product</legend><div class="tune-budget">
         ${BUDGET_OPTS.map(([b,l],k)=>`<label class="tb"><input type="radio" name="tbud" value="${b===null?"none":b}" ${P.budget===b||(b===null&&!P.budget)?"checked":""}><span><b>${l}</b><small>${prev[k].covered<3?`${prev[k].covered} of 3 steps`:"All 3 steps"} · ${rupee(prev[k].total)} total${prev[k].kept?` · keeps ${prev[k].kept}`:""}</small></span></label>`).join("")}

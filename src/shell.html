@@ -597,8 +597,6 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
 .tune>summary::-webkit-details-marker{display:none}
 .tune-t{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--accent)}.tune-t svg{width:20px;height:20px}
 .tune-sum{font-size:13.5px;color:var(--muted)}.tune-sum b{color:var(--ink)}
-.tune>summary::after{content:"Change";font-size:13px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:99px;padding:5px 12px}
-.tune[open]>summary::after{content:"Close"}
 .tune-body{padding:0 18px 18px;display:grid;gap:16px}
 .tune-g{border:0;margin:0;padding:0;display:grid;gap:10px}
 .tune-g legend{font-weight:700;font-size:14px;margin-bottom:8px;padding:0}
@@ -830,6 +828,30 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
 .exbox .qactions{margin-top:6px;flex-wrap:wrap}
 @keyframes exfade{from{opacity:0}}@keyframes expop{from{opacity:0;transform:translateY(10px) scale(.98)}}
 @media (prefers-reduced-motion:reduce){.exitm,.exbox{animation:none}}
+
+/* ---- tune panel: a filled, clearly actionable bar ---- */
+.tune{border:0;overflow:hidden;box-shadow:0 18px 40px -22px color-mix(in srgb,var(--accent) 80%,transparent)}
+.tune>summary{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;padding:16px 18px;
+  background:linear-gradient(120deg,var(--accent) 0%,color-mix(in srgb,var(--accent) 72%,#e0538c) 100%);color:#fff;transition:filter .15s}
+.tune>summary:hover{filter:brightness(1.06)}
+.tune>summary:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 40%,#fff);outline-offset:2px}
+.tune-ic{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.18);color:#fff}.tune-ic svg{width:24px;height:24px}
+.tune-main{display:flex;flex-direction:column;gap:4px;min-width:0}
+.tune-t{font:700 17px/1.2 var(--body);color:#fff;display:block}
+.tune-t svg{display:none}
+.tune-hint{font-size:13.5px;line-height:1.4;color:rgba(255,255,255,.88)}.tune-hint b{color:#fff}
+.tune-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.tchip{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);border-radius:99px;padding:5px 11px}
+.tchip b{color:#fff}.tchip svg{width:14px;height:14px}
+.tune-cta{display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--accent);font-weight:700;font-size:14.5px;border-radius:99px;padding:10px 18px;box-shadow:0 6px 16px -6px rgba(0,0,0,.35);white-space:nowrap}
+.tune-cta svg{width:16px;height:16px;transition:transform .2s}.tune[open] .tune-cta svg{transform:rotate(180deg)}
+.tc-close{display:none}.tune[open] .tc-open{display:none}.tune[open] .tc-close{display:inline}
+.tune:not([open]) .tune-cta{animation:tunenudge 2.4s ease 1.2s 2}
+@keyframes tunenudge{0%,100%{transform:none}50%{transform:translateY(-2px);box-shadow:0 10px 22px -6px rgba(0,0,0,.4)}}
+.tune-body{padding-top:16px;background:var(--surface)}
+.tune[open]{border:1.5px solid var(--accent)}
+@media (max-width:560px){.tune>summary{grid-template-columns:auto minmax(0,1fr)}.tune-cta{grid-column:1/-1;justify-content:center}}
+@media (prefers-reduced-motion:reduce){.tune:not([open]) .tune-cta{animation:none}}
 </style>
 
 <div class="page">
