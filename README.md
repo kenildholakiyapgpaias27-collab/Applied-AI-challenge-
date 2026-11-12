@@ -131,6 +131,8 @@ Analytics never include a name, email, city, pregnancy status or reaction answer
 
 **Delete my answers** asks for confirmation, then erases this device's copy and, if signed in, every account row and the login itself (`delete_my_data()`). Typing "delete my data" in the chat now opens the same confirmation instead of deleting straight away, because ordinary questions such as "how do I remove tan… in this photo" also matched.
 
+**Live project:** `aaina-skin-advisor` (Supabase, Mumbai `ap-south-1`) is set up with this schema and the full catalogue (806 products, 597 shades, version `f1d460ebf65d`), and `data/supabase.json` points at it. To finish sign-in, set the site's public address under **Authentication → URL Configuration** (step 3 below) once it is hosted.
+
 ### Set it up (about 10 minutes)
 
 1. Create a project at [supabase.com](https://supabase.com) (the free tier is enough).

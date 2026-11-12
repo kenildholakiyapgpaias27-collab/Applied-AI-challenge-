@@ -110,7 +110,7 @@ create table if not exists public.reactions (
 
 -- keep updated_at honest
 create or replace function public.touch_updated_at() returns trigger
-language plpgsql as $$ begin new.updated_at := now(); return new; end $$;
+language plpgsql set search_path = '' as $$ begin new.updated_at := now(); return new; end $$;
 drop trigger if exists profiles_touch on public.profiles;
 create trigger profiles_touch before update on public.profiles for each row execute function public.touch_updated_at();
 drop trigger if exists plans_touch on public.plans;
