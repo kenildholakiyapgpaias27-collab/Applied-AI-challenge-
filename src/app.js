@@ -747,10 +747,11 @@ function renderPlan(){
   add("How's it going? Check in",()=>openCheckin());
   add("Check a product",()=>{$("askInput").focus();$("askInput").placeholder="Type a product name or code, e.g. P1025"});
   box.appendChild(nx);
+  const ac=accountCard();if(ac)box.insertBefore(ac,nx);
   box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));wireShare(box);wireUpgrades(box);wireTune(box);
   box.querySelectorAll(".relax").forEach(b=>b.onclick=()=>{const nb=b.dataset.nb==="none"?null:+b.dataset.nb;P.budget=nb;botSay(`Done${nm(", ")}. I've raised your budget to ${nb?`${rupee(nb)} per product`:"no limit"} and rebuilt your plan. Every product still passes all your other checks.`);buildPlan();saveState()});
   box.querySelectorAll(".newone").forEach(b=>b.onclick=()=>{const s=PL.slots[+b.dataset.i];const p=s.list.find(x=>!PL.ctx.used.has(x.id)&&!clash(x,PL.ctx));if(!p)return;s.keep=null;s.p=p;s.idx=s.list.indexOf(p);PL.ctx.used.add(p.id);renderPlan();saveState()});
-  newBlock("plan").appendChild(box);stepNow=null;renderSide();saveState();requestAnimationFrame(()=>box.scrollIntoView({block:"start",behavior:"smooth"}));
+  newBlock("plan").appendChild(box);stepNow=null;renderSide();saveState();afterPlanRendered();requestAnimationFrame(()=>box.scrollIntoView({block:"start",behavior:"smooth"}));
 }
 function shelfPlanNote(){
   const sh=PL.shelf||[];if(!sh.length)return"";
@@ -865,7 +866,8 @@ function goBack(){
   CUR_BLOCK=null;next();saveState();
 }
 if($("newBtn"))$("newBtn").onclick=()=>{if($("advisor").hidden){$("nameInput").focus();return}meSay("Start over");STEPS=[...DEFAULT_STEPS];P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;lockAll();botSay(NAME?`Fresh start, ${esc(NAME)}. Let's go again.`:"Fresh start. Let's go again.");next();return;botSay("Okay, starting fresh.");next()};
-$("deleteBtn").onclick=()=>{clearState();META={planAt:null,planProb:null,checks:[]};FOLLOW_IDX=null;P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;NAME=null;nameAsked=false;STEPS=[...DEFAULT_STEPS];lockAll();toggleSide(false);botSay("Done. I've deleted all your answers.");next()};
+function wipeLocal(msg){clearState();META={planAt:null,planProb:null,checks:[]};FOLLOW_IDX=null;P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;NAME=null;nameAsked=false;STEPS=[...DEFAULT_STEPS];LAST_PLAN=null;lockAll();toggleSide(false);botSay(msg||"Done. I've deleted all your answers.");next()}
+$("deleteBtn").onclick=()=>confirmDelete();
 
 /* =====================================================================
    3) SEASONS — what the season is in the user's city, and an opt-in nudge
@@ -1480,9 +1482,10 @@ let FOLLOW_IDX=null,RESTORE_IDS=null;
 let META={planAt:null,planProb:null,checks:[]};
 function store(){try{return window.localStorage}catch{return null}}
 function saveState(){
-  const ls=store();if(!ls)return;
-  try{ls.setItem(STORE_KEY,JSON.stringify({v:1,NAME,PROB,SUB,FOLLOW_IDX,P,DONE:[...DONE],STEPS,
-    planIds:PL&&!stepNow?PL.slots.map(s=>s.keep?"keep":s.p?.id||null):null,META,updated:Date.now()}))}catch{}
+  const st={v:1,NAME,PROB,SUB,FOLLOW_IDX,P,DONE:[...DONE],STEPS,
+    planIds:PL&&!stepNow?PL.slots.map(s=>s.keep?"keep":s.p?.id||null):null,META,updated:Date.now()};
+  const ls=store();if(ls)try{ls.setItem(STORE_KEY,JSON.stringify(st))}catch{}
+  syncToAccount(st);
 }
 function loadState(){const ls=store();if(!ls)return null;try{const d=JSON.parse(ls.getItem(STORE_KEY)||"null");return d&&d.v===1&&d.NAME!==undefined?d:null}catch{return null}}
 function clearState(){const ls=store();if(ls)try{ls.removeItem(STORE_KEY)}catch{}}
@@ -1625,6 +1628,7 @@ function applyCheckin(res,stage){
     else if(v==="notyet")notes.push(`<li><b>${esc(p.n)}</b>: start it when you're ready, one new product every few days.</li>`);
   }
   META.checks=[...(META.checks||[]),{stage,at:Date.now(),res:Object.fromEntries(Object.entries(res).map(([i,v])=>[PL.slots[+i].p?.id||i,v]))}];
+  checkinSaved(stage,META.checks[META.checks.length-1].res,avoidNew);
   const keepIds=PL.slots.map(s=>s.keep?"keep":s.p?.id||null);const beforeKeep=PL.slots.map(s=>s.keep);
   for(const sw of swapped)keepIds[sw.i]=null;
   RESTORE_IDS=keepIds;
@@ -1654,7 +1658,7 @@ function handleTyped(text){
   if(G.rx.test(t)){botSay("I can't advise on prescription treatments or medicines; a dermatologist can tell you if one is right for you. I can help with products from our range.","hold");return refocus()}
   if(G.fair.test(t)){botSay("I don't recommend products to change your skin tone; every tone deserves good skincare. If dark spots or tanning bother you, pick those as your concern and I'll build a plan.","hold");return refocus()}
   if(G.guarantee.test(t)&&!/\bP1\d{3}\b/.test(t)){botSay("I can't promise results; skin responds differently from person to person. I'll tell you what most people can expect and how long it usually takes.");return refocus()}
-  if(G.del.test(t)){$("deleteBtn").click();return}
+  if(G.del.test(t)){confirmDelete();return refocus()}   // always ask: "remove tan… photo" also matches
   const p=findProduct(t);if(p){productCheck(p);return refocus()}
   const slots=parseSlots(t);
   if(stepNow==="concerns"&&slots.concerns&&slots.concerns.length){const cs=uniq(slots.concerns.filter(x=>PROBLEMS[x])).slice(0,MAX_CONCERNS);if(cs.length){TYPED_CONCERNS=cs;botSay(`I've ticked <b>${esc(cs.map(k=>PROBLEMS[k].label.toLowerCase()).join(" and "))}</b>. Answer the quick follow-up inside ${cs.length>1?"each":"it"} and tap Continue.`);return ask("concerns")}}
@@ -1669,6 +1673,160 @@ function refocus(){const q=thread.querySelector(".q:not(.answered)");if(q){threa
 function findCity(t){const low=t.toLowerCase();for(const[st,s]of Object.entries(INDIA))for(const c of Object.keys(s.c))if(new RegExp("\\b"+c.toLowerCase().replace(/[()]/g,"")+"\\b").test(low))return{state:st,city:c,climate:s.c[c]||s.d};return null}
 $("askForm").addEventListener("submit",e=>{e.preventDefault();const v=$("askInput").value;$("askInput").value="";handleTyped(v.slice(0,400))});
 
+/* =====================================================================
+   ACCOUNT + DATABASE (src/db.js). All of this is skipped when no database
+   is configured: the app then runs exactly as before, on this device only.
+   ===================================================================== */
+let LAST_PLAN=null,ACCT_SENT=null;const SYNCED_REACTIONS=new Set();
+const SENSITIVE_RULES=/^(A\d|B3|B4)$/;   // pregnancy and reaction rules never go into analytics
+function syncToAccount(st){
+  if(!DB.enabled||!DB.user())return;
+  DB.pushState(st,NAME);syncReactions();
+}
+function syncReactions(){
+  if(!DB.consented())return;
+  const fresh=(P.reactions||[]).filter(r=>!SYNCED_REACTIONS.has(r));
+  if(fresh.length){fresh.forEach(r=>SYNCED_REACTIONS.add(r));DB.saveReactions(fresh,"profile")}
+}
+function savePlanToAccount(){
+  if(DB.consented()&&PL&&META.planAt)DB.savePlan({madeAt:META.planAt,concern:PROB,productIds:PL.slots.map(s=>s.keep?"keep":s.p?.id||"none"),extras:META.extraIds||[]});
+}
+function afterPlanRendered(){
+  if(!DB.enabled||!PL)return;
+  savePlanToAccount();
+  const ids=PL.slots.map(s=>s.keep?"keep":s.p?.id||null),key=META.planAt||0,shelf=(P.shelf||[]).length,budget=P.budget??null;
+  if(!LAST_PLAN||LAST_PLAN.key!==key){
+    const R=removedFor(uniq(PL.slots.flatMap(s=>s.slot.cats)));
+    const counts=Object.fromEntries(Object.entries(R.c).filter(([k])=>!SENSITIVE_RULES.test(k)));
+    DB.track("plan_shown",{concern:PROB,skin:P.skin||null,climate:P.climate||null,budget,products:ids,pool:R.n});
+    if(Object.keys(counts).length)DB.track("set_aside",{concern:PROB,counts});
+  }else if(ids.join()!==LAST_PLAN.ids.join()){
+    const tuned=budget!==LAST_PLAN.budget||shelf!==LAST_PLAN.shelf;
+    DB.track(tuned?"plan_tuned":"product_swapped",tuned?{concern:PROB,budget,products:ids}
+      :{concern:PROB,changes:PL.slots.map((s,i)=>({slot:s.slot.cats[0],from:LAST_PLAN.ids[i],to:ids[i]})).filter(c=>c.from!==c.to)});
+  }
+  LAST_PLAN={key,ids,budget,shelf};
+}
+function checkinSaved(stage,results,newReactions){
+  if(!DB.enabled)return;
+  DB.track("checkin_saved",{stage,results});
+  if(DB.consented()){
+    DB.saveCheckin({stage,results,planMadeAt:META.planAt});
+    if(newReactions?.length){newReactions.forEach(r=>SYNCED_REACTIONS.add(r));DB.saveReactions(newReactions,"checkin")}
+  }
+}
+const CONSENT_TEXT="I agree to Aaina storing my answers, plans and check-ins in my account, including pregnancy status and reactions if I've shared them. My selfie is never uploaded. I can delete everything at any time.";
+function accountCard(){
+  if(!DB.enabled)return null;
+  const u=DB.user(),box=document.createElement("div");box.className="acct";
+  if(u&&DB.consented()){
+    box.innerHTML=`<div class="acct-row"><span class="acct-ic">${SVG('<path d="M5 12l4 4 10-10"/>')}</span><div class="acct-tx"><b>Saved to your account</b><span>${esc(u.email||"")}. Your plan and check-ins are there on any device you sign in on.</span></div><button type="button" class="link small" data-out>Sign out</button></div>`;
+  }else if(!u&&ACCT_SENT){
+    box.innerHTML=`<div class="acct-row"><span class="acct-ic">${SVG('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>')}</span><div class="acct-tx"><b>Check your inbox</b><span>I've emailed a sign-in link to <b>${esc(ACCT_SENT)}</b>. Open it on this device and your plan will be saved to your account.</span></div><button type="button" class="link small" data-again>Use another email</button></div>`;
+  }else{
+    box.innerHTML=`<div class="acct-tx"><b>${u?"Save this plan to your account":"Keep your plan on any device"}</b><span>${u?`Signed in as ${esc(u.email||"")}.`:"I'll email you a sign-in link. No password."}</span></div>
+      ${u?"":`<input type="email" class="acct-email" placeholder="you@example.com" autocomplete="email" aria-label="Email address" maxlength="120">`}
+      <label class="agree"><input type="checkbox" data-consent> <span>${CONSENT_TEXT}</span></label>
+      <div class="acct-act"><button type="button" class="btn primary" data-go disabled>${u?"Save to my account":"Email me a sign-in link"}</button>${u?`<button type="button" class="link small" data-out>Sign out</button>`:""}</div>
+      <p class="acct-err" data-err role="alert" hidden></p>`;
+  }
+  const $$=s=>box.querySelector(s),err=m=>{const e=$$("[data-err]");if(e){e.hidden=!m;e.textContent=m||""}};
+  const em=$$(".acct-email"),cb=$$("[data-consent]"),go=$$("[data-go]");
+  const ready=()=>{if(go)go.disabled=!(cb?.checked&&(!em||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim())))};
+  cb?.addEventListener("change",ready);em?.addEventListener("input",()=>{err("");ready()});
+  em?.addEventListener("keydown",e=>{if(e.key==="Enter"&&go&&!go.disabled){e.preventDefault();go.click()}});
+  if(go)go.onclick=async()=>{
+    go.disabled=true;err("");DB.setPendingConsent(true);
+    if(u){go.textContent="Saving…";saveState();await DB.flush();
+      if(DB.consented()){savePlanToAccount();syncReactions();refreshAccountCards()}
+      else{err("I couldn't save to your account just now. Your plan is still safe on this device; please try again.");go.textContent="Save to my account";go.disabled=false}
+      return}
+    go.textContent="Sending…";saveState();const r=await DB.sendLink(em.value);
+    if(r.ok){ACCT_SENT=em.value.trim();refreshAccountCards()}
+    else{DB.setPendingConsent(false);err(r.error);go.textContent="Email me a sign-in link";ready()}
+  };
+  const out=$$("[data-out]");if(out)out.onclick=async()=>{out.disabled=true;await DB.flush();await DB.signOut();ACCT_SENT=null;
+    botSay("You're signed out. Your answers are still saved on this device; use <b>Delete my answers</b> at the bottom to remove them here too.");refreshAccountCards()};
+  const again=$$("[data-again]");if(again)again.onclick=()=>{ACCT_SENT=null;DB.setPendingConsent(false);refreshAccountCards()};
+  return box;
+}
+function refreshAccountCards(){
+  thread.querySelectorAll(".plan:not(.old) .acct").forEach(old=>{const n=accountCard();if(n)old.replaceWith(n);else old.remove()});
+  renderAcctLine();
+}
+function acctNotice(msg){
+  if(!$("advisor").hidden){botSay(msg);return}
+  const n=$("acctNote");if(n){n.hidden=false;n.innerHTML=msg}
+}
+// welcome page: who is signed in, or a way back in on a new device
+function renderAcctLine(){
+  const el=$("acctLine");if(!el)return;
+  if(!DB.enabled){el.hidden=true;return}
+  const u=DB.user();el.hidden=false;
+  if(u){el.innerHTML=`<span>Signed in as <b>${esc(u.email||"")}</b>${DB.consented()?"":" (nothing saved to your account yet)"}</span><button type="button" class="link small" data-wout>Sign out</button>`;
+    el.querySelector("[data-wout]").onclick=async()=>{await DB.flush();await DB.signOut();renderAcctLine()};return}
+  if(ACCT_SENT){el.innerHTML=`<span>Sign-in link sent to <b>${esc(ACCT_SENT)}</b>. Open it on this device.</span>`;return}
+  el.innerHTML=`<span>Saved a plan before?</span><button type="button" class="link small" data-win>Sign in with email</button>`;
+  el.querySelector("[data-win]").onclick=()=>{
+    el.innerHTML=`<input type="email" class="acct-email" placeholder="you@example.com" autocomplete="email" aria-label="Email address" maxlength="120"><button type="button" class="btn" data-wsend>Email me a link</button><span class="acct-err" data-werr role="alert" hidden></span>`;
+    const em=el.querySelector("input"),b=el.querySelector("[data-wsend]"),er=el.querySelector("[data-werr]");em.focus();
+    const send=async()=>{b.disabled=true;b.textContent="Sending…";const r=await DB.sendLink(em.value);   // signing in alone stores nothing new
+      if(r.ok){ACCT_SENT=em.value.trim();renderAcctLine()}else{er.hidden=false;er.textContent=r.error;b.disabled=false;b.textContent="Email me a link"}};
+    b.onclick=send;em.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();send()}});
+  };
+}
+function confirmDelete(){
+  const u=DB.enabled?DB.user():null,inChat=!$("advisor").hidden;
+  const m=document.createElement("div");m.className="exitm";m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");m.setAttribute("aria-labelledby","delT");
+  m.innerHTML=`<div class="exbox"><h3 id="delT">Delete your answers?</h3>
+    <p>${u?`This deletes everything on this device <b>and your Aaina account</b> (${esc(u.email||"")}): saved answers, plans, check-ins and reactions.`:"This deletes your answers, plan and check-ins from this device."} It can't be undone.</p>
+    <p class="acct-err" data-err role="alert" hidden></p>
+    <div class="qactions"><button type="button" class="btn danger" data-yes>${u?"Delete everything":"Delete my answers"}</button><button type="button" class="btn ghost" data-no>Keep them</button></div></div>`;
+  document.body.appendChild(m);
+  const close=()=>{m.remove();document.removeEventListener("keydown",onKey)};const onKey=e=>{if(e.key==="Escape")close()};document.addEventListener("keydown",onKey);
+  m.addEventListener("click",e=>{if(e.target===m)close()});
+  m.querySelector("[data-no]").onclick=()=>{close();if(inChat)botSay("No problem, I haven't deleted anything.")};
+  m.querySelector("[data-yes]").onclick=async e=>{
+    const b=e.currentTarget;b.disabled=true;
+    if(u){b.textContent="Deleting…";const r=await DB.deleteAll();
+      if(!r.ok){const er=m.querySelector("[data-err]");er.hidden=false;er.textContent=r.error;b.disabled=false;b.textContent="Try again";return}}
+    close();SYNCED_REACTIONS.clear();ACCT_SENT=null;DB.setPendingConsent(false);
+    wipeLocal(u?"Done. I've deleted your answers from this device and your Aaina account.":undefined);renderAcctLine();
+  };
+  m.querySelector("[data-no]").focus();
+}
+async function dbBoot(){
+  if(!DB.enabled)return;
+  DB.onChange(refreshAccountCards);
+  // a newer catalogue in the database replaces the bundled one, but only before
+  // anyone has started, so a plan never changes under someone's feet
+  const cat=DB.fetchCatalogue(CAT_VERSION).then(c=>{
+    if(c&&!$("welcome").hidden&&!PL&&replaceCatalogue(c.list))DB.track("catalogue_refreshed",{version:c.version,products:c.list.length});
+  }).catch(()=>{});
+  const r=await DB.init();
+  if(r.error)acctNotice(esc(r.error));
+  if(DB.user()){
+    const saved=loadState(),local=saved&&(saved.DONE||[]).length?saved:null;   // an untouched local state never beats a saved plan
+    const row=r.profile,idle=!$("welcome").hidden&&!PL;
+    if(row){
+      (row.state?.P?.reactions||[]).forEach(x=>SYNCED_REACTIONS.add(x));
+      const remote=row.state;
+      if(remote&&remote.v===1&&remote.NAME!==undefined&&(!local||(remote.updated||0)>(local.updated||0))){
+        if(idle){try{store()?.setItem(STORE_KEY,JSON.stringify(remote))}catch{}renderResume();if(r.signedIn)acctNotice(`Welcome back! Your saved plan is ready.`)}
+      }else if(local)DB.pushState(local,local.NAME);
+    }else if(DB.pendingConsent()){
+      // back from the sign-in email with consent already ticked: save what's on this device
+      DB.pushState(local||{v:1},local?.NAME);await DB.flush();
+      if(DB.consented()){
+        if(local?.META?.planAt&&local.planIds)DB.savePlan({madeAt:local.META.planAt,concern:local.PROB,productIds:local.planIds.map(x=>x||"none"),extras:local.META.extraIds||[]});
+        if(local?.P?.reactions?.length){local.P.reactions.forEach(x=>SYNCED_REACTIONS.add(x));DB.saveReactions(local.P.reactions,"profile")}
+        if(r.signedIn)acctNotice("You're signed in, and your plan is saved to your account.");
+      }
+    }else if(r.signedIn)acctNotice("You're signed in. To save your plan to your account, tick the consent box under your plan.");
+  }
+  renderAcctLine();refreshAccountCards();await cat;
+}
+
 /* ---------- welcome page wiring ---------- */
 $("nameInput").addEventListener("input",()=>{$("nameGo").disabled=!cleanName($("nameInput").value)});
 $("nameForm").addEventListener("submit",e=>{e.preventDefault();const n=cleanName($("nameInput").value);if(n)setName(n)});
@@ -1676,6 +1834,9 @@ document.querySelectorAll(".skipbtn").forEach(b=>b.addEventListener("click",()=>
 $("learnBtn").addEventListener("click",()=>{const l=$("learnMore");l.hidden=!l.hidden;$("learnBtn").setAttribute("aria-expanded",String(!l.hidden))});
 /* ---------- boot ---------- */
 $("advIcon").innerHTML=`<span class="brandmark"></span>`;
-window.addEventListener("pagehide",()=>{if(nameAsked)saveState()});
+window.addEventListener("pagehide",()=>{if(nameAsked)saveState();DB.flush()});
+dbBoot();
+// a sign-in link opened in this same tab only changes the #hash; reload so it's read on boot
+window.addEventListener("hashchange",()=>{if(DB.enabled&&/access_token=|error_description=/.test(location.hash)){if(nameAsked)saveState();location.reload()}});
 if(false)botSay(`<p>Hi, I'm Aaina's AI skin advisor. Tell me what's bothering your skin, and I'll recommend <b>three products that work together</b>, then explain exactly why I chose each one.</p><p class="small muted">About nine quick taps. I check every ingredient list against your answers and never suggest anything that clashes with them.</p>`);
 next();

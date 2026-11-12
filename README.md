@@ -78,9 +78,17 @@ aaina-skin-advisor/
 │   ├── climate.js      # typical monthly climate per state + climate type (fallback for live weather)
 │   ├── app.js          # journey, questions, selfie and filter check, plan and explanation
 │   ├── engine.js       # guardrail filter, scoring, face reader, input safety checks
+│   ├── db.js           # optional Supabase layer: catalogue, accounts, check-ins, analytics
 │   └── india.js        # states, cities and climates
-└── data/
-    └── catalogue.json  # 806-product demo catalogue
+├── data/
+│   ├── catalogue.json  # 806-product demo catalogue (bundled; also the database seed)
+│   └── supabase.json   # database URL + public anon key (empty = offline mode)
+├── supabase/
+│   ├── migrations/     # schema, row-level security, erasure function, report views
+│   ├── seed.sql        # generated catalogue upsert (tools/seed_catalogue.py)
+│   └── tests/          # RLS tests + end-to-end browser test against a mocked API
+└── tools/
+    └── seed_catalogue.py
 ```
 
 ## Run locally
@@ -108,9 +116,57 @@ python3 build.py
 2. Go to **Settings → Pages → Build and deployment**, and set **Source: Deploy from a branch**, **Branch: `main` / root**.
 3. Your advisor will be live at `https://<your-username>.github.io/<repo-name>/`.
 
+## Database (Supabase)
+
+The app works with no database at all: leave `data/supabase.json` empty and everything stays in the browser, as before. Connect a free [Supabase](https://supabase.com) project and it gains:
+
+| What | Stored when | Who can read it |
+|---|---|---|
+| **Catalogue** (`products`, `shades`) | Always; seeded from `data/catalogue.json` | Anyone (read-only). Pages load it only when the database version differs from the one they were built with, so a price or ingredient fix goes live without a rebuild. |
+| **Saved answers and plans** (`profiles`, `plans`) | Only after the user signs in by email link **and** ticks the consent box | The signed-in owner only (row-level security) |
+| **Check-ins and reactions** (`checkins`, `reactions`) | Same as above | The owner only |
+| **Anonymous analytics** (`events`) | Plans shown, swaps, tuning, set-aside counts, check-in outcomes | Nobody through the API; you query it in the dashboard |
+
+Analytics never include a name, email, city, pregnancy status or reaction answers, and the "set aside" counts drop the pregnancy and reaction rules (A2, B3, B4) because a count of those would reveal the answer. Events are sent with the public key, not the login, so they can't be linked to an account. Browsers with Do Not Track or Global Privacy Control send none. Selfies are never uploaded.
+
+**Delete my answers** asks for confirmation, then erases this device's copy and, if signed in, every account row and the login itself (`delete_my_data()`). Typing "delete my data" in the chat now opens the same confirmation instead of deleting straight away, because ordinary questions such as "how do I remove tan… in this photo" also matched.
+
+### Set it up (about 10 minutes)
+
+1. Create a project at [supabase.com](https://supabase.com) (the free tier is enough).
+2. In **SQL Editor**, run `supabase/migrations/20261112000000_init.sql`, then `supabase/seed.sql`. Or from a terminal: `psql "$DATABASE_URL" -f supabase/migrations/20261112000000_init.sql -f supabase/seed.sql`.
+3. In **Authentication → URL Configuration**, set **Site URL** to your GitHub Pages address (for example `https://<user>.github.io/<repo>/`) and add it, plus `http://localhost:8000/**` for testing, under **Redirect URLs**. Email sign-in is on by default.
+4. In **Project Settings → API**, copy the **Project URL** and the **anon public** key into `data/supabase.json`:
+   ```json
+   { "url": "https://abcdefgh.supabase.co", "anonKey": "eyJhbGciOi..." }
+   ```
+   The anon key is meant to be public; row-level security is what protects the data. Never put the `service_role` key here.
+5. Run `python3 build.py` (it prints `database ON`), commit and push.
+
+Supabase's built-in email sender is limited to a few emails an hour, which is fine for a demo. For real users, add your own SMTP under **Authentication → Emails**.
+
+**Updating the catalogue:** edit `data/catalogue.json`, run `python3 tools/seed_catalogue.py`, then run the new `supabase/seed.sql`. Live pages pick up the change on their next visit; rebuild when convenient so the bundled copy matches.
+
+**Reports:** `report_checkin_outcomes` (how each product is going for people) and `report_daily_events` are views for the SQL editor.
+
+### Tests
+
+```bash
+supabase/tests/run_db_tests.sh
+```
+
+Starts a throwaway local Postgres, loads the schema and seed, then runs:
+- **36 row-level security tests** (`rls_test.sql`), under Supabase's default grants. For example: one user can't read or change another's data, nothing is accepted before consent, analytics are write-only, and `TRUNCATE` is blocked. Supabase's defaults would otherwise allow `TRUNCATE`, and row-level security doesn't apply to it.
+- **34 end-to-end checks** (`e2e_test.py`): the real page in Chrome against the real schema, through a small mock of Supabase's API (`mock_supabase.py`). They cover:
+  - catalogue refresh, sign-in, consent, plan and check-in sync
+  - a second device, isolation from another user, and anonymous analytics
+  - deletion, offline fallback and no-config mode
+
+Needs PostgreSQL server binaries, `pip install psycopg playwright`, and Chrome.
+
 ## Privacy note
 
-The consent screen tells users their photo is stored for **18 months**. This demo does **not** store anything: photos are analysed in the browser and discarded. A production version must implement real storage, deletion on request, and consent records in line with India's Digital Personal Data Protection Act, 2023.
+The selfie consent screen tells users their photo is stored for **18 months**. This demo does **not** store photos: they are analysed in the browser and discarded, and the database layer never uploads them. Answers are stored in an account only with explicit consent (recorded with a version and timestamp) and can be erased in one step. A production version would still need a full review against India's Digital Personal Data Protection Act, 2023.
 
 ## Disclaimer
 
