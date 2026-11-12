@@ -52,6 +52,7 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
 - **Share and save:** the plan page has **Share on WhatsApp** (opens WhatsApp with a ready message, or the phone's share sheet), **Save as PDF** (a branded A4 plan generated in the browser with no libraries), and **Copy plan**. Shared text includes only the products and routine, never safety answers like pregnancy or reactions.
 - **Honest empty steps:** if nothing in the range is safe for a step, the card says how many products were checked, the top reasons they were ruled out, and what to do next, including a one-tap button to raise the budget when that would unlock safe options.
 - **The plan:** three products that work together, a total price, two clearly labelled sponsored suggestions with relevance reasons, and a detailed "Why I recommended these" section.
+- **Quick experience feedback:** at the end of the plan, a short, sweet 1-tap rating (Loved it, Helpful, Good, Just okay, Needs work) with contextual tags and an optional note lets users share how the advisor worked for them, saved to their session and account.
 
 ## Guardrails enforced in code
 

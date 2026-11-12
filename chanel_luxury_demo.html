@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    .font-couture { font-family: "Cormorant Garamond", Georgia, serif; }
+    .font-clean { font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif; }
+    .font-code { font-family: "IBM Plex Mono", monospace; }
+    
+    .chanel-card {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .chanel-card:hover {
+      transform: translateY(-3px);
+    }
+    
+    /* Elegant hairline dividers */
+    .hairline-b { border-bottom: 1px solid rgba(0, 0, 0, 0.08); }
+    .hairline-t { border-top: 1px solid rgba(0, 0, 0, 0.08); }
+  </style>
+</head>
+<body class="bg-transparent text-[#111111] antialiased p-3 sm:p-5 select-none font-clean">
+  
+  <!-- Main Chanel-Inspired Boutique Canvas -->
+  <div class="bg-[#fcfbfa] border border-[#ebe7e1] rounded-2xl shadow-sm max-w-4xl mx-auto overflow-hidden">
+    
+    <!-- Top Boutique Bar -->
+    <div class="px-6 py-4 hairline-b bg-[#ffffff] flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <span class="text-xs tracking-[0.25em] font-extrabold uppercase font-clean">AAINA</span>
+        <span class="text-[11px] text-[#736e68] tracking-widest uppercase font-clean border-l pl-3 hidden sm:inline">Diagnostic Sur-Mesure</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" id="tabRitual" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#111111] text-[#ffffff] transition cursor-pointer">
+          The Bespoke Ritual
+        </button>
+        <button type="button" id="tabDiagnostic" class="px-3.5 py-1.5 rounded-full text-xs font-medium text-[#736e68] hover:text-[#111111] transition cursor-pointer">
+          Diagnostic Experience
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 1: THE BESPOKE RITUAL (Chanel-Inspired Routine)     -->
+    <!-- ======================================================== -->
+    <div id="viewRitual" class="p-6 sm:p-10 space-y-10">
+      
+      <!-- Editorial Hero Header -->
+      <div class="text-center max-w-2xl mx-auto space-y-3">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f4efe8] text-[#8c5e28] text-[11px] tracking-widest uppercase font-bold">
+          <span>✦</span> Prescription № 14 · Shrey
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-couture font-normal tracking-tight text-[#111111] leading-tight">
+          L'Ordonnance de Soin
+        </h2>
+        <p class="text-xs sm:text-sm text-[#66625d] font-light leading-relaxed tracking-wide">
+          A bespoke three-gesture routine crafted for post-inflammatory clarity and lipid balance, calibrated for coastal warmth and Vijayawada humidity.
+        </p>
+
+        <!-- AM / PM Ritual Switcher (Vanity Tray Gesture) -->
+        <div class="inline-flex p-1 rounded-full bg-[#ebe7df] border border-[#ded8ce] mt-2">
+          <button type="button" id="btnAM" class="px-5 py-1.5 rounded-full text-xs font-bold bg-[#ffffff] text-[#111111] shadow-xs transition cursor-pointer">
+            ☀️ Morning Protocol
+          </button>
+          <button type="button" id="btnPM" class="px-5 py-1.5 rounded-full text-xs font-medium text-[#736e68] hover:text-[#111111] transition cursor-pointer">
+            🌙 Evening Protocol
+          </button>
+        </div>
+      </div>
+
+      <!-- The 3 Gestures (Photographic Editorial Style) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+        
+        <!-- Gesture 1 -->
+        <div class="chanel-card bg-[#ffffff] border border-[#ebe6df] rounded-2xl p-6 flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between text-[11px] text-[#8c5e28] font-bold tracking-[0.18em] uppercase font-clean">
+              <span>GESTE 01</span>
+              <span id="g1Timing" class="text-[#736e68] font-normal tracking-normal">At night</span>
+            </div>
+            
+            <!-- Product Aesthetic Image/Silhouette -->
+            <div class="h-36 rounded-xl bg-gradient-to-b from-[#f9f7f4] to-[#f2ece2] flex items-center justify-center relative overflow-hidden">
+              <div class="w-12 h-24 rounded-lg bg-gradient-to-b from-[#fbf8f5] to-[#d8cdbf] border border-[#c4b9aa] shadow-md flex items-center justify-center">
+                <span class="text-[9px] font-couture tracking-widest uppercase text-[#5a4f42] font-bold">01</span>
+              </div>
+              <span class="absolute bottom-2 left-3 text-[10px] uppercase tracking-wider font-semibold text-[#8c5e28] bg-[#ffffff] px-2 py-0.5 rounded-full border border-[#ded8ce]">
+                Water Serum
+              </span>
+            </div>
+
+            <div>
+              <div class="text-[11px] uppercase tracking-widest text-[#736e68] font-semibold">Minimalist</div>
+              <h3 class="text-lg font-couture font-bold text-[#111111] mt-0.5 leading-snug">Tranexamic 3% + Arbutin</h3>
+              <p class="text-xs text-[#736e68] mt-1">Dark spot & pigment correction</p>
+            </div>
+
+            <p class="text-xs text-[#66625d] font-light leading-relaxed hairline-t pt-3">
+              Applied directly to cleansed skin. Fades post-acne pigmentation and melanin clustering without UV phototoxicity.
+            </p>
+          </div>
+
+          <div class="hairline-t pt-4 flex items-center justify-between">
+            <span class="text-sm font-bold font-code text-[#111111]">₹649</span>
+            <button type="button" class="text-xs font-semibold tracking-wider uppercase text-[#8c5e28] hover:underline cursor-pointer">
+              Substitute
+            </button>
+          </div>
+        </div>
+
+        <!-- Gesture 2 -->
+        <div class="chanel-card bg-[#ffffff] border border-[#ebe6df] rounded-2xl p-6 flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between text-[11px] text-[#8c5e28] font-bold tracking-[0.18em] uppercase font-clean">
+              <span>GESTE 02</span>
+              <span id="g2Timing" class="text-[#736e68] font-normal tracking-normal">Morning & Night</span>
+            </div>
+            
+            <!-- Product Aesthetic Image/Silhouette -->
+            <div class="h-36 rounded-xl bg-gradient-to-b from-[#f9f7f4] to-[#f2ece2] flex items-center justify-center relative overflow-hidden">
+              <div class="w-16 h-20 rounded-xl bg-gradient-to-b from-[#fbf8f5] to-[#d8cdbf] border border-[#c4b9aa] shadow-md flex items-center justify-center">
+                <span class="text-[9px] font-couture tracking-widest uppercase text-[#5a4f42] font-bold">02</span>
+              </div>
+              <span class="absolute bottom-2 left-3 text-[10px] uppercase tracking-wider font-semibold text-[#8c5e28] bg-[#ffffff] px-2 py-0.5 rounded-full border border-[#ded8ce]">
+                Oil-Free Gel
+              </span>
+            </div>
+
+            <div>
+              <div class="text-[11px] uppercase tracking-widest text-[#736e68] font-semibold">Simple Skincare</div>
+              <h3 class="text-lg font-couture font-bold text-[#111111] mt-0.5 leading-snug">72h Gel Hydrate Quencher</h3>
+              <p class="text-xs text-[#736e68] mt-1">Lipid-free hydro replenishment</p>
+            </div>
+
+            <p class="text-xs text-[#66625d] font-light leading-relaxed hairline-t pt-3">
+              Imparts 72 hours of cellular hydration through hyaluronic molecules without clogging sebaceous glands in warm climates.
+            </p>
+          </div>
+
+          <div class="hairline-t pt-4 flex items-center justify-between">
+            <span class="text-sm font-bold font-code text-[#111111]">₹499</span>
+            <button type="button" class="text-xs font-semibold tracking-wider uppercase text-[#8c5e28] hover:underline cursor-pointer">
+              Substitute
+            </button>
+          </div>
+        </div>
+
+        <!-- Gesture 3 -->
+        <div class="chanel-card bg-[#ffffff] border border-[#ebe6df] rounded-2xl p-6 flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between text-[11px] text-[#8c5e28] font-bold tracking-[0.18em] uppercase font-clean">
+              <span>GESTE 03</span>
+              <span id="g3Timing" class="text-[#736e68] font-normal tracking-normal">Every Morning</span>
+            </div>
+            
+            <!-- Product Aesthetic Image/Silhouette -->
+            <div class="h-36 rounded-xl bg-gradient-to-b from-[#f9f7f4] to-[#f2ece2] flex items-center justify-center relative overflow-hidden">
+              <div class="w-11 h-24 rounded-lg bg-gradient-to-b from-[#fbf8f5] to-[#d8cdbf] border border-[#c4b9aa] shadow-md flex items-center justify-center">
+                <span class="text-[9px] font-couture tracking-widest uppercase text-[#5a4f42] font-bold">03</span>
+              </div>
+              <span class="absolute bottom-2 left-3 text-[10px] uppercase tracking-wider font-semibold text-[#8c5e28] bg-[#ffffff] px-2 py-0.5 rounded-full border border-[#ded8ce]">
+                SPF 50 PA++++
+              </span>
+            </div>
+
+            <div>
+              <div class="text-[11px] uppercase tracking-widest text-[#736e68] font-semibold">Re'equil</div>
+              <h3 class="text-lg font-couture font-bold text-[#111111] mt-0.5 leading-snug">Matte Fluid UV Shield</h3>
+              <p class="text-xs text-[#736e68] mt-1">Zero white-cast photo-defense</p>
+            </div>
+
+            <p class="text-xs text-[#66625d] font-light leading-relaxed hairline-t pt-3">
+              Velvet silicone finish that locks in moisture, deflects UVA/UVB rays, and prevents pigmentation from darkening under sunlight.
+            </p>
+          </div>
+
+          <div class="hairline-t pt-4 flex items-center justify-between">
+            <span class="text-sm font-bold font-code text-[#111111]">₹695</span>
+            <button type="button" class="text-xs font-semibold tracking-wider uppercase text-[#8c5e28] hover:underline cursor-pointer">
+              Substitute
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- The Complete Ritual Acquisition Bar (Chanel Boutique Style) -->
+      <div class="bg-[#ffffff] border border-[#ebe6df] rounded-2xl p-6 sm:p-8 flex flex-wrap items-center justify-between gap-6 shadow-xs">
+        <div class="space-y-1">
+          <div class="text-[11px] tracking-[0.2em] font-extrabold uppercase text-[#8c5e28]">Acquire The Full Ritual</div>
+          <h4 class="text-xl font-couture font-bold text-[#111111]">The Complete 3-Piece Treatment Set</h4>
+          <p class="text-xs text-[#736e68]">Includes complimentary luxury travel pouch & personalized application guide.</p>
+        </div>
+        <div class="flex items-center gap-5">
+          <div class="text-right">
+            <div class="text-2xl font-bold font-code text-[#111111]">₹1,843</div>
+            <span class="text-[11px] text-[#227244] font-semibold tracking-wider uppercase">Bespoke Delivery Included</span>
+          </div>
+          <button type="button" class="px-6 py-3.5 rounded-full bg-[#111111] text-[#ffffff] text-xs font-bold tracking-widest uppercase hover:bg-[#333333] transition cursor-pointer shadow-sm">
+            Reserve Routine
+          </button>
+        </div>
+      </div>
+
+      <!-- Private Consultation Feedback Card -->
+      <div class="bg-[#ffffff] border border-[#ebe6df] rounded-2xl p-6 sm:p-8 space-y-5">
+        <div class="flex items-center justify-between hairline-b pb-4">
+          <div>
+            <div class="text-[11px] tracking-[0.2em] font-extrabold uppercase text-[#8c5e28]">Consultation Record</div>
+            <h4 class="text-xl font-couture font-bold text-[#111111] mt-0.5">How resonant was this consultation?</h4>
+          </div>
+          <span class="text-[11px] text-[#736e68] tracking-widest uppercase font-clean">Refinement Archive</span>
+        </div>
+
+        <div id="fbInputView" class="space-y-4">
+          <!-- Tactile Luxury Sentiment Seals -->
+          <div class="flex flex-wrap gap-2.5">
+            <button type="button" class="chanel-fb px-4 py-2 rounded-full border border-[#ded8ce] text-xs font-bold hover:border-[#111111] transition cursor-pointer" data-val="5">
+              ✦ Exceptional
+            </button>
+            <button type="button" class="chanel-fb px-4 py-2 rounded-full border border-[#ded8ce] text-xs font-medium hover:border-[#111111] transition cursor-pointer" data-val="4">
+              ✦ Resonant
+            </button>
+            <button type="button" class="chanel-fb px-4 py-2 rounded-full border border-[#ded8ce] text-xs font-medium hover:border-[#111111] transition cursor-pointer" data-val="3">
+              · Suitable
+            </button>
+            <button type="button" class="chanel-fb px-4 py-2 rounded-full border border-[#ded8ce] text-xs font-medium hover:border-[#111111] transition cursor-pointer" data-val="2">
+              · Nuanced
+            </button>
+            <button type="button" class="chanel-fb px-4 py-2 rounded-full border border-[#ded8ce] text-xs font-medium hover:border-[#111111] transition cursor-pointer" data-val="1">
+              ○ Needs Tuning
+            </button>
+          </div>
+
+          <!-- Subtle Note Input -->
+          <div id="fbNoteWrap" class="hidden space-y-3 pt-3 hairline-t">
+            <div class="text-xs text-[#736e68]">What impressed you most, or what would you adjust?</div>
+            <div class="flex gap-2">
+              <input type="text" id="fbInputText" placeholder="Share a private note for your advisor..." 
+                class="flex-1 text-xs px-4 py-2.5 rounded-full border border-[#ded8ce] bg-[#faf8f5] focus:outline-none focus:border-[#111111]" />
+              <button type="button" id="fbSubmit" class="px-5 py-2.5 rounded-full bg-[#111111] text-[#ffffff] text-xs font-bold tracking-wider uppercase hover:bg-[#333333] transition cursor-pointer">
+                Submit Note
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submitted Feedback State -->
+        <div id="fbConfirmedView" class="hidden p-4 rounded-xl bg-[#f4efe8] flex items-center justify-between text-xs text-[#524a42]">
+          <div class="flex items-center gap-3">
+            <span class="text-lg">✦</span>
+            <div>
+              <div class="font-bold font-couture text-sm text-[#111111]">Your consultation notes have been archived.</div>
+              <p class="text-xs opacity-80">These parameters will shape all future formulations and seasonal updates.</p>
+            </div>
+          </div>
+          <button type="button" id="fbEdit" class="text-xs font-bold underline cursor-pointer text-[#8c5e28]">
+            Edit
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 2: THE DIAGNOSTIC (High-Fashion Consultation Step)   -->
+    <!-- ======================================================== -->
+    <div id="viewDiagnostic" class="hidden p-6 sm:p-10 space-y-8">
+      
+      <div class="max-w-xl space-y-2">
+        <span class="text-[11px] tracking-[0.2em] font-extrabold uppercase text-[#8c5e28]">Sensory Diagnosis · 01</span>
+        <h2 class="text-2xl sm:text-3xl font-couture font-normal tracking-tight text-[#111111]">
+          The Texture of Your Midday Skin
+        </h2>
+        <p class="text-xs sm:text-sm text-[#66625d] font-light leading-relaxed">
+          How does your skin interact with the atmosphere around noon? Select the sensory reflection that feels truest.
+        </p>
+      </div>
+
+      <!-- High-Fashion Sensory Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        
+        <div class="diag-card p-5 rounded-xl border border-[#ebe6df] bg-[#ffffff] hover:border-[#111111] cursor-pointer transition flex items-start gap-4" data-selected="false">
+          <span class="w-8 h-8 rounded-full border border-[#ded8ce] flex items-center justify-center font-couture font-bold text-sm flex-none">
+            I
+          </span>
+          <div class="space-y-1">
+            <h4 class="text-sm font-bold font-clean text-[#111111]">Luminous & Sebaceous</h4>
+            <p class="text-xs text-[#736e68] leading-relaxed">A visible dewy shine across the entire face within hours of morning cleansing.</p>
+          </div>
+        </div>
+
+        <div class="diag-card p-5 rounded-xl border border-[#111111] bg-[#f9f7f4] cursor-pointer transition flex items-start gap-4" data-selected="true">
+          <span class="w-8 h-8 rounded-full bg-[#111111] text-[#ffffff] flex items-center justify-center font-couture font-bold text-sm flex-none">
+            II
+          </span>
+          <div class="space-y-1">
+            <h4 class="text-sm font-bold font-clean text-[#111111]">Zonal Harmony (T-Zone Dew)</h4>
+            <p class="text-xs text-[#736e68] leading-relaxed">Warmth and shine along the forehead and bridge, while the cheeks remain supple or matte.</p>
+          </div>
+        </div>
+
+        <div class="diag-card p-5 rounded-xl border border-[#ebe6df] bg-[#ffffff] hover:border-[#111111] cursor-pointer transition flex items-start gap-4" data-selected="false">
+          <span class="w-8 h-8 rounded-full border border-[#ded8ce] flex items-center justify-center font-couture font-bold text-sm flex-none">
+            III
+          </span>
+          <div class="space-y-1">
+            <h4 class="text-sm font-bold font-clean text-[#111111]">Quiet Equilibrium</h4>
+            <p class="text-xs text-[#736e68] leading-relaxed">Neither dry nor oily. Maintains a calm, balanced barrier across climatic changes.</p>
+          </div>
+        </div>
+
+        <div class="diag-card p-5 rounded-xl border border-[#ebe6df] bg-[#ffffff] hover:border-[#111111] cursor-pointer transition flex items-start gap-4" data-selected="false">
+          <span class="w-8 h-8 rounded-full border border-[#ded8ce] flex items-center justify-center font-couture font-bold text-sm flex-none">
+            IV
+          </span>
+          <div class="space-y-1">
+            <h4 class="text-sm font-bold font-clean text-[#111111]">Delicate & Tight</h4>
+            <p class="text-xs text-[#736e68] leading-relaxed">Needs deep barrier nourishment; prone to moisture depletion in air-conditioned spaces.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="flex items-center justify-between hairline-t pt-6">
+        <button type="button" class="text-xs tracking-wider uppercase font-semibold text-[#736e68] hover:text-[#111111] cursor-pointer">
+          ← Return to Overview
+        </button>
+        <button type="button" id="diagProceed" class="px-7 py-3 rounded-full bg-[#111111] text-[#ffffff] text-xs font-bold tracking-widest uppercase hover:bg-[#333333] transition cursor-pointer">
+          Continue Ritual →
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // Tab Switching
+    const tabRitual = document.getElementById("tabRitual");
+    const tabDiagnostic = document.getElementById("tabDiagnostic");
+    const viewRitual = document.getElementById("viewRitual");
+    const viewDiagnostic = document.getElementById("viewDiagnostic");
+
+    tabRitual.addEventListener("click", () => {
+      viewRitual.classList.remove("hidden");
+      viewDiagnostic.classList.add("hidden");
+      tabRitual.classList.add("bg-[#111111]", "text-[#ffffff]", "font-bold");
+      tabRitual.classList.remove("text-[#736e68]");
+      tabDiagnostic.classList.remove("bg-[#111111]", "text-[#ffffff]", "font-bold");
+      tabDiagnostic.classList.add("text-[#736e68]");
+    });
+
+    tabDiagnostic.addEventListener("click", () => {
+      viewDiagnostic.classList.remove("hidden");
+      viewRitual.classList.add("hidden");
+      tabDiagnostic.classList.add("bg-[#111111]", "text-[#ffffff]", "font-bold");
+      tabDiagnostic.classList.remove("text-[#736e68]");
+      tabRitual.classList.remove("bg-[#111111]", "text-[#ffffff]", "font-bold");
+      tabRitual.classList.add("text-[#736e68]");
+    });
+
+    // AM / PM Protocol Switching
+    const btnAM = document.getElementById("btnAM");
+    const btnPM = document.getElementById("btnPM");
+    const g1Timing = document.getElementById("g1Timing");
+    const g2Timing = document.getElementById("g2Timing");
+    const g3Timing = document.getElementById("g3Timing");
+
+    btnAM.addEventListener("click", () => {
+      btnAM.classList.add("bg-[#ffffff]", "text-[#111111]", "font-bold", "shadow-xs");
+      btnAM.classList.remove("text-[#736e68]");
+      btnPM.classList.remove("bg-[#ffffff]", "text-[#111111]", "font-bold", "shadow-xs");
+      btnPM.classList.add("text-[#736e68]");
+
+      g1Timing.textContent = "Night focus (rest)";
+      g2Timing.textContent = "Morning step (apply)";
+      g3Timing.textContent = "Morning essential (UV defense)";
+    });
+
+    btnPM.addEventListener("click", () => {
+      btnPM.classList.add("bg-[#ffffff]", "text-[#111111]", "font-bold", "shadow-xs");
+      btnPM.classList.remove("text-[#736e68]");
+      btnAM.classList.remove("bg-[#ffffff]", "text-[#111111]", "font-bold", "shadow-xs");
+      btnAM.classList.add("text-[#736e68]");
+
+      g1Timing.textContent = "Night primary (active treat)";
+      g2Timing.textContent = "Night recovery (hydration seal)";
+      g3Timing.textContent = "Skip at night";
+    });
+
+    // Feedback Interactions
+    const fbButtons = document.querySelectorAll(".chanel-fb");
+    const fbNoteWrap = document.getElementById("fbNoteWrap");
+    const fbSubmit = document.getElementById("fbSubmit");
+    const fbEdit = document.getElementById("fbEdit");
+    const fbInputView = document.getElementById("fbInputView");
+    const fbConfirmedView = document.getElementById("fbConfirmedView");
+
+    fbButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        fbButtons.forEach(b => {
+          b.classList.remove("bg-[#111111]", "text-[#ffffff]", "font-bold");
+          b.classList.add("border-[#ded8ce]");
+        });
+        btn.classList.add("bg-[#111111]", "text-[#ffffff]", "font-bold");
+        btn.classList.remove("border-[#ded8ce]");
+        fbNoteWrap.classList.remove("hidden");
+      });
+    });
+
+    fbSubmit.addEventListener("click", () => {
+      fbInputView.classList.add("hidden");
+      fbConfirmedView.classList.remove("hidden");
+    });
+
+    fbEdit.addEventListener("click", () => {
+      fbConfirmedView.classList.add("hidden");
+      fbInputView.classList.remove("hidden");
+    });
+
+    // Diagnostic Choice Interactions
+    const diagCards = document.querySelectorAll(".diag-card");
+    diagCards.forEach(card => {
+      card.addEventListener("click", () => {
+        diagCards.forEach(c => {
+          c.classList.remove("border-[#111111]", "bg-[#f9f7f4]");
+          c.classList.add("border-[#ebe6df]", "bg-[#ffffff]");
+          const badge = c.querySelector("span");
+          if (badge) {
+            badge.classList.remove("bg-[#111111]", "text-[#ffffff]");
+            badge.classList.add("border-[#ded8ce]");
+          }
+        });
+        card.classList.add("border-[#111111]", "bg-[#f9f7f4]");
+        card.classList.remove("border-[#ebe6df]", "bg-[#ffffff]");
+        const activeBadge = card.querySelector("span");
+        if (activeBadge) {
+          activeBadge.classList.add("bg-[#111111]", "text-[#ffffff]");
+          activeBadge.classList.remove("border-[#ded8ce]");
+        }
+      });
+    });
+
+    document.getElementById("diagProceed").addEventListener("click", () => {
+      tabRitual.click();
+    });
+  </script>
+</body>
+</html>

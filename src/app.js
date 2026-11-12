@@ -367,8 +367,9 @@ let EXIT_TRAP=false;
 function armExitTrap(){if(EXIT_TRAP)return;try{history.pushState({aaina:1},"");EXIT_TRAP=true}catch{}}
 window.addEventListener("popstate",()=>{if(!EXIT_TRAP)return;EXIT_TRAP=false;if(maybeExit())armExitTrap()});
 function showWelcome(){
-  const d=dayPart();$("greetText").textContent=d.hello;$("greetIc").innerHTML=d.ic;$("greetSub").textContent=d.line;
+  const d=dayPart();$("greetText").textContent=d.hello;$("greetIc").innerHTML=d.ic;$("greetSub").textContent="Bespoke Skin & Complexion Consultation";
   $("welcome").hidden=false;$("advisor").hidden=true;renderResume();$("nameInput").value=NAME||"";$("nameGo").disabled=!cleanName(NAME||"");
+  renderSide();updateTitle();$("backBtn").disabled=true;
   requestAnimationFrame(()=>$("nameInput").focus({preventScroll:true}));
 }
 function askName(){showWelcome()}
@@ -384,10 +385,10 @@ function setName(n,startKey){
 }
 function updateTitle(){
   const who=NAME?NAME+"'s":"Your";
-  $("advTitle").textContent=P.goal==="sunscreen"?`${who} sunscreen match`:P.goal==="makeup"?`${who} base makeup shades`:PROB?`${who} plan for ${PROBLEMS[PROB].label.toLowerCase()}`:NAME?`Hi ${NAME}, let's find what suits you`:"Products picked for your skin";
+  $("advTitle").textContent=P.goal==="sunscreen"?`${who} sunscreen match`:P.goal==="makeup"?`${who} base makeup shades`:PROB?`${who} plan for ${PROBLEMS[PROB].label.toLowerCase()}`:NAME?`Hi ${NAME}, let's find what suits you`:"Aaina Skin Diagnostic";
 }
 /* ---------- thread helpers ---------- */
-function avatar(){return`<div class="av brandav" aria-hidden="true"><span class="brandmark"></span></div>`}
+function avatar(){return`<div class="av brandav" aria-hidden="true"><span class="brand-monogram">A</span></div>`}
 let CUR_BLOCK=null;const host=()=>CUR_BLOCK&&CUR_BLOCK.isConnected?CUR_BLOCK:thread;
 const fmt=t=>esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
 function newBlock(step){
@@ -403,8 +404,8 @@ function botSay(html,kind=""){const r=document.createElement("div");r.className=
 function meSay(text){const r=document.createElement("div");r.className="row me";const s=document.createElement("div");s.className="say";s.textContent=text;r.appendChild(s);host().appendChild(r)}
 function focusEl(el){requestAnimationFrame(()=>el.scrollIntoView({block:"nearest",behavior:"smooth"}))}
 function lockAll(){thread.querySelectorAll(".q:not(.answered)").forEach(q=>{q.classList.add("answered");q.querySelectorAll("button,select,input").forEach(x=>{if(!x.classList.contains("backcta"))x.disabled=true})})}
-function progress(){const d=STEPS.filter(k=>DONE.has(k)).length,left=STEPS.length-d;$("bar").style.width=(100*d/STEPS.length)+"%";$("backBtn").disabled=false;
-  $("eta").textContent=!nameAsked?"About 2 minutes":left===0?"Your plan is ready":left===1?"Last step":left<=3?"Almost there":`About ${Math.max(1,Math.round(left*10/60))} minute${Math.round(left*10/60)>1?"s":""} left`}
+function progress(){const d=STEPS.filter(k=>DONE.has(k)).length,left=STEPS.length-d;$("bar").style.width=(100*d/STEPS.length)+"%";$("backBtn").disabled=!nameAsked;
+  $("eta").textContent=!nameAsked?"Consultation":left===0?"Your plan is ready":left===1?"Last step":left<=3?"Almost there":`Question ${d+1} of ${STEPS.length}`}
 
 function next(){
   if(!nameAsked){progress();askName();return}
@@ -671,6 +672,63 @@ function baseShadesHTML(){
   if(!out.some(x=>x.best))return"";
   return`<div class="baseshades"><h4>Your shade in base makeup</h4><p class="small muted">Matched to skin tone ${P.tone} (${esc(TONE_NAME[P.tone])})${P.toneRead&&P.toneRead.lab&&P.toneRead.tone===P.tone?" using the colour measured from your selfie":""}. Not part of your three-step routine.</p>
     <ul>${out.map(({cat,best})=>best?`<li><span class="bsw" style="background:${best.m.hex}"></span><div><b>${esc(best.m.name)}</b><small>${esc(best.p.n)} · ${esc(cat)} · ${rupee(best.p.p)}</small></div></li>`:`<li class="none"><span class="bsw"></span><div><b>No close shade in this range</b><small>${esc(cat)} · I'd rather tell you than suggest the wrong one</small></div></li>`).join("")}</ul></div>`}
+
+/* ---------- user experience feedback ---------- */
+const FB_RATINGS=[
+  {val:5,label:"✦ Exceptional",emoji:"✦"},
+  {val:4,label:"✦ Resonant",emoji:"✦"},
+  {val:3,label:"· Suitable",emoji:"·"},
+  {val:2,label:"· Nuanced",emoji:"·"},
+  {val:1,label:"○ Needs Tuning",emoji:"○"}
+];
+const FB_TAGS_POS=["Harmonious active picks","Flawless climate fit","Understated formulations","Rigorous safety criteria","Pristine price balance"];
+const FB_TAGS_NEG=["Formulas feel too costly","Desire niche houses","Diagnostic felt lengthy","Ingredient uncertainty","Shade harmony discrepancy"];
+
+function feedbackHTML(){
+  const fb=META?.feedback;
+  return `<section class="pfeedback" id="planFeedback" aria-label="Consultation Record">
+    ${fb?feedbackDoneHTML(fb):feedbackFormHTML()}
+  </section>`;
+}
+
+function feedbackDoneHTML(fb){
+  const tagStr=fb.tags&&fb.tags.length?` · ${esc(fb.tags.join(", "))}`:"";
+  const noteStr=fb.note?`<div class="fb-done-note">“${esc(fb.note)}”</div>`:"";
+  return `<div class="pfeedback-done">
+    <span class="fb-done-ic" aria-hidden="true">✦</span>
+    <div class="fb-done-tx">
+      <b>Your consultation notes have been archived${nm(", ")}.</b>
+      <span>You recorded this routine as <strong>${esc(fb.label||"")}</strong>${tagStr}. These parameters shape all future formulations and recommendations.</span>
+      ${noteStr}
+    </div>
+    <button type="button" class="btn ghost small" data-fb-edit>Edit</button>
+  </div>`;
+}
+
+function feedbackFormHTML(prefill=null){
+  const curVal=prefill?.rating||null;
+  const tags=curVal!=null?(curVal>=4?FB_TAGS_POS:FB_TAGS_NEG):[];
+  const curTags=new Set(prefill?.tags||[]);
+  return `<div class="pfeedback-head">
+    <div class="eyebrow">Consultation Record</div>
+    <h4>How resonant was this consultation${nm(", ")}?</h4>
+    <p class="lead-sm">Your feedback refines our algorithmic diagnostic accuracy and treatment recommendations.</p>
+  </div>
+  <div class="pfeedback-ratings" role="group" aria-label="Rate your consultation">
+    ${FB_RATINGS.map(r=>`<button type="button" class="fb-rate" data-val="${r.val}" data-lbl="${esc(r.label)}" data-emo="${r.emoji}" aria-pressed="${curVal===r.val?"true":"false"}"><span>${esc(r.label)}</span></button>`).join("")}
+  </div>
+  <div class="pfeedback-more" ${curVal!=null?"":"hidden"}>
+    <div class="pfeedback-tags-lbl">What stood out most? (tap any)</div>
+    <div class="pfeedback-tags">
+      ${tags.map(t=>`<button type="button" class="fb-tag" data-tag="${esc(t)}" aria-pressed="${curTags.has(t)?"true":"false"}">${esc(t)}</button>`).join("")}
+    </div>
+    <input type="text" class="fb-note" maxlength="200" placeholder="Share a private note for your advisor..." value="${esc(prefill?.note||"")}" aria-label="Optional feedback note">
+    <div class="pfeedback-act">
+      <button type="button" class="btn primary small" data-fb-submit ${curVal!=null?"":"disabled"}>Submit Note</button>
+      ${prefill?`<button type="button" class="btn ghost small" data-fb-cancel>Cancel</button>`:""}
+    </div>
+  </div>`;
+}
 /* ---------- building the plan ---------- */
 const NUMW=["no","one","two","three","four","five"],numw=n=>NUMW[n]||String(n);
 // undertone "not sure" matches neutral shades, which suit the widest range
@@ -756,18 +814,56 @@ function emptyCardHTML(i,s){
 }
 function cardHTML(i,s){
   const p=s.p,role=s.slot.role;
-  if(s.keep)return`<article class="pcard keep"><div class="phead"><span class="stepn">${i+1}</span><div class="role">${esc(role)} <span class="when">· ${esc(s.slot.when)}</span></div><span class="ownbadge">Already yours</span></div>
-    <div class="ptop"><div class="thumb">${IC[CAT_IC[s.keep.cat]||"dropper"]}</div><div style="min-width:0"><div class="brand">Keep using</div><div class="nm">${esc(s.keep.p?s.keep.p.n:cap(s.keep.name.replace(/^your /,"Your ")))}</div><div class="cat">${esc(s.keep.cat)}</div></div></div>
-    <p class="why1">${s.keep.p?"It's already on your shelf and it passes all your checks":"You already have this step covered"}, so there's <b>no need to buy another</b>.${s.list[0]?` That saves you about <b>${rupee(s.list[0].p)}</b>.`:""}</p>
-    ${upgradeHTML(i)}<div class="pfoot"><span class="small muted">From your routine</span>${s.list.length&&!upgradeFor(i)?`<button type="button" class="btn ghost newone" data-i="${i}">Suggest a new one</button>`:""}</div></article>`;
+  if(s.keep)return`<article class="pcard keep">
+    <div class="pcard-header">
+      <span>GESTE 0${i+1}</span>
+      <span class="when" data-timing-idx="${i}">Preserved · ${esc(s.slot.when)}</span>
+    </div>
+    <div class="pcard-silhouette">
+      <div class="pcard-bottle ${i===1?'jar':i===2?'tube':''}">
+        <span class="pcard-bottle-n">0${i+1}</span>
+      </div>
+      <span class="pcard-pill">Already Yours</span>
+    </div>
+    <div>
+      <span class="brand">Keep using</span>
+      <h3 class="nm">${esc(s.keep.p?s.keep.p.n:cap(s.keep.name.replace(/^your /,"Your ")))}</h3>
+      <div class="cat">${esc(s.keep.cat)}</div>
+    </div>
+    <p class="why1">${s.keep.p?"It's already on your shelf and it passes all your checks":"You already have this step covered"}, so there's <b>no need to buy another</b>.${s.list[0]?` Saves you about <b>${rupee(s.list[0].p)}</b>.`:""}</p>
+    ${upgradeHTML(i)}
+    <div class="pfoot">
+      <span class="price">From routine</span>
+      ${s.list.length&&!upgradeFor(i)?`<button type="button" class="newone" data-i="${i}">Suggest new one</button>`:""}
+    </div>
+  </article>`;
   if(!p)return emptyCardHTML(i,s);
   const act=actives(p);
+  const bottleClass=p.c==="Moisturizer"||p.c==="Night Cream"||p.c==="Mask"?"jar":(p.c==="Sunscreen"||p.c==="Cleanser"?"tube":"");
+  const pillText=p.spf?`SPF ${p.spf}${p.pa?" "+esc(p.pa):""}`:esc(p.c);
   return`<article class="pcard">
-    <div class="phead"><span class="stepn">${i+1}</span><div class="role">${esc(role)} <span class="when">· ${esc(s.slot.when)}</span></div><div class="price">${rupee(p.p)}</div></div>
-    <div class="ptop"><div class="thumb">${IC[CAT_IC[p.c]||"dropper"]}</div><div style="min-width:0"><div class="brand">${esc(p.b)}</div><div class="nm">${esc(p.n.replace(p.b+" ",""))}</div><div class="cat">${esc(p.c)}</div></div></div>
+    <div class="pcard-header">
+      <span>GESTE 0${i+1}</span>
+      <span class="when" data-timing-idx="${i}">${esc(s.slot.when)}</span>
+    </div>
+    <div class="pcard-silhouette">
+      <div class="pcard-bottle ${bottleClass}">
+        <span class="pcard-bottle-n">0${i+1}</span>
+      </div>
+      <span class="pcard-pill">${pillText}</span>
+    </div>
+    <div>
+      <span class="brand">${esc(p.b)}</span>
+      <h3 class="nm">${esc(p.n.replace(p.b+" ",""))}</h3>
+      <div class="cat">${esc(p.c)}</div>
+    </div>
     ${act.length?`<div class="keyact">${act.map(a=>`<span>${esc(a.name)}</span>`).join("")}${p.spf?`<span>SPF ${p.spf}${p.pa?" "+esc(p.pa):""}</span>`:""}</div>`:p.spf?`<div class="keyact"><span>SPF ${p.spf}${p.pa?" "+esc(p.pa):""}</span></div>`:""}
-    ${s.slot.shade?shadeLineHTML(p):""}<p class="why1">${lineHTML(p,s.slot)}</p>
-    <div class="pfoot"><span class="small muted">${esc(p.sz||"")} · check availability</span>${s.list.length>1?`<button type="button" class="btn ghost swap" data-i="${i}">Show another</button>`:""}</div>
+    ${s.slot.shade?shadeLineHTML(p):""}
+    <p class="why1">${lineHTML(p,s.slot)}</p>
+    <div class="pfoot">
+      <span class="price">${rupee(p.p)}</span>
+      ${s.list.length>1?`<button type="button" class="swap" data-i="${i}">Substitute</button>`:""}
+    </div>
   </article>`;
 }
 function shadeLineHTML(p){const m=shadeFor(p);if(!m)return"";
@@ -807,12 +903,34 @@ function renderPlan(){
   const exN=(PL.extras||[]).length;const total=PL.slots.reduce((t,s)=>t+(s.p?.p||0),0)+(PL.extras||[]).reduce((t,x)=>t+(x.p.p||0),0);const keptN=PL.slots.filter(s=>s.keep).length;const newN=PL.slots.filter(s=>s.p).length+exN;
   const prob=PROBLEMS[PROB];
   const applied=[P.avoidFrag&&"Fragrance-free",P.avoidEO&&"No essential oils",P.noClog&&"Won't clog pores",P.reactions.length&&"No "+P.reactions.join(", "),P.pregnancy!==false&&"Pregnancy-safe",P.skin&&cap(P.skin)+" skin",P.city&&(P.weather?`${P.city} weather, last 7 days`:`${P.city} climate`),P.budget&&`Each under ${rupee(P.budget)}`].filter(Boolean);
-  let h=`<div class="phero"><div class="eyebrow">${NAME?`${esc(NAME)}, your plan is ready`:"Your plan is ready"}</div><h3>${planHeading(prob)}</h3><p class="lead">${SUB?`Made for what you described: ${esc(SUB.toLowerCase())}. `:""}${PL.slots.length===1?"Checked against every answer you gave me, with alternatives one tap away.":P.goal==="makeup"?"Each shade is matched to your skin tone and undertone, and every formula passed your safety checks.":"Each product has one clear job, and together they take just a few minutes a day."}</p>
-    <div class="applied">${applied.map(x=>`<span class="chip ok">✓ ${esc(x)}</span>`).join("")}</div></div>
-    ${tuneHTML()}
-    <div class="pcards">${PL.slots.map((s,i)=>cardHTML(i,s)).join("")}</div>
-    ${extrasHTML()}
-    <div class="total"><span>${!keptN&&!exN?(PL.slots.length===1?"Price":`Total for all ${numw(PL.slots.length)}`):newN===0?"Nothing new to buy":`Total for ${newN===1?"the new product":`the ${newN} new products`}`}${keptN?`<small>${keptN===PL.slots.length?"You already have all three steps covered":`You're keeping ${keptN} from your routine`}${keptN&&!exN?". See the upgrade picks and combos below.":""}</small>`:""}</span><b>${rupee(total)}</b></div>${combosHTML()}${shareBarHTML()}${shelfPlanNote()}`;
+  let h=`<div class="phero">
+    <div class="eyebrow">✦ Prescription № ${PL.slots.length} · ${NAME?esc(NAME):"Personalized"}</div>
+    <h3>L'Ordonnance de Soin</h3>
+    <p class="lead">${SUB?`Calibrated for ${esc(SUB.toLowerCase())}. `:""}${PL.slots.length===1?"Checked against every diagnostic parameter, with bespoke alternatives one tap away.":P.goal==="makeup"?"Each shade is matched to your skin tone and undertone, and every formula passed your safety checks.":"A bespoke three-gesture routine crafted for post-inflammatory clarity and lipid balance, calibrated for coastal warmth and climate."}</p>
+    <div class="vanity-tray" role="tablist" aria-label="Protocol timing">
+      <button type="button" class="vanity-btn active" data-vanity="am">☀️ Morning Protocol</button>
+      <button type="button" class="vanity-btn" data-vanity="pm">🌙 Evening Protocol</button>
+    </div>
+    <div class="applied">${applied.map(x=>`<span class="chip ok">✓ ${esc(x)}</span>`).join("")}</div>
+  </div>
+  ${tuneHTML()}
+  <div class="pcards">${PL.slots.map((s,i)=>cardHTML(i,s)).join("")}</div>
+  <div class="acq-bar">
+    <div class="acq-left">
+      <div class="eyebrow">Acquire The Full Ritual</div>
+      <h4>The Complete Treatment Set</h4>
+      <p>Includes bespoke application guidance and ongoing seasonal formula calibration.</p>
+    </div>
+    <div class="acq-right">
+      <div style="text-align:right">
+        <div class="acq-price">${rupee(total)}</div>
+        <span class="acq-badge">Bespoke Delivery Included</span>
+      </div>
+      <button type="button" class="acq-btn" data-acq-btn>Reserve Routine</button>
+    </div>
+  </div>
+  ${extrasHTML()}
+  <div class="total"><span>${!keptN&&!exN?(PL.slots.length===1?"Price":`Total for all ${numw(PL.slots.length)}`):newN===0?"Nothing new to buy":`Total for ${newN===1?"the new product":`the ${newN} new products`}`}${keptN?`<small>${keptN===PL.slots.length?"You already have all three steps covered":`You're keeping ${keptN} from your routine`}${keptN&&!exN?". See the upgrade picks and combos below.":""}</small>`:""}</span><b>${rupee(total)}</b></div>${combosHTML()}${shareBarHTML()}${shelfPlanNote()}`;
   // sponsored alternative (same checks, labelled, separate)
   const sp=CAT.filter(p=>p.sp&&PL.slots.some(s=>s.slot.cats.includes(p.c))&&check(p).ok&&!PL.ctx.used.has(p.id)&&!clash(p,PL.ctx))
     .map(p=>({p,s:slotScore(p,PL.slots.find(s=>s.slot.cats.includes(p.c)).slot)})).sort((a,b)=>b.s-a.s);
@@ -822,6 +940,7 @@ function renderPlan(){
   h+=explainHTML();
   h+=baseShadesHTML();
   h+=`<div class="sendoff"><span class="tagline-end">Reflect · Reveal · Radiate</span><h4>You've got this${nm(", ")}</h4><p>Start with one product at a time, a few days apart, so you know how your skin feels with each. Give the plan ${PROB==="dehydration"||PROB==="dullness"?"two to four":"six to eight"} weeks before judging it, and take a quick photo in the same light every couple of weeks. Small changes are easy to miss day to day.</p></div>`;
+  h+=feedbackHTML();
   box.innerHTML=h;
   const nx=document.createElement("div");nx.className="next";
   const add=(label,fn,primary)=>{const b=document.createElement("button");b.type="button";b.className="btn"+(primary?" primary":"");b.textContent=label;b.onclick=fn;nx.appendChild(b)};
@@ -831,7 +950,29 @@ function renderPlan(){
   add("Check a product",()=>{$("askInput").focus();$("askInput").placeholder="Type a product name or code, e.g. P1025"});
   box.appendChild(nx);
   const ac=accountCard();if(ac)box.insertBefore(ac,nx);
-  box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));wireShare(box);wireUpgrades(box);wireTune(box);
+  box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));wireShare(box);wireUpgrades(box);wireTune(box);wireFeedback(box);
+  const acqBtn=box.querySelector("[data-acq-btn]");if(acqBtn)acqBtn.onclick=()=>openCheckin();
+  const vAM=box.querySelector('[data-vanity="am"]');
+  const vPM=box.querySelector('[data-vanity="pm"]');
+  if(vAM&&vPM){
+    vAM.onclick=()=>{
+      vAM.classList.add("active");vPM.classList.remove("active");
+      box.querySelectorAll("[data-timing-idx]").forEach(el=>{
+        const idx=+el.dataset.timingIdx;const slot=PL.slots[idx];if(!slot)return;
+        if(slot.p?.c==="Sunscreen"||slot.slot.when==="Morning"||slot.slot.when==="Morning & night")el.textContent="Morning essential (apply)";
+        else el.textContent="Night focus (rest)";
+      });
+    };
+    vPM.onclick=()=>{
+      vPM.classList.add("active");vAM.classList.remove("active");
+      box.querySelectorAll("[data-timing-idx]").forEach(el=>{
+        const idx=+el.dataset.timingIdx;const slot=PL.slots[idx];if(!slot)return;
+        if(slot.p?.c==="Sunscreen"||slot.slot.when==="Morning")el.textContent="Skip at night";
+        else if(slot.slot.when==="Night"||slot.slot.role==="Treat")el.textContent="Night primary (active treat)";
+        else el.textContent="Night recovery (hydration seal)";
+      });
+    };
+  }
   box.querySelectorAll(".relax").forEach(b=>b.onclick=()=>{const nb=b.dataset.nb==="none"?null:+b.dataset.nb;P.budget=nb;botSay(`Done${nm(", ")}. I've raised your budget to ${nb?`${rupee(nb)} per product`:"no limit"} and rebuilt your plan. Every product still passes all your other checks.`);buildPlan();saveState()});
   box.querySelectorAll(".newone").forEach(b=>b.onclick=()=>{const s=PL.slots[+b.dataset.i];const p=s.list.find(x=>!PL.ctx.used.has(x.id)&&!clash(x,PL.ctx));if(!p)return;s.keep=null;s.p=p;s.idx=s.list.indexOf(p);PL.ctx.used.add(p.id);renderPlan();saveState()});
   newBlock("plan").appendChild(box);stepNow=null;renderSide();saveState();afterPlanRendered();requestAnimationFrame(()=>box.scrollIntoView({block:"start",behavior:"smooth"}));
@@ -1457,6 +1598,92 @@ function shareBarHTML(){
     <span class="sharemsg" data-sharemsg role="status"></span>
     <p class="sharenote">Sharing includes only your products and routine, not your safety answers.</p></div>`;
 }
+function wireFeedback(box){
+  const wrap=box.querySelector("#planFeedback");if(!wrap)return;
+
+  function bindForm(prefill=null){
+    let activeVal=prefill?.rating||null;
+    let activeLbl=prefill?.label||null;
+    let activeEmo=prefill?.emoji||null;
+
+    wrap.querySelectorAll(".fb-rate").forEach(btn=>{
+      btn.onclick=()=>{
+        activeVal=+btn.dataset.val;
+        activeLbl=btn.dataset.lbl;
+        activeEmo=btn.dataset.emo;
+        wrap.querySelectorAll(".fb-rate").forEach(b=>b.setAttribute("aria-pressed",b===btn?"true":"false"));
+
+        const tags=activeVal>=4?FB_TAGS_POS:FB_TAGS_NEG;
+        const curTags=new Set([...wrap.querySelectorAll(".fb-tag[aria-pressed='true']")].map(t=>t.dataset.tag));
+        const tagsBox=wrap.querySelector(".pfeedback-tags");
+        if(tagsBox){
+          tagsBox.innerHTML=tags.map(t=>`<button type="button" class="fb-tag" data-tag="${esc(t)}" aria-pressed="${curTags.has(t)?"true":"false"}">${esc(t)}</button>`).join("");
+          tagsBox.querySelectorAll(".fb-tag").forEach(tb=>{
+            tb.onclick=()=>{
+              const on=tb.getAttribute("aria-pressed")==="true";
+              tb.setAttribute("aria-pressed",on?"false":"true");
+            };
+          });
+        }
+        const more=wrap.querySelector(".pfeedback-more");
+        if(more)more.hidden=false;
+        const sub=wrap.querySelector("[data-fb-submit]");
+        if(sub)sub.disabled=false;
+      };
+    });
+
+    wrap.querySelectorAll(".fb-tag").forEach(tb=>{
+      tb.onclick=()=>{
+        const on=tb.getAttribute("aria-pressed")==="true";
+        tb.setAttribute("aria-pressed",on?"false":"true");
+      };
+    });
+
+    const sub=wrap.querySelector("[data-fb-submit]");
+    if(sub){
+      sub.onclick=()=>{
+        if(!activeVal)return;
+        const selectedTags=[...wrap.querySelectorAll(".fb-tag[aria-pressed='true']")].map(t=>t.dataset.tag);
+        const note=(wrap.querySelector(".fb-note")?.value||"").trim();
+        const fb={
+          rating:activeVal,
+          label:activeLbl,
+          emoji:activeEmo,
+          tags:selectedTags,
+          note,
+          at:Date.now()
+        };
+        META.feedback=fb;
+        saveState();
+        wrap.innerHTML=feedbackDoneHTML(fb);
+        bindDone();
+      };
+    }
+
+    const cancel=wrap.querySelector("[data-fb-cancel]");
+    if(cancel){
+      cancel.onclick=()=>{
+        if(META?.feedback){
+          wrap.innerHTML=feedbackDoneHTML(META.feedback);
+          bindDone();
+        }
+      };
+    }
+  }
+
+  function bindDone(){
+    const edit=wrap.querySelector("[data-fb-edit]");
+    if(edit){
+      edit.onclick=()=>{
+        wrap.innerHTML=feedbackFormHTML(META.feedback);
+        bindForm(META.feedback);
+      };
+    }
+  }
+
+  if(META?.feedback)bindDone();
+  else bindForm();
+}
 function wireShare(box){
   const msg=box.querySelector("[data-sharemsg]");const say=t=>{msg.textContent=t;clearTimeout(say.t);say.t=setTimeout(()=>msg.textContent="",4000)};
   box.addEventListener("click",e=>{if(e.target.closest("[data-wa],[data-pdf],[data-copy]"))PLAN_SAVED=true});
@@ -1924,7 +2151,7 @@ $("nameForm").addEventListener("submit",e=>{e.preventDefault();const n=cleanName
 document.querySelectorAll(".skipbtn").forEach(b=>b.addEventListener("click",()=>setName(cleanName($("nameInput").value)||null,b.dataset.start)));
 $("learnBtn").addEventListener("click",()=>{const l=$("learnMore");l.hidden=!l.hidden;$("learnBtn").setAttribute("aria-expanded",String(!l.hidden))});
 /* ---------- boot ---------- */
-$("advIcon").innerHTML=`<span class="brandmark"></span>`;
+if($("advIcon")) $("advIcon").innerHTML="";
 window.addEventListener("pagehide",()=>{if(nameAsked)saveState();DB.flush()});
 dbBoot();
 // a sign-in link opened in this same tab only changes the #hash; reload so it's read on boot
