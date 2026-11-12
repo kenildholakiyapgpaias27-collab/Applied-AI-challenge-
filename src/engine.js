@@ -12,7 +12,7 @@ const RX = {
 const uniq=a=>[...new Set(a)];
 const matchAll=(re,s)=>s?uniq((s.match(re)||[]).map(x=>x.trim().replace(/^,\s*/,""))):[];
 let FLAG_FIXES=0;
-for(const p of CAT){
+function prepareProduct(p){
   const f=p.fl, inci=p.i||"";
   p.fragHits=matchAll(RX.frag,inci); p.eoHits=matchAll(RX.eo,inci);
   const d={frag:p.fragHits.length>0,eo:p.eoHits.length>0,dry:RX.dry.test(inci),ret:RX.ret.test(inci),aha:RX.aha.test(inci),bha:RX.bha.test(inci)};
@@ -27,8 +27,20 @@ for(const p of CAT){
   p.leaveOn=!["Cleanser","Face mask"].includes(p.c);
   p.blankInci=!p.i;
 }
-const BY_ID=Object.fromEntries(CAT.map(p=>[p.id,p]));
-const BRANDS=uniq(CAT.map(p=>p.b)).sort((a,b)=>b.length-a.length);
+const BY_ID={},BRANDS=[];
+function indexCatalogue(){
+  FLAG_FIXES=0;CAT.forEach(prepareProduct);
+  for(const k of Object.keys(BY_ID))delete BY_ID[k];
+  for(const p of CAT)BY_ID[p.id]=p;
+  BRANDS.length=0;BRANDS.push(...uniq(CAT.map(p=>p.b)).sort((a,b)=>b.length-a.length));
+}
+indexCatalogue();
+// Swap in a newer catalogue (from the database) without reloading the page.
+// CAT, BY_ID and BRANDS are mutated in place so every reference stays valid.
+function replaceCatalogue(list){
+  if(!Array.isArray(list)||!list.length)return false;
+  CAT.length=0;CAT.push(...list);indexCatalogue();return true;
+}
 const COMPLEXION=["Foundation","Concealer","Compact powder","BB / CC cream"];
 
 /* =====================================================================

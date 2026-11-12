@@ -1,15 +1,24 @@
 # Aaina AI Skin Advisor
 
 > **Reflect. Reveal. Radiate.**
-> A guided skincare advisor that asks ten short questions and builds a **3-product plan** (treat → hydrate → protect), then explains exactly why each product was chosen.
+> A guided skincare advisor that asks a few short questions, adapted to who the user is and what they want, and builds a **3-product plan** (treat → hydrate → protect), a single sunscreen pick, or base makeup in their shade, then explains exactly why each product was chosen.
 
 Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products in the catalogue are fictional (demo data).
 
 ## What it does
 
 - **Personal start:** asks your first name and greets you by time of day.
-- **A 5-step journey (Q1–Q5):** skin concerns, safety check, location, skin type, skin tone. A progress bar shows each step, one question at a time, with a Back button on every screen.
-- **One-page skin concerns (Q1):** tap a concern and its follow-up question opens inside the same card (for example, Breakouts → "What do your breakouts usually look like?"). Pick up to three concerns; the first is the main concern the plan is built around, and any other can be made the main one with one tap. Safety signals from every concern count (a "deep, painful lumps" answer triggers the dermatologist notice even when acne isn't the main concern), while ingredient nudges from the other concerns count at half weight. Continue unlocks once every picked concern's follow-up is answered.
+- **"About you" first (Q1):** gender (woman, man, non-binary, prefer not to say) and what the user is looking for: a skincare routine, just a sunscreen, or foundation/base makeup. The rest of the quiz adapts to these answers:
+
+  | Looking for | Steps after Q1 | Result |
+  |---|---|---|
+  | Skincare routine | concerns → safety → location → skin type → skin tone → undertone (undertone skipped for men) | 3-step plan (treat → hydrate → protect) |
+  | Just a sunscreen | where they wear it → safety → location → skin type (no shade or undertone) | One sunscreen pick |
+  | Base makeup | preferred finish → safety → skin type → skin tone → undertone | Foundation, concealer and powder in the matched shade |
+
+  Men are not asked the pregnancy question. Undertone (warm, cool, neutral, olive, not sure) comes straight after skin shade; a selfie read pre-selects it. Shade matching uses tone + undertone, and the finish preference (natural, matte, dewy) nudges base products. Saved answers from the older 5-step version are migrated automatically.
+- **A progress bar** shows each step, one question at a time, with a Back button on every screen. Editing Q1 later re-shapes the remaining steps without losing answers that still apply.
+- **One-page skin concerns (routine goal):** tap a concern and its follow-up question opens inside the same card (for example, Breakouts → "What do your breakouts usually look like?"). Pick up to three concerns; the first is the main concern the plan is built around, and any other can be made the main one with one tap. Safety signals from every concern count (a "deep, painful lumps" answer triggers the dermatologist notice even when acne isn't the main concern), while ingredient nudges from the other concerns count at half weight. Continue unlocks once every picked concern's follow-up is answered.
 - **One-page safety check (Q2):** everything that keeps a product safe is answered together: ingredients to avoid, past reactions, pregnancy caution and warning signs happening right now (pain, spreading, bleeding, a changing mole, fever). Every section must be answered (**None** counts) before Continue unlocks, and a live line sums up what will be skipped. Earlier answers carry in (for example "I'd rather avoid retinol" pre-ticks retinoids). Any warning sign shows a dermatologist notice and keeps the plan gentle.
 - **Live shortlist on every step:** from Q2 on, a panel (beside the question on desktop, a tap-to-open bar on phones) shows how many products still match and how many are set aside, the product leading each step of the routine right now, and what has been set aside for the user, grouped by reason (fragrance, past reaction, pregnancy caution, skin type, over budget, missing ingredient list) with examples. It says what the last answer changed ("Your last answer set aside 88"), and on the safety page it updates live as boxes are ticked. Answers not given yet never set anything aside; final picks come after the last question.
 - **A personal line on every question:** each step opens with a warm note that uses the user's name, concern, city and progress, such as empathy for their concern before the safety check, "129 products have already passed your safety checks" before location, and "Last one, Kenil" before skin tone. Escalation cases get a gentler, reassuring line.
@@ -78,9 +87,17 @@ aaina-skin-advisor/
 │   ├── climate.js      # typical monthly climate per state + climate type (fallback for live weather)
 │   ├── app.js          # journey, questions, selfie and filter check, plan and explanation
 │   ├── engine.js       # guardrail filter, scoring, face reader, input safety checks
+│   ├── db.js           # optional Supabase layer: catalogue, accounts, check-ins, analytics
 │   └── india.js        # states, cities and climates
-└── data/
-    └── catalogue.json  # 806-product demo catalogue
+├── data/
+│   ├── catalogue.json  # 806-product demo catalogue (bundled; also the database seed)
+│   └── supabase.json   # database URL + public anon key (empty = offline mode)
+├── supabase/
+│   ├── migrations/     # schema, row-level security, erasure function, report views
+│   ├── seed.sql        # generated catalogue upsert (tools/seed_catalogue.py)
+│   └── tests/          # RLS tests + end-to-end browser test against a mocked API
+└── tools/
+    └── seed_catalogue.py
 ```
 
 ## Run locally
@@ -108,9 +125,59 @@ python3 build.py
 2. Go to **Settings → Pages → Build and deployment**, and set **Source: Deploy from a branch**, **Branch: `main` / root**.
 3. Your advisor will be live at `https://<your-username>.github.io/<repo-name>/`.
 
+## Database (Supabase)
+
+The app works with no database at all: leave `data/supabase.json` empty and everything stays in the browser, as before. Connect a free [Supabase](https://supabase.com) project and it gains:
+
+| What | Stored when | Who can read it |
+|---|---|---|
+| **Catalogue** (`products`, `shades`) | Always; seeded from `data/catalogue.json` | Anyone (read-only). Pages load it only when the database version differs from the one they were built with, so a price or ingredient fix goes live without a rebuild. |
+| **Saved answers and plans** (`profiles`, `plans`) | Only after the user signs in by email link **and** ticks the consent box | The signed-in owner only (row-level security) |
+| **Check-ins and reactions** (`checkins`, `reactions`) | Same as above | The owner only |
+| **Anonymous analytics** (`events`) | Plans shown, swaps, tuning, set-aside counts, check-in outcomes | Nobody through the API; you query it in the dashboard |
+
+Analytics never include a name, email, city, pregnancy status or reaction answers, and the "set aside" counts drop the pregnancy and reaction rules (A2, B3, B4) because a count of those would reveal the answer. Events are sent with the public key, not the login, so they can't be linked to an account. Browsers with Do Not Track or Global Privacy Control send none. Selfies are never uploaded.
+
+**Delete my answers** asks for confirmation, then erases this device's copy and, if signed in, every account row and the login itself (`delete_my_data()`). Typing "delete my data" in the chat now opens the same confirmation instead of deleting straight away, because ordinary questions such as "how do I remove tan… in this photo" also matched.
+
+**Live project:** `aaina-skin-advisor` (Supabase, Mumbai `ap-south-1`) is set up with this schema and the full catalogue (806 products, 597 shades, version `f1d460ebf65d`), and `data/supabase.json` points at it. To finish sign-in, set the site's public address under **Authentication → URL Configuration** (step 3 below) once it is hosted.
+
+### Set it up (about 10 minutes)
+
+1. Create a project at [supabase.com](https://supabase.com) (the free tier is enough).
+2. In **SQL Editor**, run `supabase/migrations/20261112000000_init.sql`, then `supabase/seed.sql`. Or from a terminal: `psql "$DATABASE_URL" -f supabase/migrations/20261112000000_init.sql -f supabase/seed.sql`.
+3. In **Authentication → URL Configuration**, set **Site URL** to your GitHub Pages address (for example `https://<user>.github.io/<repo>/`) and add it, plus `http://localhost:8000/**` for testing, under **Redirect URLs**. Email sign-in is on by default.
+4. In **Project Settings → API**, copy the **Project URL** and the **anon public** key into `data/supabase.json`:
+   ```json
+   { "url": "https://abcdefgh.supabase.co", "anonKey": "eyJhbGciOi..." }
+   ```
+   The anon key is meant to be public; row-level security is what protects the data. Never put the `service_role` key here.
+5. Run `python3 build.py` (it prints `database ON`), commit and push.
+
+Supabase's built-in email sender is limited to a few emails an hour, which is fine for a demo. For real users, add your own SMTP under **Authentication → Emails**.
+
+**Updating the catalogue:** edit `data/catalogue.json`, run `python3 tools/seed_catalogue.py`, then run the new `supabase/seed.sql`. Live pages pick up the change on their next visit; rebuild when convenient so the bundled copy matches.
+
+**Reports:** `report_checkin_outcomes` (how each product is going for people) and `report_daily_events` are views for the SQL editor.
+
+### Tests
+
+```bash
+supabase/tests/run_db_tests.sh
+```
+
+Starts a throwaway local Postgres, loads the schema and seed, then runs:
+- **36 row-level security tests** (`rls_test.sql`), under Supabase's default grants. For example: one user can't read or change another's data, nothing is accepted before consent, analytics are write-only, and `TRUNCATE` is blocked. Supabase's defaults would otherwise allow `TRUNCATE`, and row-level security doesn't apply to it.
+- **34 end-to-end checks** (`e2e_test.py`): the real page in Chrome against the real schema, through a small mock of Supabase's API (`mock_supabase.py`). They cover:
+  - catalogue refresh, sign-in, consent, plan and check-in sync
+  - a second device, isolation from another user, and anonymous analytics
+  - deletion, offline fallback and no-config mode
+
+Needs PostgreSQL server binaries, `pip install psycopg playwright`, and Chrome.
+
 ## Privacy note
 
-The consent screen tells users their photo is stored for **18 months**. This demo does **not** store anything: photos are analysed in the browser and discarded. A production version must implement real storage, deletion on request, and consent records in line with India's Digital Personal Data Protection Act, 2023.
+The selfie consent screen tells users their photo is stored for **18 months**. This demo does **not** store photos: they are analysed in the browser and discarded, and the database layer never uploads them. Answers are stored in an account only with explicit consent (recorded with a version and timestamp) and can be erased in one step. A production version would still need a full review against India's Digital Personal Data Protection Act, 2023.
 
 ## Disclaimer
 

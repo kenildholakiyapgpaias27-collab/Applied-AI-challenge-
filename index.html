@@ -933,6 +933,7 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
   #advisor .journey{padding:8px 6px 10px;overflow:hidden}
   #advisor .journey ol{min-width:0;max-width:100%}
   #advisor .jn{min-width:0}
+  #advisor .jn:not(.now) .jl{visibility:hidden}   /* 7 steps: only the current step is named on phones */
   #advisor .jc{width:24px;height:24px;font-size:9.5px}
   #advisor .jn::before{top:11px}
   #advisor .jl{font-size:10px;white-space:nowrap}
@@ -946,6 +947,29 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
   #advisor .ask .btn{height:44px;padding:0 16px;font-size:14px}
   .frame-foot{padding:8px 16px 10px}
 }
+
+/* ---------- account (database) ---------- */
+.acct{margin:18px 0 6px;padding:16px 18px;border:1px solid var(--line,#eadfe4);border-radius:18px;background:var(--surface,#fff);display:flex;flex-direction:column;gap:10px}
+.acct-row{display:flex;gap:12px;align-items:flex-start}
+.acct-ic{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft,#f6e6ee);color:var(--accent)}
+.acct-ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.acct-tx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.acct-tx b{font-size:15px;color:var(--ink)}
+.acct-tx span{font-size:14px;color:var(--muted);line-height:1.45}
+.acct .agree{font-weight:400;font-size:13.5px;line-height:1.45;color:var(--ink);margin-top:0}
+.acct-email{width:100%;max-width:360px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:12px;font:inherit;font-size:15px;background:var(--bg,#fff);color:var(--ink)}
+.acct-email:focus{outline:2px solid var(--accent);outline-offset:1px}
+.acct-act{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.acct-err{margin:0;font-size:13.5px;color:var(--bad)}
+.acct-note{margin:0 0 10px;padding:10px 14px;border-radius:12px;background:var(--accent-soft,#f6e6ee);font-size:14px;color:var(--ink)}
+.acct-line{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:13.5px;color:var(--muted)}
+.acct-line .acct-email{max-width:240px;padding:8px 12px;font-size:14px}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.danger:hover{filter:brightness(.92)}
+.shadeline{display:flex;gap:10px;align-items:center;margin:4px 0 10px;padding:8px 10px;border-radius:12px;background:var(--sunken)}
+.shadeline div{display:flex;flex-direction:column;min-width:0}.shadeline b{font-size:14px}.shadeline small{font-size:12px;color:var(--muted)}
+.about .goalopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:10px;margin-top:6px}
+.about .goalopts .opt{text-align:left}.about .goalic svg{width:26px;height:26px}
 </style>
 
 <div class="page">
@@ -966,7 +990,7 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
         <span class="pill"><span aria-hidden="true">✦</span> AI Skin Advisor</span>
         <h1 class="wl-title"><span id="greetText">Hello!</span> <span class="wl-ic" id="greetIc" aria-hidden="true"></span></h1>
         <p class="wl-sub" id="greetSub">Let's take a look at your skin together.</p>
-        <p class="wl-body">Tell me your first name to get started, and I'll create a <b>personalised skin plan</b> with <b>three products</b> that work together, just for you.</p>
+        <p class="wl-body">Tell me your first name to get started, and I'll find the <b>skincare or base makeup</b> that suits you, checked against everything you tell me.</p>
       </div>
     </div>
     <ul class="wl-feats">
@@ -975,13 +999,15 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
       <li><span class="fi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l2 6.2L20 12l-6 2.8L12 21l-2-6.2L4 12l6-2.8z"/></svg></span><span><span class="fw">Radiate</span>Discover simple next steps</span></li>
     </ul>
     <div class="resume" id="resume" hidden aria-live="polite"></div>
+    <p class="acct-note" id="acctNote" hidden role="status"></p>
     <form class="wl-card" id="nameForm">
       <label for="nameInput">Your first name <span class="req" aria-hidden="true">*</span></label>
       <div class="wl-row">
         <input id="nameInput" type="text" maxlength="24" placeholder="e.g. Priya" autocomplete="given-name" autocapitalize="words">
         <button class="btn primary big" type="submit" id="nameGo" disabled>Nice to meet you <span aria-hidden="true">→</span></button>
       </div>
-      <p class="wl-safe"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Your name and answers stay on this device</p>
+      <p class="wl-safe"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Your name and answers stay on this device unless you choose to save them to an account</p>
+      <div class="acct-line" id="acctLine" hidden></div>
     </form>
         <div class="wl-note">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
@@ -991,7 +1017,7 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
     <div class="learn" id="learnMore" hidden>
       <div><b>Safety checks first.</b> I read every product's full ingredient list and remove anything that clashes with your answers before ranking.</div>
       <div><b>Sponsored kept separate.</b> Brands can pay to be shown, never to be chosen. Sponsored picks pass the same checks and carry a label.</div>
-      <div><b>Your privacy.</b> Your answers stay in your browser. A selfie is only kept, for 18 months, if you agree when you take it.</div>
+      <div><b>Your privacy.</b> Your answers stay in your browser unless you sign in and agree to save them to your account; you can delete that account at any time. A selfie is only kept, for 18 months, if you agree when you take it, and it is never uploaded. Anonymous usage counts (which products were shown or swapped) help improve the picks and never include your name, location, pregnancy or reaction answers.</div>
       <div><b>Cosmetic, not medical.</b> I don't diagnose. Painful, spreading or bleeding skin needs a dermatologist, and I'll say so.</div>
     </div>
   </section>
@@ -1000,7 +1026,7 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
     <section class="chat" aria-label="Chat with the skin advisor">
       <div class="chathead">
         <div class="ic" id="advIcon" aria-hidden="true"></div>
-        <div class="grow"><div class="eyebrow">AI skin advisor <span class="eta" id="eta"></span></div><h2 id="advTitle">Three products for your skin</h2></div>
+        <div class="grow"><div class="eyebrow">AI skin advisor <span class="eta" id="eta"></span></div><h2 id="advTitle">Products picked for your skin</h2></div>
         <button class="btn" type="button" id="backBtn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Back</button>
       </div>
       <div class="progress" aria-hidden="true"><i id="bar"></i></div>
@@ -1169,7 +1195,7 @@ const RX = {
 const uniq=a=>[...new Set(a)];
 const matchAll=(re,s)=>s?uniq((s.match(re)||[]).map(x=>x.trim().replace(/^,\s*/,""))):[];
 let FLAG_FIXES=0;
-for(const p of CAT){
+function prepareProduct(p){
   const f=p.fl, inci=p.i||"";
   p.fragHits=matchAll(RX.frag,inci); p.eoHits=matchAll(RX.eo,inci);
   const d={frag:p.fragHits.length>0,eo:p.eoHits.length>0,dry:RX.dry.test(inci),ret:RX.ret.test(inci),aha:RX.aha.test(inci),bha:RX.bha.test(inci)};
@@ -1184,8 +1210,20 @@ for(const p of CAT){
   p.leaveOn=!["Cleanser","Face mask"].includes(p.c);
   p.blankInci=!p.i;
 }
-const BY_ID=Object.fromEntries(CAT.map(p=>[p.id,p]));
-const BRANDS=uniq(CAT.map(p=>p.b)).sort((a,b)=>b.length-a.length);
+const BY_ID={},BRANDS=[];
+function indexCatalogue(){
+  FLAG_FIXES=0;CAT.forEach(prepareProduct);
+  for(const k of Object.keys(BY_ID))delete BY_ID[k];
+  for(const p of CAT)BY_ID[p.id]=p;
+  BRANDS.length=0;BRANDS.push(...uniq(CAT.map(p=>p.b)).sort((a,b)=>b.length-a.length));
+}
+indexCatalogue();
+// Swap in a newer catalogue (from the database) without reloading the page.
+// CAT, BY_ID and BRANDS are mutated in place so every reference stays valid.
+function replaceCatalogue(list){
+  if(!Array.isArray(list)||!list.length)return false;
+  CAT.length=0;CAT.push(...list);indexCatalogue();return true;
+}
 const COMPLEXION=["Foundation","Concealer","Compact powder","BB / CC cream"];
 
 /* =====================================================================
@@ -1596,6 +1634,208 @@ const EXAMPLES=[{label:"Medium-deep, warm",lab:[45,10,22]},{label:"Deep, olive",
 function makeExample(ex){const W=900,H=1200,c=document.createElement("canvas");c.width=W;c.height=H;const g=c.getContext("2d");g.fillStyle=ex.dark?"rgb(120,92,40)":"rgb(165,165,165)";g.fillRect(0,0,W,H);const[r,gg,b]=lab2rgb(...ex.lab);g.fillStyle=`rgb(${r},${gg},${b})`;g.beginPath();g.ellipse(450,500,225,300,0,0,Math.PI*2);g.fill();g.fillStyle="rgba(30,20,20,.85)";for(const x of[306,594]){g.beginPath();g.ellipse(x,452,32,14,0,0,Math.PI*2);g.fill()}g.strokeStyle="rgba(90,40,40,.7)";g.lineWidth=8;g.beginPath();g.moveTo(400,665);g.quadraticCurveTo(450,690,500,665);g.stroke();const img=g.getImageData(0,0,W,H),d=img.data;let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};for(let k=0;k<d.length;k+=4){const n=(rnd()+rnd()+rnd()-1.5)*9;const f=ex.dark?0.32:1;d[k]=Math.max(0,Math.min(255,(d[k]+n)*f));d[k+1]=Math.max(0,Math.min(255,(d[k+1]+n)*f));d[k+2]=Math.max(0,Math.min(255,(d[k+2]+n)*f))}g.putImageData(img,0,0);return c}
 
 
+const AAINA_DB_CONFIG={"url": "https://qpevcwfpupmrgnfjodpt.supabase.co", "anonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwZXZjd2ZwdXBtcmduZmpvZHB0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0NzQxNjYsImV4cCI6MjExMDA1MDE2Nn0.EYUJm4dWJs9G2-boPRTKPaVSJzDVgeMGdHrFLVbpbmM"};
+const CAT_VERSION="f1d460ebf65d";
+/* =====================================================================
+   Database layer (Supabase). Optional: with no URL/key configured, or with
+   the network down, every function quietly does nothing and the app keeps
+   working from the bundled catalogue and this browser's storage.
+
+   Plain fetch against Supabase's REST endpoints (Auth + PostgREST), so the
+   page stays one self-contained file with no library to load.
+
+   What goes where:
+     - catalogue ............ read from the database when its version differs
+                              from the one this page was built with
+     - account data ......... only after sign-in AND the consent tick:
+                              saved answers, plans, check-ins, reactions
+     - analytics ............ anonymous events, never linked to the login;
+                              no name, city, pregnancy or reaction details
+   ===================================================================== */
+const DB=(()=>{
+  const CFG=(typeof AAINA_DB_CONFIG!=="undefined"&&AAINA_DB_CONFIG)||{};
+  const BASE=String(CFG.url||"").replace(/\/+$/,""),KEY=String(CFG.anonKey||"");
+  const enabled=/^https:\/\/.+/.test(BASE)&&KEY.length>20;
+  const CONSENT_VERSION="v1-2026-11";
+  const AUTH_KEY="aaina.auth.v1",PENDING_KEY="aaina.consent.pending",SID_KEY="aaina.sid";
+  const store=k=>{try{return window[k]}catch{return null}};
+  const getJ=(s,k)=>{try{return JSON.parse(store(s)?.getItem(k)||"null")}catch{return null}};
+  const setJ=(s,k,v)=>{try{v==null?store(s)?.removeItem(k):store(s)?.setItem(k,JSON.stringify(v))}catch{}};
+
+  let session=getJ("localStorage",AUTH_KEY);   // {access_token, refresh_token, expires_at, user:{id,email}}
+  let consented=false;                         // a profile row (with consent_at) exists for this login
+  let lastError=null,refreshing=null;
+  const listeners=new Set();
+  const emit=()=>listeners.forEach(f=>{try{f()}catch{}});
+
+  /* ---------- low-level request ---------- */
+  async function req(path,{method="GET",body,headers={},asUser=true,timeout=8000,keepalive=false}={}){
+    if(!enabled)return{ok:false,status:0};
+    if(asUser&&session)await ensureFresh();
+    const token=asUser&&session?session.access_token:KEY;
+    const ctrl=typeof AbortController!=="undefined"?new AbortController():null;
+    const timer=ctrl?setTimeout(()=>ctrl.abort(),timeout):null;
+    try{
+      const r=await fetch(BASE+path,{method,keepalive,signal:ctrl?.signal,
+        headers:{apikey:KEY,Authorization:`Bearer ${token}`,"Content-Type":"application/json",...headers},
+        body:body===undefined?undefined:JSON.stringify(body)});
+      const txt=await r.text();let data=null;try{data=txt?JSON.parse(txt):null}catch{data=txt}
+      if(!r.ok){lastError=(data&&(data.message||data.msg||data.error_description))||`HTTP ${r.status}`;
+        if(r.status===401&&asUser&&session)dropSession()}
+      return{ok:r.ok,status:r.status,data,headers:r.headers};
+    }catch(e){lastError=String(e&&e.name==="AbortError"?"timed out":e);return{ok:false,status:0}}
+    finally{if(timer)clearTimeout(timer)}
+  }
+
+  /* ---------- auth: email magic link ---------- */
+  function dropSession(){session=null;consented=false;setJ("localStorage",AUTH_KEY,null);emit()}
+  async function ensureFresh(){
+    if(!session||!session.expires_at||session.expires_at*1000-Date.now()>60000)return;
+    if(refreshing)return refreshing;   // one refresh at a time; asUser:false below can't recurse
+    const s=session;
+    refreshing=(async()=>{
+    const r=await req("/auth/v1/token?grant_type=refresh_token",{method:"POST",body:{refresh_token:s.refresh_token},asUser:false});
+    if(r.ok&&r.data?.access_token){session={access_token:r.data.access_token,refresh_token:r.data.refresh_token,
+      expires_at:r.data.expires_at||Math.floor(Date.now()/1000)+(r.data.expires_in||3600),user:s.user};setJ("localStorage",AUTH_KEY,session)}
+    else if(r.status>=400&&r.status<500)dropSession();   // refresh token rejected; a network blip keeps the session
+    })();
+    try{await refreshing}finally{refreshing=null}
+  }
+  // The sign-in link returns to this page with the tokens in the #hash.
+  async function readRedirect(){
+    const h=location.hash||"";if(!/access_token=|error_description=/.test(h))return null;
+    const q=new URLSearchParams(h.replace(/^#/,""));
+    try{history.replaceState(null,"",location.pathname+location.search)}catch{}
+    if(q.get("error_description"))return{error:q.get("error_description").replace(/\+/g," ")};
+    const at=q.get("access_token");if(!at)return null;
+    session={access_token:at,refresh_token:q.get("refresh_token"),expires_at:+q.get("expires_at")||Math.floor(Date.now()/1000)+(+q.get("expires_in")||3600),user:null};
+    const u=await req("/auth/v1/user");
+    if(!u.ok||!u.data?.id){dropSession();return{error:"That sign-in link didn't work. Please ask for a new one."}}
+    session.user={id:u.data.id,email:u.data.email};setJ("localStorage",AUTH_KEY,session);return{signedIn:true};
+  }
+  async function sendLink(email){
+    email=String(email||"").trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return{ok:false,error:"That email address doesn't look right."};
+    const back=encodeURIComponent(location.origin+location.pathname);
+    const r=await req(`/auth/v1/otp?redirect_to=${back}`,{method:"POST",body:{email,create_user:true},asUser:false});
+    return r.ok?{ok:true}:{ok:false,error:r.status===429?"Too many requests. Please wait a minute and try again.":"I couldn't send the link right now. Please try again."};
+  }
+  async function signOut(){if(session)await req("/auth/v1/logout?scope=local",{method:"POST"});dropSession()}
+
+  /* ---------- consent ---------- */
+  // Consent is ticked before the sign-in email is sent, then confirmed on return.
+  const setPendingConsent=on=>setJ("localStorage",PENDING_KEY,on?{v:CONSENT_VERSION,at:new Date().toISOString()}:null);
+  const pendingConsent=()=>getJ("localStorage",PENDING_KEY);
+
+  /* ---------- account data ---------- */
+  async function pullProfile(){
+    if(!session)return null;
+    const r=await req("/rest/v1/profiles?select=display_name,state,consent_version,consent_at,updated_at&limit=1");
+    if(!r.ok)return null;const row=Array.isArray(r.data)?r.data[0]:null;consented=!!row;emit();return row||null;
+  }
+  async function writeProfile(state,name){
+    if(!session)return false;
+    const pc=pendingConsent();if(!consented&&!pc)return false;   // never store without consent
+    const body={user_id:session.user.id,display_name:name?String(name).slice(0,24):null,state:state||{}};
+    if(!consented){body.consent_version=pc.v;body.consent_at=pc.at}
+    const keepalive=JSON.stringify(body).length<60000;   // lets a save survive the tab closing
+    const r=consented
+      ?await req(`/rest/v1/profiles?user_id=eq.${session.user.id}`,{method:"PATCH",body,keepalive,headers:{Prefer:"return=minimal"}})
+      :await req("/rest/v1/profiles",{method:"POST",body,keepalive,headers:{Prefer:"resolution=merge-duplicates,return=minimal"}});
+    if(r.ok&&!consented){consented=true;setPendingConsent(false);emit()}
+    return r.ok;
+  }
+  let pushTimer=null,pushArgs=null;
+  function pushState(state,name){       // debounced: the app saves on every tap
+    if(!enabled||!session||(!consented&&!pendingConsent()))return;
+    pushArgs=[state,name];clearTimeout(pushTimer);
+    pushTimer=setTimeout(()=>{const a=pushArgs;pushArgs=null;writeProfile(...a)},1500);
+  }
+  function flush(){if(pushArgs){clearTimeout(pushTimer);const a=pushArgs;pushArgs=null;return writeProfile(...a)}return Promise.resolve(true)}
+  const planIds={};
+  async function savePlan(plan){        // {madeAt, concern, productIds, extras}
+    if(!session||!consented||!plan?.madeAt)return null;
+    const made=new Date(plan.madeAt).toISOString();
+    const r=await req("/rest/v1/plans?on_conflict=user_id,made_at",{method:"POST",
+      body:{user_id:session.user.id,made_at:made,concern:plan.concern||null,product_ids:plan.productIds||[],extras:plan.extras||[]},
+      headers:{Prefer:"resolution=merge-duplicates,return=representation"}});
+    const id=r.ok&&Array.isArray(r.data)&&r.data[0]?.id;if(id)planIds[made]=id;return id||null;
+  }
+  async function saveCheckin(c){        // {stage, results, planMadeAt}
+    if(!session||!consented)return false;
+    const made=c.planMadeAt?new Date(c.planMadeAt).toISOString():null;
+    const stage=["day3","week2"].includes(c.stage)?c.stage:"manual";
+    const r=await req("/rest/v1/checkins",{method:"POST",body:{user_id:session.user.id,stage,results:c.results||{},plan_id:(made&&planIds[made])||null},headers:{Prefer:"return=minimal"}});
+    return r.ok;
+  }
+  async function saveReactions(list,source,productId){
+    if(!session||!consented||!list?.length)return false;
+    const rows=list.map(reaction=>({user_id:session.user.id,reaction:String(reaction).slice(0,40),source,product_id:productId||null}));
+    const r=await req("/rest/v1/reactions?on_conflict=user_id,reaction",{method:"POST",body:rows,headers:{Prefer:"resolution=ignore-duplicates,return=minimal"}});
+    return r.ok;
+  }
+  async function deleteAll(){           // erases every row and the login itself
+    if(!session)return{ok:true};
+    clearTimeout(pushTimer);pushArgs=null;
+    const r=await req("/rest/v1/rpc/delete_my_data",{method:"POST",body:{}});
+    if(r.ok)dropSession();
+    return{ok:r.ok,error:r.ok?null:"I couldn't reach your account to delete it. Please try again in a minute."};
+  }
+
+  /* ---------- catalogue ---------- */
+  const toProduct=(r,shades)=>{
+    const fl=[r.contains_fragrance,r.contains_essential_oils,r.contains_drying_alcohol,r.contains_retinoid,r.contains_aha,r.contains_bha,r.pregnancy_caution].map(b=>b?"1":"0").join("");
+    const p={id:r.id,b:r.brand,n:r.name,c:r.category,con:r.concerns||[],st:r.skin_types||[],fl,com:r.comedogenic_risk,
+      p:r.price_inr==null?null:+r.price_inr,sz:r.size,sp:!!r.is_sponsored};
+    if(r.key_actives)p.a=r.key_actives;if(r.inci)p.i=r.inci;if(r.finish)p.fin=r.finish;
+    if(r.spf!=null)p.spf=+r.spf;if(r.pa_rating)p.pa=r.pa_rating;
+    if(shades&&shades.length)p.s=shades.map(s=>[s.shade_name,s.depth,s.undertone,s.hex,s.coverage]);
+    return p;
+  };
+  async function getAll(path){          // PostgREST returns at most ~1000 rows per call
+    const out=[];for(let from=0;from<20000;from+=1000){
+      const r=await req(path,{asUser:false,timeout:12000,headers:{"Range-Unit":"items",Range:`${from}-${from+999}`}});
+      if(!r.ok||!Array.isArray(r.data))return null;out.push(...r.data);if(r.data.length<1000)break}
+    return out;
+  }
+  async function fetchCatalogue(builtVersion){
+    if(!enabled)return null;
+    const m=await req("/rest/v1/catalogue_meta?select=version",{asUser:false,timeout:5000});
+    const version=m.ok&&Array.isArray(m.data)&&m.data[0]?.version;
+    if(!version||version===builtVersion)return null;
+    const [rows,shades]=await Promise.all([
+      getAll("/rest/v1/products?select=*&active=eq.true&order=id"),
+      getAll("/rest/v1/shades?select=product_id,shade_name,depth,undertone,hex,coverage,sort_order&order=product_id,sort_order")]);
+    if(!rows||!rows.length||!shades)return null;
+    const by={};for(const s of shades)(by[s.product_id]??=[]).push(s);
+    return{version,list:rows.map(r=>toProduct(r,by[r.id]))};
+  }
+
+  /* ---------- anonymous analytics ---------- */
+  function sid(){
+    let s=null;try{s=sessionStorage.getItem(SID_KEY)}catch{}
+    if(!s){s=(crypto?.randomUUID?.())||"xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx".replace(/x/g,()=>(Math.random()*16|0).toString(16));try{sessionStorage.setItem(SID_KEY,s)}catch{}}
+    return s;
+  }
+  function track(name,props){
+    if(!enabled)return;
+    try{if(navigator.doNotTrack==="1"||window.doNotTrack==="1"||navigator.globalPrivacyControl)return}catch{}
+    // sent with the public key, never the login, so events can't be tied to an account
+    req("/rest/v1/events",{method:"POST",asUser:false,keepalive:true,timeout:5000,body:{session_id:sid(),name,props:props||{}},headers:{Prefer:"return=minimal"}});
+  }
+
+  async function init(){
+    if(!enabled)return{};
+    const back=await readRedirect();let profile=null;
+    if(session){await ensureFresh();if(session)profile=await pullProfile()}
+    emit();
+    return{...(back||{}),profile};
+  }
+  return{enabled,CONSENT_VERSION,init,sendLink,signOut,setPendingConsent,pendingConsent,pullProfile,pushState,flush,savePlan,saveCheckin,saveReactions,deleteAll,fetchCatalogue,track,
+    user:()=>session?.user||null,consented:()=>consented,lastError:()=>lastError,onChange:f=>{listeners.add(f);return()=>listeners.delete(f)},
+    _toProduct:toProduct};
+})();
+
 /* =====================================================================
    Aaina AI Skin Advisor: problem first, 3-product plan, full explanation
    ===================================================================== */
@@ -1681,10 +1921,37 @@ const PROBLEMS={
       ["Puffy as well","Swelling in the morning",{boost:[[/caffeine/i,3]]}]]},
     plan:[{role:"Brighten eyes",when:"Morning and night",cats:["Eye cream"],con:"dark circles",primary:true},{role:"Hydrate",when:"Morning and night",cats:["Moisturiser"],con:"dehydration"},{role:"Protect",when:"Every morning",cats:["Sunscreen"],con:""}],
     expect:"Eye creams help with how dark circles look over 4–8 weeks; sleep, allergies and genetics play a big part too."},
+  /* searches chosen on Q1 ("What are you looking for?"), not skin concerns: goal:true keeps them out of the concerns grid */
+  sunscreen:{label:"Sunscreen",sub:"Daily sun protection",ic:"sun",goal:true,
+    follow:{ask:"Where will you wear your sunscreen most?",opts:[
+      ["Daily commute and errands","Short spells in the sun",{spf:30,boost:[[/invisible|aqua/i,1.5]]}],
+      ["Long hours outdoors","Travel, sport or outdoor work",{spf:50}],
+      ["Under makeup","A light base that won't pill",{boost:[[/matte|invisible|primer/i,2]]}],
+      ["Mostly indoors","Near windows or screens",{spf:30,boost:[[/invisible|aqua|hybrid/i,1]]}]]},
+    plan:[{role:"Protect",when:"Every morning, reapply every 2–3 hours outdoors",cats:["Sunscreen"],con:"tanning",primary:true}],
+    expect:"Use about two finger-lengths for face and neck, 15 minutes before you go out, and reapply when you're outdoors for long."},
+  makeup:{label:"Base makeup",sub:"Foundation, concealer and powder in your shade",ic:"spark",goal:true,
+    follow:{ask:"What finish do you like on your skin?",opts:[
+      ["Natural","Looks like skin, not shiny or flat",{finish:"natural"}],
+      ["Matte","Keeps shine down all day",{finish:"matte"}],
+      ["Dewy","A fresh, glowy look",{finish:"dewy"}]]},
+    plan:[{role:"Base",when:"All over, after sunscreen",cats:["Foundation","BB / CC cream"],shade:true,primary:true},{role:"Conceal",when:"Where you need it",cats:["Concealer"],shade:true},{role:"Set",when:"To finish",cats:["Compact powder"],shade:true}],
+    expect:"Swatch a shade on your jawline in daylight before you buy; the right one disappears into your skin."},
 };
+const GOALS={routine:{label:"A skincare routine",sub:"Three products that work together",ic:"dropper"},sunscreen:{label:"Just a sunscreen",sub:"One great match for your skin and city",ic:"sun"},makeup:{label:"Foundation or base makeup",sub:"Your exact shade, matched to tone and undertone",ic:"spark"}};
+const GENDERS=[["woman","Woman"],["man","Man"],["nonbinary","Non-binary"],["unsaid","Prefer not to say"]];
+const CONCERN_KEYS=Object.keys(PROBLEMS).filter(k=>!PROBLEMS[k].goal);
+/* which questions to ask, from Q1's answers */
+function stepsFor(goal,gender){
+  if(goal==="sunscreen")return["about","follow","safety","location","skin"];                       // no shade or undertone for a sunscreen
+  if(goal==="makeup")return["about","follow","safety","skin","tone","undertone"];
+  return["about","concerns","safety","location","skin","tone",...(gender==="man"?[]:["undertone"])]; // undertone only matters for base makeup
+}
+const showBaseShades=()=>P.goal!=="sunscreen"&&P.goal!=="makeup"&&P.gender!=="man"&&STEPS.includes("undertone");
+const UNDERTONES=[["warm","Warm","Golden or peachy; gold jewellery suits you; veins look greenish"],["cool","Cool","Pink or rosy; silver suits you; veins look bluish or purple"],["neutral","Neutral","A mix of both; gold and silver both work"],["olive","Olive","Greenish or grey-beige; often looks warm and cool at once"],["unsure","Not sure","I'll pick shades that suit most undertones"]];
 
 /* actives that belong to each problem; strong actives outside this list are kept out */
-const RELEVANT={acne:/salicylic|azelaic|niacinamide|zinc|tea tree|melaleuca/i,pigmentation:/vitamin c|ascorb|niacinamide|tranexamic|arbutin|licorice|glycyrrhiza|azelaic/i,dullness:/vitamin c|ascorb|lactic|glycolic|niacinamide/i,dehydration:/hyaluronic|ceramide|squalane/i,oiliness:/niacinamide|zinc|salicylic/i,tanning:/vitamin c|ascorb|lactic|glycolic|niacinamide/i,redness:/centella|ceramide|azelaic|licorice|glycyrrhiza|niacinamide/i,"fine lines":/retinol|retinal|bakuchiol|peptide|hyaluronic/i,"dark circles":/caffeine|vitamin c|ascorb|niacinamide|peptide/i};
+const RELEVANT={sunscreen:/niacinamide|vitamin c|ascorb|hyaluronic/i,makeup:/niacinamide|hyaluronic/i,acne:/salicylic|azelaic|niacinamide|zinc|tea tree|melaleuca/i,pigmentation:/vitamin c|ascorb|niacinamide|tranexamic|arbutin|licorice|glycyrrhiza|azelaic/i,dullness:/vitamin c|ascorb|lactic|glycolic|niacinamide/i,dehydration:/hyaluronic|ceramide|squalane/i,oiliness:/niacinamide|zinc|salicylic/i,tanning:/vitamin c|ascorb|lactic|glycolic|niacinamide/i,redness:/centella|ceramide|azelaic|licorice|glycyrrhiza|niacinamide/i,"fine lines":/retinol|retinal|bakuchiol|peptide|hyaluronic/i,"dark circles":/caffeine|vitamin c|ascorb|niacinamide|peptide/i};
 const HARSH_NAME=/exfoliating|resurfacing|peel|clarifying/i;
 /* ---------- ingredient explainer ---------- */
 const INGR=[
@@ -1714,21 +1981,36 @@ function actives(p){const src=(p.a||"")+" || "+(p.i||"");const out=[];for(const[
 /* ---------- state ---------- */
 let PROB=null,SUB=null,PREF={boost:[]},FLOW=[],DONE=new Set(),stepNow=null,PL=null,turn=0;
 const thread=$("thread");
-const DEFAULT_STEPS=["concerns","safety","location","skin","tone"];   // budget and "already using" are set on the plan page
+const DEFAULT_STEPS=stepsFor(null,null);   // Q1 "about" decides the rest; budget and "already using" are set on the plan page
 let STEPS=[...DEFAULT_STEPS];
 const FACE_SKIN=[["Shiny all over","Oily skin","oily"],["Shiny T-zone, normal cheeks","Combination skin","combination"],["Tight, rough or flaky","Dry skin","dry"],["Comfortable","Normal skin","normal"]];
 const SK_CATS=["Cleanser","Serum","Moisturiser","Sunscreen","Exfoliant","Toner","Spot treatment","Eye cream"];
 const MAX_CONCERNS=3;
 const STEP={
+  about:{title:"About you",side:"About you",q:()=>({ask:"First, tell me a little about you",help:"This decides **which questions I ask**, so you only answer what matters for what you're after.",about:true}),
+    apply:v=>{const prevGoal=P.goal,prevGender=P.gender;P.gender=v.gender;P.goal=v.goal;
+      // men aren't asked the pregnancy question; if that changes, ask it again
+      if(v.gender==="man"){if(P.pregnancy!==false)P.pregAuto=true;P.pregnancy=false}
+      else if(prevGender==="man"&&P.pregAuto){P.pregnancy=null;P.pregAuto=false;DONE.delete("safety")}
+      if(prevGoal!==v.goal){
+        DONE.delete("follow");DONE.delete("concerns");DONE.delete("undertone");FOLLOW_IDX=null;
+        if(v.goal==="routine"){PROB=null;SUB=null;PREF={boost:[]};P.concerns=[];P.concernFU={}}
+        else{STEP.problem.apply(v.goal);P.concerns=v.goal==="sunscreen"?["tanning"]:[]}}
+      STEPS=stepsFor(v.goal,v.gender)},
+    show:()=>[GENDERS.find(g=>g[0]===P.gender)?.[1],GOALS[P.goal]?.label].filter(Boolean).join(" · ")||"–"},
+  undertone:{title:"Your skin",side:"Undertone",q:()=>({ask:"What's your undertone?",help:P.undertoneSource==="selfie"&&P.undertone?`Your selfie suggests **${P.undertone}**. Tap it to confirm, or pick another. Undertone decides **which shade family** suits you.`:"Undertone is the colour **under** your skin tone, and it decides **which shade family** suits you. Look at your wrist in daylight.",
+      opts:UNDERTONES.map(([value,label,sub])=>({label:label+(P.undertoneSource==="selfie"&&P.undertone===value?" (from your selfie)":""),sub,value}))}),
+    apply:v=>{P.undertone=v==="unsure"?null:v;P.undertoneSource=v==="unsure"?"unsure":"you picked"},
+    show:()=>P.undertone?cap(P.undertone):P.undertoneSource==="unsure"?"Not sure":"–"},
   problem:{title:"Your skin",side:"Main concern",q:()=>({ask:"What's bothering your skin the most right now?",help:"Pick **the one that bothers you most**. You can also describe it in your own words below.",
-      opts:Object.entries(PROBLEMS).map(([k,v])=>({label:v.label,sub:v.sub,value:k}))}),
+      opts:CONCERN_KEYS.map(k=>({label:PROBLEMS[k].label,sub:PROBLEMS[k].sub,value:k}))}),
     apply:v=>{PROB=v;SUB=null;PREF={boost:[]};P.concerns=[v];for(const k of["follow","extra"])DONE.delete(k)},show:()=>PROBLEMS[PROB]?.label||"–"},
   follow:{title:"Your skin",side:"Details",q:()=>{const F=PROBLEMS[PROB].follow;return{ask:F.ask,opts:F.opts.map(([label,sub],i)=>({label,sub,value:i}))}},
-    apply:v=>{const o=PROBLEMS[PROB].follow.opts[v];SUB=o[0];const fx=o[2]||{};PREF={boost:[...(fx.boost||[])],spf:fx.spf||null,gentle:!!fx.gentle,noRet:!!fx.noRet,noStrongRet:!!fx.noStrongRet,escalate:!!fx.escalate,exfoliateFirst:!!fx.exfoliateFirst};
+    apply:v=>{const o=PROBLEMS[PROB].follow.opts[v];SUB=o[0];const fx=o[2]||{};PREF={boost:[...(fx.boost||[])],spf:fx.spf||null,gentle:!!fx.gentle,noRet:!!fx.noRet,noStrongRet:!!fx.noStrongRet,escalate:!!fx.escalate,exfoliateFirst:!!fx.exfoliateFirst,finish:fx.finish||null};
       PREF.forceSens=!!fx.sensitive;PREF.forceFrag=!!fx.frag;if(fx.sensitive)P.sensitive=true;if(fx.frag)P.avoidFrag=true;
       if(fx.noRet&&!P.reactions.includes("retinoids"))P.reactions=[...P.reactions,"retinoids"];},
     show:()=>SUB||"–"},
-  extra:{title:"Your skin",side:"Also bothering you",q:()=>{const others=Object.entries(PROBLEMS).filter(([k])=>k!==PROB).map(([k,v])=>({label:v.label,value:k}));
+  extra:{title:"Your skin",side:"Also bothering you",q:()=>{const others=CONCERN_KEYS.filter(k=>k!==PROB).map(k=>({label:PROBLEMS[k].label,value:k}));
       return{ask:"Anything else you'd like the plan to help with?",help:"Optional. Pick **up to two**, and I'll lean towards products that also help with these.",multi:true,max:2,opts:others,none:"No, just that",pre:P.concerns.filter(c=>c!==PROB)}},
     apply:v=>{P.concerns=uniq([PROB,...v])},show:()=>P.concerns.filter(c=>c!==PROB).map(c=>PROBLEMS[c].label).join(", ")||"Nothing else"},
   concerns:{title:"Your skin",side:"Skin concerns",q:()=>({ask:"What's bothering your skin?",help:"Tap a concern and answer **one quick follow-up** inside it. You can pick **up to three**; the first is your **main concern**.",concerns:true}),
@@ -1754,7 +2036,7 @@ const STEP={
   preg:{title:"Safety",side:"Pregnancy caution",q:()=>({ask:"Should I be pregnancy-cautious?",help:"This only means I skip **retinoids and strong salicylic acid**. Your answer stays on this page.",
       opts:[{label:"Yes, be cautious",value:true},{label:"No",value:false},{label:"Prefer not to say",sub:"I'll stay cautious to be safe",value:null}]}),
     apply:v=>{P.pregnancy=v},show:()=>P.pregnancy===null?"Cautious (not answered)":P.pregnancy?"Yes":"No"},
-  safety:{title:"Safety check",side:"Safety check",q:()=>({ask:"Quick safety check",help:"Answer all four so **every product is safe for you**. Tap **None** where nothing applies.",safety:true}),
+  safety:{title:"Safety check",side:"Safety check",q:()=>({ask:"Quick safety check",help:`Answer all ${P.gender==="man"?"three":"four"} so **every product is safe for you**.`+" Tap **None** where nothing applies.",safety:true}),
     apply:v=>{STEP.avoid.apply(v.avoid);STEP.react.apply(PREF.noRet?uniq([...v.react,"retinoids"]):v.react);STEP.preg.apply(v.preg);P.redflags=v.sym;
       if(v.sym.length){PREF.escalate=true;PREF.gentle=true}else PREF.escalate=PREF.fuEscalate??!!PROBLEMS[PROB]?.follow.opts[FOLLOW_IDX]?.[2]?.escalate},
     show:()=>[STEP.avoid.show(),P.reactions.length?P.reactions.map(cap).join(", "):"",P.pregnancy===false?"":"Pregnancy-cautious",(P.redflags||[]).length?"Warning signs":""].filter(x=>x&&x!=="Nothing").join(" · ")||"No restrictions"},
@@ -1862,6 +2144,8 @@ const EMPATHY={
   redness:"Sensitive skin deserves kindness. I'll keep every pick <b>gentle and calming</b>.",
   "fine lines":"Fine lines are a natural part of your skin's story. We'll keep it <b>smooth, strong and well protected</b>.",
   "dark circles":"Let's help your eyes look <b>as rested</b> as you'd like them to feel.",
+  sunscreen:"Daily sunscreen is <b>the single best thing</b> you can do for your skin. Let's find one you'll actually enjoy wearing.",
+  makeup:"Finding <b>your exact shade</b> shouldn't be guesswork. I'll match it to your tone and undertone.",
 };
 let OPEN_SELFIE=false;
 /* ---------- a warm, personal line at the top of every question ---------- */
@@ -1875,7 +2159,10 @@ function stepGreeting(key){
     case"location":return PREF.escalate?`You're being really sensible about this${N}. <b>I'll keep everything gentle</b> while you get it checked.${matched?` ${matched} products have already passed your safety checks.`:""}`
       :`That was the most important part, and you did it beautifully${N}. ${matched?`<b>${matched} products</b> have already passed your safety checks. `:""}Now, where you live changes what your skin needs.`;
     case"skin":return`${left<=2?"You're so close":"More than halfway"}${N}! ${city?`I'm already matching textures to <b>${city}'s weather</b>. `:""}${left===2?"<b>Just two quick questions</b> and your plan is ready.":""}`;
-    case"tone":return`<b>Last one${N}</b>, and then I'll show you your plan. ${prob?`Your routine for ${esc(prob)} is almost ready`:"Your routine is almost ready"}, and every pick has been checked against what you told me.`;
+    case"about":return`Let's start with you${N}. <b>Two quick taps</b>, and I'll only ask what matters for what you're after.`;
+    case"follow":return P.goal==="makeup"?`Lovely${N}. Shade matching is my favourite part. First, <b>how you like it to look</b>.`:P.goal==="sunscreen"?`Good choice${N}. <b>Where you'll wear it</b> changes how strong and how light it should be.`:`You're doing great${N}.`;
+    case"tone":return`${left===1?`<b>Last one${N}</b>, and then I'll show you your plan.`:`<b>Nearly there${N}.</b> Just your shade, then your undertone.`} ${P.goal==="makeup"?"This is what your shade match is built on":prob?`Your routine for ${esc(prob)} is almost ready`:"Your routine is almost ready"}, and every pick has been checked against what you told me.`;
+    case"undertone":return`<b>Last one${N}</b>, and then I'll show you your plan. Undertone is what makes a shade look like <b>your skin</b> rather than sitting on top of it.`;
     default:return left===1?`<b>Last one${N}!</b> Your plan is ready right after this.`:`You're doing great${N}.`}
 }
 
@@ -1929,12 +2216,13 @@ function setName(n,startKey){
   $("welcome").hidden=true;$("advisor").hidden=false;thread.innerHTML="";CUR_BLOCK=null;
   if(startKey&&startKey!=="concerns"){STEPS=[startKey,...STEPS.filter(k=>k!==startKey)];if(startKey==="tone")OPEN_SELFIE=true}
   const d=dayPart();
-  botSay(n?`<p>${d.hello.replace("!","")}, <b>${esc(n)}</b>! Lovely to meet you. Tell me what's bothering your skin, and I'll put together <b>three products that work together</b>, then explain exactly why I chose each one.</p><p class="small muted">It takes about two minutes, and every pick is checked against what you tell me.</p>`
-          :`<p>${d.hello} No problem at all. ${startKey==="tone"?"Let's start with your skin tone, then I'll ask what's bothering your skin":startKey==="skin"?"Let's start with your skin type, then I'll ask what's bothering your skin":"Tell me what's bothering your skin"}, and I'll put together <b>three products that work together</b>, then explain exactly why I chose each one.</p><p class="small muted">It takes about two minutes, and every pick is checked against what you tell me.</p>`);
+  botSay(n?`<p>${d.hello.replace("!","")}, <b>${esc(n)}</b>! Lovely to meet you. Tell me a little about you and what you're looking for, and I'll pick <b>products that suit you</b>, then explain exactly why I chose each one.</p><p class="small muted">It takes about two minutes, and every pick is checked against what you tell me.</p>`
+          :`<p>${d.hello} No problem at all. ${startKey==="tone"?"Let's start with your skin tone, then I'll ask what's bothering your skin":startKey==="skin"?"Let's start with your skin type, then I'll ask what's bothering your skin":"Tell me a little about you"}, and I'll pick <b>products that suit you</b>, then explain exactly why I chose each one.</p><p class="small muted">It takes about two minutes, and every pick is checked against what you tell me.</p>`);
   updateTitle();next();saveState();
 }
 function updateTitle(){
-  $("advTitle").textContent=PROB?`${NAME?NAME+"'s":"Your"} plan for ${PROBLEMS[PROB].label.toLowerCase()}`:NAME?`Hi ${NAME}, let's find your three`:"Three products for your skin";
+  const who=NAME?NAME+"'s":"Your";
+  $("advTitle").textContent=P.goal==="sunscreen"?`${who} sunscreen match`:P.goal==="makeup"?`${who} base makeup shades`:PROB?`${who} plan for ${PROBLEMS[PROB].label.toLowerCase()}`:NAME?`Hi ${NAME}, let's find what suits you`:"Products picked for your skin";
 }
 /* ---------- thread helpers ---------- */
 function avatar(){return`<div class="av brandav" aria-hidden="true"><span class="brandmark"></span></div>`}
@@ -1966,13 +2254,31 @@ function ask(key){
   lockAll();const s=STEP[key],Q=s.q();const idx=STEPS.indexOf(key)+1;
   const box=document.createElement("div");box.className="q";box.dataset.step=key;
   box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">Q${idx} of ${STEPS.length} · ${esc(s.title)}${STEPS.length-idx===0?" · last one":""}</span><p class="qgreet" hidden></p><h3 class="qtitle">${esc(Q.ask)}</h3>${Q.help?`<p class="qhelp">${fmt(Q.help)}</p>`:""}</div></div>`;
-  const sl=PROB&&key!=="concerns"?shortlistPanel(key):null;SL_PANEL=sl;
-  box.appendChild(Q.location?locationWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():Q.safety?safetyWidget():Q.concerns?concernsWidget():optionsWidget(key,Q));
+  const sl=PROB&&key!=="concerns"&&key!=="about"?shortlistPanel(key):null;SL_PANEL=sl;
+  box.appendChild(Q.about?aboutWidget():Q.location?locationWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():Q.safety?safetyWidget():Q.concerns?concernsWidget():optionsWidget(key,Q));
   if(sl){box.classList.add("hassl");box.appendChild(sl)}else if(key==="concerns")SL_PREV=null;
   {const g=stepGreeting(key),el=box.querySelector(".qgreet");if(g&&el){el.innerHTML=`<span class="qgic">${SVG('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>')}</span><span>${g}</span>`;el.hidden=false}}
   const nav=document.createElement("div");nav.className="qnav";nav.innerHTML=`<button type="button" class="btn backcta">${SVG('<path d="M15 6l-6 6 6 6"/>')}Back</button><span class="qnav-step">Question ${idx} of ${STEPS.length}</span>`;
   nav.querySelector("button").onclick=goBack;box.appendChild(nav);
   newBlock(key).appendChild(box);progress();requestAnimationFrame(()=>thread.scrollTo({top:0}));
+}
+/* Q1: who it's for and what they're after; the rest of the quiz follows from this */
+function aboutWidget(){
+  const w=document.createElement("div");w.className="qbody safety about";
+  let gender=P.gender||null,goal=P.goal||null;
+  w.innerHTML=`<section class="sg" data-g="gender"><h4><span class="sn">1</span>You are</h4>
+      <div class="scs">${GENDERS.map(([v,l])=>`<label class="sc"><input type="radio" name="agender" value="${v}" ${gender===v?"checked":""}><span><b>${esc(l)}</b></span></label>`).join("")}</div>
+      <p class="small muted sgnote">Only used to skip questions that don't apply to you.</p></section>
+    <section class="sg" data-g="goal"><h4><span class="sn">2</span>What are you looking for?</h4>
+      <div class="opts goalopts">${Object.entries(GOALS).map(([k,g])=>`<button type="button" class="opt" data-goal="${k}" aria-pressed="${goal===k}"><i class="art goalic">${IC[g.ic]}</i><b>${esc(g.label)}</b><span>${esc(g.sub)}</span></button>`).join("")}</div></section>
+    <div class="qactions"><button type="button" class="btn primary" data-go disabled>Continue</button><span class="small muted" data-left></span></div>`;
+  const go=w.querySelector("[data-go]"),left=w.querySelector("[data-left]");
+  const update=()=>{go.disabled=!(gender&&goal);left.textContent=!gender&&!goal?"":!gender?"Pick one under \"You are\". \"Prefer not to say\" counts.":!goal?"Pick what you're looking for.":"";
+    w.querySelectorAll("[data-goal]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.goal===goal)))};
+  w.querySelectorAll('input[name="agender"]').forEach(r=>r.onchange=()=>{gender=r.value;update()});
+  w.querySelectorAll("[data-goal]").forEach(b=>b.onclick=()=>{goal=b.dataset.goal;update();if(gender)focusEl(go)});
+  go.onclick=()=>answer("about",{gender,goal},`${GENDERS.find(g=>g[0]===gender)[1]} · ${GOALS[goal].label}`);
+  update();return w;
 }
 function optionsWidget(key,Q){
   const w=document.createElement("div");w.className="qbody";
@@ -2000,7 +2306,7 @@ function afterNote(key){
     if(esc_)return[`<p>Because you mentioned <b>${esc(esc_[1][0].toLowerCase())}</b>, please have a dermatologist look at them, as they can scar and may need treatment I can't give. I'll still suggest a gentle, low-irritation plan for day-to-day care.</p>`,"escalate"];
     const more=P.concerns.slice(1).map(k=>PROBLEMS[k].label.toLowerCase());
     return more.length?[`<p class="small">I'll build the plan around <b>${esc(PROBLEMS[PROB].label.toLowerCase())}</b> and lean towards products that also help with <b>${esc(more.join(" and "))}</b>.</p>`]:null}
-  if(key==="problem")return[`<p>${nm("","," )} ${NAME?EMPATHY[PROB][0].toLowerCase()+EMPATHY[PROB].slice(1):EMPATHY[PROB]}</p><p class="small muted">A few quick questions so I can choose <b>the right three</b> for you.</p>`];
+  if(key==="problem")return[`<p>${nm("","," )} ${NAME?EMPATHY[PROB][0].toLowerCase()+EMPATHY[PROB].slice(1):EMPATHY[PROB]}</p><p class="small muted">A few quick questions so I can choose <b>the right ones</b> for you.</p>`];
   if(key==="safety"&&(P.redflags||[]).length)return[`<p><b>Please see a dermatologist soon${nm(", ")}.</b> ${esc(cap((P.redflags||[]).map(k=>(SYMPTOMS.find(x=>x[0]===k)||[,k])[1].toLowerCase()).join(", ")))} ${P.redflags.length>1?"are signs that need":"is a sign that needs"} a doctor to look at it, and can need treatment I can't give. Meanwhile I'll keep your plan gentle and low-irritation.</p>`,"escalate"];
   if(key==="preg")return[`Thank you${nm(", ")}. <b>That's the important safety part done.</b>`];
   if(key==="follow"&&PREF.escalate)return["<p>Deep, painful lumps are best looked at by a dermatologist, as they can scar and may need treatment I can't give. I'll still suggest a gentle, low-irritation plan for day-to-day care.</p>","escalate"];
@@ -2060,7 +2366,7 @@ function toneWidget(){
   area.addEventListener("pickscale",()=>choose());
   let failures=0;
 
-  const finish=(t,ut,label)=>{P.tone=t;P.undertone=ut||P.undertone||null;answer("tone",t,label)};
+  const finish=(t,ut,label)=>{P.tone=t;if(ut){P.undertone=ut;P.undertoneSource="selfie"}answer("tone",t,label)};
 
   /* 1. choose: scale or selfie */
   const choose=()=>{
@@ -2195,7 +2501,7 @@ function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
 
 /* ---------- your shade in base makeup: exact names from the shade library ---------- */
 function baseShadesHTML(){
-  if(!P.tone)return"";const ut=P.undertone||null,out=[];
+  if(!P.tone||!showBaseShades())return"";const ut=P.undertone||"neutral",out=[];
   for(const cat of["Foundation","BB / CC cream","Concealer","Compact powder"]){
     const cands=CAT.filter(p=>p.c===cat&&p.s&&p.s.length&&!p.sp&&check(p).ok&&(!P.budget||p.p<=P.budget*1.5));
     let best=null;for(const p of cands){const m=bestShade(p,P.tone,ut);if(m&&(!best||m.score<best.m.score))best={p,m}}
@@ -2203,10 +2509,15 @@ function baseShadesHTML(){
   if(!out.some(x=>x.best))return"";
   return`<div class="baseshades"><h4>Your shade in base makeup</h4><p class="small muted">Matched to skin tone ${P.tone} (${esc(TONE_NAME[P.tone])})${P.toneRead&&P.toneRead.lab&&P.toneRead.tone===P.tone?" using the colour measured from your selfie":""}. Not part of your three-step routine.</p>
     <ul>${out.map(({cat,best})=>best?`<li><span class="bsw" style="background:${best.m.hex}"></span><div><b>${esc(best.m.name)}</b><small>${esc(best.p.n)} · ${esc(cat)} · ${rupee(best.p.p)}</small></div></li>`:`<li class="none"><span class="bsw"></span><div><b>No close shade in this range</b><small>${esc(cat)} · I'd rather tell you than suggest the wrong one</small></div></li>`).join("")}</ul></div>`}
-/* ---------- building the 3-product plan ---------- */
+/* ---------- building the plan ---------- */
+const NUMW=["no","one","two","three","four","five"],numw=n=>NUMW[n]||String(n);
+// undertone "not sure" matches neutral shades, which suit the widest range
+const shadeFor=p=>P.tone?bestShade(p,P.tone,P.undertone||"neutral"):null;
+const shadeOK=p=>{const m=shadeFor(p);return!!(m&&m.good)};
 const hay=p=>p.n+" "+(p.a||"")+" "+(p.i||"");
 function slotScore(p,slot){
   let s=score(p,P);
+  if(slot.shade){const m=shadeFor(p);if(m)s-=m.score*2;if(PREF.finish&&p.fin===PREF.finish)s+=2}
   if(slot.con&&p.con.includes(slot.con))s+=4;
   for(const c of P.concerns)if(c!==PROB&&p.con.includes(c))s+=1;
   for(const[re,w]of[...(slot.boost||[]),...(PREF.boost||[])])if(re.test(hay(p)))s+=w;
@@ -2236,7 +2547,7 @@ function slotScore(p,slot){
   return s;
 }
 function rankSlot(slot,ctx){
-  return CAT.filter(p=>slot.cats.includes(p.c)&&check(p).ok&&!p.sp&&!ctx.used.has(p.id)&&!clash(p,ctx)&&!(P.excluded||[]).includes(p.id)&&!(P.shelf||[]).some(x=>x.id===p.id))
+  return CAT.filter(p=>slot.cats.includes(p.c)&&(!slot.shade||shadeOK(p))&&check(p).ok&&!p.sp&&!ctx.used.has(p.id)&&!clash(p,ctx)&&!(P.excluded||[]).includes(p.id)&&!(P.shelf||[]).some(x=>x.id===p.id))
     .map(p=>({p,s:slotScore(p,slot)})).sort((a,b)=>b.s-a.s||(a.p.p||0)-(b.p.p||0)||a.p.id.localeCompare(b.p.id)).map(x=>x.p);
 }
 function clash(p,ctx){return (ctx.ret&&(p.aha||p.bha||p.ret)&&p.c!=="Sunscreen")||((ctx.acid)&&p.ret)||(ctx.bp&&p.ret)}
@@ -2293,14 +2604,18 @@ function cardHTML(i,s){
     <div class="phead"><span class="stepn">${i+1}</span><div class="role">${esc(role)} <span class="when">· ${esc(s.slot.when)}</span></div><div class="price">${rupee(p.p)}</div></div>
     <div class="ptop"><div class="thumb">${IC[CAT_IC[p.c]||"dropper"]}</div><div style="min-width:0"><div class="brand">${esc(p.b)}</div><div class="nm">${esc(p.n.replace(p.b+" ",""))}</div><div class="cat">${esc(p.c)}</div></div></div>
     ${act.length?`<div class="keyact">${act.map(a=>`<span>${esc(a.name)}</span>`).join("")}${p.spf?`<span>SPF ${p.spf}${p.pa?" "+esc(p.pa):""}</span>`:""}</div>`:p.spf?`<div class="keyact"><span>SPF ${p.spf}${p.pa?" "+esc(p.pa):""}</span></div>`:""}
-    <p class="why1">${lineHTML(p,s.slot)}</p>
+    ${s.slot.shade?shadeLineHTML(p):""}<p class="why1">${lineHTML(p,s.slot)}</p>
     <div class="pfoot"><span class="small muted">${esc(p.sz||"")} · check availability</span>${s.list.length>1?`<button type="button" class="btn ghost swap" data-i="${i}">Show another</button>`:""}</div>
   </article>`;
 }
+function shadeLineHTML(p){const m=shadeFor(p);if(!m)return"";
+  return`<div class="shadeline"><span class="bsw" style="background:${esc(m.hex)}"></span><div><b>Your shade: ${esc(m.name)}</b><small>Tone ${m.depth} · ${esc(m.und||m.undertone||"")} undertone${m.cov?` · ${esc(m.cov)} coverage`:""}</small></div></div>`}
 function lineHTML(p,slot){let h=esc(oneLine(p,slot));const a=actives(p)[0];
   if(a)h=h.replace(esc(a.name),`<b>${esc(a.name)}</b>`);h=h.replace(/(SPF \d+)/,"<b>$1</b>");return h}
 function oneLine(p,slot){
   const a=actives(p)[0];const prob=PROBLEMS[PROB].label.toLowerCase();
+  if(slot&&slot.shade){const m=shadeFor(p);const fin=p.fin?`${p.fin} finish${PREF.finish===p.fin?", as you asked":""}`:"";
+    return`The closest match to your tone ${P.tone}${P.undertone?` and ${P.undertone} undertone`:""}${fin?`, with a ${fin}`:""}.`}
   if(p.c==="Sunscreen")return`Daily SPF ${p.spf||""} so your ${PROB==="pigmentation"||PROB==="tanning"?"spots and tan don't come back":"skin stays protected"}${humid()&&/matte|invisible|aqua/i.test(p.n)?", light enough for humid weather":""}.`;
   if(a)return`${a.name} ${a.does}.`;
   return`Chosen for ${prob} and your ${P.skin||""} skin.`;
@@ -2317,18 +2632,25 @@ function spReason(p){
   const helps=(p.con||[]).filter(c=>P.concerns.includes(c)).map(c=>PROBLEMS[c]?.label.toLowerCase()).filter(Boolean);
   return `${oneLine(p,slot)} ${helps.length?`It also targets ${helps.join(" and ")}`:`A good ${p.c.toLowerCase()} option for ${prob}`}${fits.length?`, and suits your answers: ${fits.join(", ")}`:""}. You could use it in place of your plan's ${p.c.toLowerCase()} step.`.replace(/\s+/g," ");
 }
+function planHeading(prob){
+  const n=PL.slots.length,lbl=esc(prob.label.toLowerCase());
+  if(PL.slots.every(s=>s.keep))return n===1?`You already have a good ${lbl}`:`You already have all ${numw(n)} steps for ${lbl}`;
+  if(P.goal==="sunscreen")return"Your sunscreen match";
+  if(P.goal==="makeup")return"Your base makeup, in your shade";
+  return`${cap(numw(n))} steps for ${lbl}`;
+}
 function renderPlan(){
   thread.querySelectorAll(".plan").forEach(r=>r.classList.add("old"));
   const box=document.createElement("div");box.className="plan";
   const exN=(PL.extras||[]).length;const total=PL.slots.reduce((t,s)=>t+(s.p?.p||0),0)+(PL.extras||[]).reduce((t,x)=>t+(x.p.p||0),0);const keptN=PL.slots.filter(s=>s.keep).length;const newN=PL.slots.filter(s=>s.p).length+exN;
   const prob=PROBLEMS[PROB];
   const applied=[P.avoidFrag&&"Fragrance-free",P.avoidEO&&"No essential oils",P.noClog&&"Won't clog pores",P.reactions.length&&"No "+P.reactions.join(", "),P.pregnancy!==false&&"Pregnancy-safe",P.skin&&cap(P.skin)+" skin",P.city&&(P.weather?`${P.city} weather, last 7 days`:`${P.city} climate`),P.budget&&`Each under ${rupee(P.budget)}`].filter(Boolean);
-  let h=`<div class="phero"><div class="eyebrow">${NAME?`${esc(NAME)}, your plan is ready`:"Your plan is ready"}</div><h3>${PL.slots.every(s=>s.keep)?`You already have all three steps for ${esc(prob.label.toLowerCase())}`:`Three steps for ${esc(prob.label.toLowerCase())}`}</h3><p class="lead">${SUB?`Made for what you described: ${esc(SUB.toLowerCase())}. `:""}Each product has one clear job, and together they take just a few minutes a day.</p>
+  let h=`<div class="phero"><div class="eyebrow">${NAME?`${esc(NAME)}, your plan is ready`:"Your plan is ready"}</div><h3>${planHeading(prob)}</h3><p class="lead">${SUB?`Made for what you described: ${esc(SUB.toLowerCase())}. `:""}${PL.slots.length===1?"Checked against every answer you gave me, with alternatives one tap away.":P.goal==="makeup"?"Each shade is matched to your skin tone and undertone, and every formula passed your safety checks.":"Each product has one clear job, and together they take just a few minutes a day."}</p>
     <div class="applied">${applied.map(x=>`<span class="chip ok">✓ ${esc(x)}</span>`).join("")}</div></div>
     ${tuneHTML()}
     <div class="pcards">${PL.slots.map((s,i)=>cardHTML(i,s)).join("")}</div>
     ${extrasHTML()}
-    <div class="total"><span>${!keptN&&!exN?"Total for all three":newN===0?"Nothing new to buy":`Total for ${newN===1?"the new product":`the ${newN} new products`}`}${keptN?`<small>${keptN===PL.slots.length?"You already have all three steps covered":`You're keeping ${keptN} from your routine`}${keptN&&!exN?". See the upgrade picks and combos below.":""}</small>`:""}</span><b>${rupee(total)}</b></div>${combosHTML()}${shareBarHTML()}${shelfPlanNote()}`;
+    <div class="total"><span>${!keptN&&!exN?(PL.slots.length===1?"Price":`Total for all ${numw(PL.slots.length)}`):newN===0?"Nothing new to buy":`Total for ${newN===1?"the new product":`the ${newN} new products`}`}${keptN?`<small>${keptN===PL.slots.length?"You already have all three steps covered":`You're keeping ${keptN} from your routine`}${keptN&&!exN?". See the upgrade picks and combos below.":""}</small>`:""}</span><b>${rupee(total)}</b></div>${combosHTML()}${shareBarHTML()}${shelfPlanNote()}`;
   // sponsored alternative (same checks, labelled, separate)
   const sp=CAT.filter(p=>p.sp&&PL.slots.some(s=>s.slot.cats.includes(p.c))&&check(p).ok&&!PL.ctx.used.has(p.id)&&!clash(p,PL.ctx))
     .map(p=>({p,s:slotScore(p,PL.slots.find(s=>s.slot.cats.includes(p.c)).slot)})).sort((a,b)=>b.s-a.s);
@@ -2341,14 +2663,16 @@ function renderPlan(){
   box.innerHTML=h;
   const nx=document.createElement("div");nx.className="next";
   const add=(label,fn,primary)=>{const b=document.createElement("button");b.type="button";b.className="btn"+(primary?" primary":"");b.textContent=label;b.onclick=fn;nx.appendChild(b)};
-  add("Plan for another concern",()=>{meSay("Plan for another concern");DONE.delete("concerns");P.concerns=[];P.concernFU={};PROB=null;botSay(`Of course${nm(", ")}. I'll keep your safety, location and skin answers, so this one is quicker.`);next()},true);
+  if(P.goal&&P.goal!=="routine")add("Look for something else",()=>{meSay("Look for something else");DONE.delete("about");botSay(`Sure${nm(", ")}. I'll keep your safety answers.`);next()},true);
+  else add("Plan for another concern",()=>{meSay("Plan for another concern");DONE.delete("concerns");P.concerns=[];P.concernFU={};PROB=null;botSay(`Of course${nm(", ")}. I'll keep your safety, location and skin answers, so this one is quicker.`);next()},true);
   add("How's it going? Check in",()=>openCheckin());
   add("Check a product",()=>{$("askInput").focus();$("askInput").placeholder="Type a product name or code, e.g. P1025"});
   box.appendChild(nx);
+  const ac=accountCard();if(ac)box.insertBefore(ac,nx);
   box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));wireShare(box);wireUpgrades(box);wireTune(box);
   box.querySelectorAll(".relax").forEach(b=>b.onclick=()=>{const nb=b.dataset.nb==="none"?null:+b.dataset.nb;P.budget=nb;botSay(`Done${nm(", ")}. I've raised your budget to ${nb?`${rupee(nb)} per product`:"no limit"} and rebuilt your plan. Every product still passes all your other checks.`);buildPlan();saveState()});
   box.querySelectorAll(".newone").forEach(b=>b.onclick=()=>{const s=PL.slots[+b.dataset.i];const p=s.list.find(x=>!PL.ctx.used.has(x.id)&&!clash(x,PL.ctx));if(!p)return;s.keep=null;s.p=p;s.idx=s.list.indexOf(p);PL.ctx.used.add(p.id);renderPlan();saveState()});
-  newBlock("plan").appendChild(box);stepNow=null;renderSide();saveState();requestAnimationFrame(()=>box.scrollIntoView({block:"start",behavior:"smooth"}));
+  newBlock("plan").appendChild(box);stepNow=null;renderSide();saveState();afterPlanRendered();requestAnimationFrame(()=>box.scrollIntoView({block:"start",behavior:"smooth"}));
 }
 function shelfPlanNote(){
   const sh=PL.shelf||[];if(!sh.length)return"";
@@ -2401,7 +2725,7 @@ function explainHTML(){
   let h=`<section class="explain" aria-label="Why these products"><div class="eyebrow">Why I recommended these</div><h3>How this plan fits you</h3>
     <p class="exlede">${NAME?`${esc(NAME)}, here's`:"Here's"} what you told me, and what I did with it.</p>
     <div class="told">${told().map(([k,v])=>`<div><span>${esc(k)}</span><b>${v}</b></div>`).join("")}</div>
-    <p class="exlede">So I built a <b>three-step plan</b> where each product has one clear job: ${PL.slots.filter(s=>s.p).map(s=>`<b>${esc(s.slot.role.toLowerCase())}</b>`).join(", then ")}.</p>`;
+    <p class="exlede">So I built a <b>${PL.slots.length===1?"one-product pick":numw(PL.slots.length)+"-step plan"}</b>${PL.slots.length===1?":":" where each product has one clear job:"} ${PL.slots.filter(s=>s.p).map(s=>`<b>${esc(s.slot.role.toLowerCase())}</b>`).join(", then ")}.</p>`;
   PL.slots.forEach((s,i)=>{if(!s.p)return;const p=s.p,act=actives(p);
     const fit=[];
     if(P.skin&&p.st.includes(P.skin))fit.push(`made for ${P.skin} skin${p.st.length<4?" specifically":""}`);
@@ -2434,7 +2758,7 @@ function explainHTML(){
 }
 
 /* ---------- side panel ---------- */
-const SHORT={concerns:"Concerns",safety:"Safety",shelf:"Routine",problem:"Concern",follow:"Details",extra:"Also",avoid:"Avoid",react:"Reactions",preg:"Pregnancy",location:"Location",skin:"Skin type",tone:"Skin tone",budget:"Budget"};
+const SHORT={about:"About you",undertone:"Undertone",concerns:"Concerns",safety:"Safety",shelf:"Routine",problem:"Concern",follow:"Details",extra:"Also",avoid:"Avoid",react:"Reactions",preg:"Pregnancy",location:"Location",skin:"Skin type",tone:"Skin tone",budget:"Budget"};
 function renderSide(){
   const j=$("journey");if(!j)return;j.innerHTML="";
   const ol=document.createElement("ol");
@@ -2463,7 +2787,8 @@ function goBack(){
   CUR_BLOCK=null;next();saveState();
 }
 if($("newBtn"))$("newBtn").onclick=()=>{if($("advisor").hidden){$("nameInput").focus();return}meSay("Start over");STEPS=[...DEFAULT_STEPS];P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;lockAll();botSay(NAME?`Fresh start, ${esc(NAME)}. Let's go again.`:"Fresh start. Let's go again.");next();return;botSay("Okay, starting fresh.");next()};
-$("deleteBtn").onclick=()=>{clearState();META={planAt:null,planProb:null,checks:[]};FOLLOW_IDX=null;P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;NAME=null;nameAsked=false;STEPS=[...DEFAULT_STEPS];lockAll();toggleSide(false);botSay("Done. I've deleted all your answers.");next()};
+function wipeLocal(msg){clearState();META={planAt:null,planProb:null,checks:[]};FOLLOW_IDX=null;P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;NAME=null;nameAsked=false;STEPS=[...DEFAULT_STEPS];LAST_PLAN=null;lockAll();toggleSide(false);botSay(msg||"Done. I've deleted all your answers.");next()}
+$("deleteBtn").onclick=()=>confirmDelete();
 
 /* =====================================================================
    3) SEASONS — what the season is in the user's city, and an opt-in nudge
@@ -2742,7 +3067,7 @@ function concernsWidget(){
   let order=TYPED_CONCERNS?[...TYPED_CONCERNS]:(P.concerns||[]).filter(k=>PROBLEMS[k]);
   const fu=Object.assign({},P.concernFU||{});for(const k of Object.keys(fu))if(!order.includes(k))delete fu[k];TYPED_CONCERNS=null;
   const open=new Set(order.filter(k=>fu[k]==null));
-  w.innerHTML=`<div class="cgrid">${Object.entries(PROBLEMS).map(([k,v])=>`
+  w.innerHTML=`<div class="cgrid">${Object.entries(PROBLEMS).filter(([k])=>!PROBLEMS[k].goal).map(([k,v])=>`
     <div class="cc" data-k="${k}">
       <button type="button" class="cchead" aria-pressed="false"><i class="art">${artFor("problem",{value:k})||""}</i><span class="cct"><b>${esc(v.label)}</b><small>${esc(v.sub)}</small></span><em class="cbadge" hidden></em></button>
       <div class="cfu" hidden>
@@ -2756,7 +3081,7 @@ function concernsWidget(){
   const go=w.querySelector("[data-go]"),left=w.querySelector("[data-left]"),cmax=w.querySelector(".cmax");
   const card=k=>w.querySelector(`.cc[data-k="${k}"]`);
   const paint=()=>{
-    for(const [k,v] of Object.entries(PROBLEMS)){const c=card(k),i=order.indexOf(k),on=i>=0;
+    for(const [k,v] of Object.entries(PROBLEMS).filter(([k])=>!PROBLEMS[k].goal)){const c=card(k),i=order.indexOf(k),on=i>=0;
       c.classList.toggle("on",on);c.style.order=on?String(i-10):"";c.querySelector(".cchead").setAttribute("aria-pressed",String(on));
       const b=c.querySelector(".cbadge");b.hidden=!on;b.textContent=i===0?"Main concern":"Also";b.classList.toggle("main",i===0);
       c.querySelector(".cfu").hidden=!on;c.querySelector(".cmain").hidden=i<=0;
@@ -2783,7 +3108,7 @@ function concernsWidget(){
   paint();return w;
 }
 function safetyWidget(){
-  const w=document.createElement("div");w.className="qbody safety";
+  const w=document.createElement("div");w.className="qbody safety";const askPreg=P.gender!=="man";
   const av=STEP.avoid.q(),pre={avoid:new Set(av.pre),react:new Set(P.reactions),sym:new Set(P.redflags||[])};
   const from={sens:PREF.forceSens?"From your earlier answer":"",frag:PREF.forceFrag?"From your earlier answer":"",retinoids:PREF.noRet?"From your earlier answer":""};
   const chip=(sec,v,l,sub)=>`<label class="sc"><input type="checkbox" data-sec="${sec}" value="${v}" ${pre[sec].has(v)?"checked":""}><span><b>${esc(l)}</b>${sub?`<small>${esc(sub)}</small>`:""}</span></label>`;
@@ -2795,10 +3120,10 @@ function safetyWidget(){
    <section class="sg" data-g="react"><h4><span class="sn">2</span>Ever reacted to any of these?</h4>
      <div class="scs">${REACT_TOP.map(r=>chip("react",r,cap(r),from[r])).join("")}<span class="more" hidden>${rest.map(r=>chip("react",r,cap(r),"")).join("")}</span>
        <button type="button" class="btn ghost smore">+ ${rest.length} more</button>${none("react")}</div></section>
-   <section class="sg" data-g="preg"><h4><span class="sn">3</span>Should I be pregnancy-cautious?</h4>
+   ${askPreg?`<section class="sg" data-g="preg"><h4><span class="sn">3</span>Should I be pregnancy-cautious?</h4>
      <div class="scs">${[["true","Yes, be cautious",""],["false","No",""],["null","Prefer not to say","I'll stay cautious"]].map(([v,l,s])=>`<label class="sc"><input type="radio" name="spreg" data-sec="preg" value="${v}" ${DONE.has("safety")&&String(P.pregnancy)===v?"checked":""}><span><b>${l}</b>${s?`<small>${s}</small>`:""}</span></label>`).join("")}</div>
-     <p class="small muted sgnote">This only means I skip retinoids and strong salicylic acid.</p></section>
-   <section class="sg" data-g="sym"><h4><span class="sn">4</span>Is any of this happening right now?</h4>
+     <p class="small muted sgnote">This only means I skip retinoids and strong salicylic acid.</p></section>`:""}
+   <section class="sg" data-g="sym"><h4><span class="sn">${askPreg?4:3}</span>Is any of this happening right now?</h4>
      <div class="scs">${SYMPTOMS.map(([v,l])=>chip("sym",v,l,"")).join("")}${none("sym")}</div>
      <div class="notice escalate symnote" hidden><b>Please see a dermatologist soon.</b> These signs need a doctor to look at them, and can need treatment I can't give. I'll keep your plan gentle in the meantime.</div></section>
    <div class="safesum" aria-live="polite"></div>
@@ -2811,10 +3136,10 @@ function safetyWidget(){
   const go=w.querySelector("[data-go]"),left=w.querySelector("[data-left]"),sum=w.querySelector(".safesum"),symnote=w.querySelector(".symnote");
   const NAMES={avoid:"what to avoid",react:"past reactions",preg:"pregnancy",sym:"warning signs"};
   const update=()=>{
-    const miss=["avoid","react","preg","sym"].filter(s=>!answered(s));
+    const miss=["avoid","react",...(askPreg?["preg"]:[]),"sym"].filter(s=>!answered(s));
     w.querySelectorAll(".sg").forEach(g=>g.classList.toggle("todo",miss.includes(g.dataset.g)&&g.dataset.touched==="1"));
     go.disabled=!!miss.length;left.textContent=miss.length?`Still to answer: ${miss.map(m=>NAMES[m]).join(", ")}. "None" counts.`:"";
-    const a=vals("avoid"),r=vals("react"),pg=w.querySelector('input[name="spreg"]:checked')?.value,sy=vals("sym");
+    const a=vals("avoid"),r=vals("react"),pg=askPreg?w.querySelector('input[name="spreg"]:checked')?.value:"false",sy=vals("sym");
     const preg=pg==="true"||pg==="null";const skip=[a.includes("frag")&&"fragrance",a.includes("eo")&&"essential oils",a.includes("pores")&&"pore-clogging formulas",...r.filter(x=>!(preg&&(x==="retinoids"||x==="salicylic acid"))),preg&&"retinoids and strong salicylic acid"].filter(Boolean);
     sum.innerHTML=skip.length||a.includes("sens")?`${SVG('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>')}<span>I'll skip <b>${esc(uniq(skip).join(", ")||"nothing extra")}</b>${a.includes("sens")?" and keep everything <b>gentle</b>":""}.</span>`:"";
     symnote.hidden=!sy.length;
@@ -2826,7 +3151,7 @@ function safetyWidget(){
     if(sec!=="preg"){if(x.value==="__none"&&x.checked)w.querySelectorAll(`input[data-sec="${sec}"]`).forEach(y=>{if(y!==x)y.checked=false});
       else if(x.checked)w.querySelector(`input[data-sec="${sec}"][value="__none"]`).checked=false}
     update()});
-  go.onclick=()=>{const pg=w.querySelector('input[name="spreg"]:checked').value;
+  go.onclick=()=>{const pg=askPreg?w.querySelector('input[name="spreg"]:checked').value:"false";
     const v={avoid:vals("avoid"),react:vals("react"),preg:pg==="true"?true:pg==="false"?false:null,sym:vals("sym")};
     const bits=[v.avoid.length?`${v.avoid.length} to avoid`:null,v.react.length?`${v.react.length} reaction${v.react.length>1?"s":""}`:null,v.preg!==false?"pregnancy-cautious":null,v.sym.length?"warning signs":null].filter(Boolean);
     w.querySelectorAll(".sg").forEach(g=>g.dataset.touched="1");answer("safety",v,bits.join(", ")||"No restrictions")};
@@ -3078,9 +3403,10 @@ let FOLLOW_IDX=null,RESTORE_IDS=null;
 let META={planAt:null,planProb:null,checks:[]};
 function store(){try{return window.localStorage}catch{return null}}
 function saveState(){
-  const ls=store();if(!ls)return;
-  try{ls.setItem(STORE_KEY,JSON.stringify({v:1,NAME,PROB,SUB,FOLLOW_IDX,P,DONE:[...DONE],STEPS,
-    planIds:PL&&!stepNow?PL.slots.map(s=>s.keep?"keep":s.p?.id||null):null,META,updated:Date.now()}))}catch{}
+  const st={v:1,NAME,PROB,SUB,FOLLOW_IDX,P,DONE:[...DONE],STEPS,
+    planIds:PL&&!stepNow?PL.slots.map(s=>s.keep?"keep":s.p?.id||null):null,META,updated:Date.now()};
+  const ls=store();if(ls)try{ls.setItem(STORE_KEY,JSON.stringify(st))}catch{}
+  syncToAccount(st);
 }
 function loadState(){const ls=store();if(!ls)return null;try{const d=JSON.parse(ls.getItem(STORE_KEY)||"null");return d&&d.v===1&&d.NAME!==undefined?d:null}catch{return null}}
 function clearState(){const ls=store();if(ls)try{ls.removeItem(STORE_KEY)}catch{}}
@@ -3091,20 +3417,28 @@ function dueCheck(meta){
   if(!meta||!meta.planAt)return null;const d=daysSince(meta.planAt),done=new Set((meta.checks||[]).map(c=>c.stage));
   if(d>=14&&!done.has("week2"))return"week2";if(d>=3&&!done.has("day3"))return"day3";return null;
 }
+// saves from before Q1 existed were all skincare routines: treat them as such, without asking again
+function migrateAbout(p,done){
+  if(p.goal||!done.size)return;
+  p.goal="routine";p.gender=p.gender||"unsaid";done.add("about");
+  if(done.has("tone"))done.add("undertone");
+}
 function restoreState(d){
   NAME=d.NAME;nameAsked=true;PROB=d.PROB;SUB=d.SUB;FOLLOW_IDX=d.FOLLOW_IDX;PREF={boost:[]};
   if(PROB&&FOLLOW_IDX!=null&&PROBLEMS[PROB]?.follow.opts[FOLLOW_IDX])STEP.follow.apply(FOLLOW_IDX);
   P=Object.assign(emptyProfile(),d.P||{});DONE=new Set(d.DONE||[]);
   if(!DONE.has("concerns")&&DONE.has("problem")&&DONE.has("follow")&&PROB&&FOLLOW_IDX!=null){DONE.add("concerns");P.concerns=[PROB];P.concernFU={[PROB]:FOLLOW_IDX}}  // saves from the older 3-step version
   if(DONE.has("concerns")&&P.concernFU&&PROB)STEP.concerns.apply({main:PROB,list:P.concerns||[PROB],fu:P.concernFU});
-  STEPS=[...DEFAULT_STEPS];if(DONE.has("avoid")&&DONE.has("react")&&DONE.has("preg"))DONE.add("safety");
+  if(DONE.has("avoid")&&DONE.has("react")&&DONE.has("preg"))DONE.add("safety");
+  migrateAbout(P,DONE);STEPS=stepsFor(P.goal,P.gender);
   META=Object.assign({planAt:null,planProb:null,checks:[]},d.META||{});RESTORE_IDS=d.planIds||null;
 }
 function renderResume(){
   const box=$("resume");if(!box)return;const d=loadState();
   if(!d||!d.NAME||!(d.DONE||[]).length){box.hidden=true;box.innerHTML="";return}
-  const steps=DEFAULT_STEPS,done=steps.filter(k=>(d.DONE||[]).includes(k)).length,finished=done>=steps.length&&d.PROB;
-  const nextIdx=steps.findIndex(k=>!(d.DONE||[]).includes(k))+1;const prob=d.PROB&&PROBLEMS[d.PROB]?PROBLEMS[d.PROB].label.toLowerCase():null;
+  const dp=Object.assign({},d.P||{}),dd=new Set(d.DONE||[]);migrateAbout(dp,dd);
+  const steps=stepsFor(dp.goal,dp.gender),done=steps.filter(k=>dd.has(k)).length,finished=done>=steps.length&&d.PROB;
+  const nextIdx=steps.findIndex(k=>!dd.has(k))+1;const prob=d.PROB&&PROBLEMS[d.PROB]?PROBLEMS[d.PROB].label.toLowerCase():null;
   const due=finished?dueCheck(d.META):null;
   const sNow=finished&&d.P?.seasonAlert&&d.P?.state?seasonFor(d.P.state,d.P.climate):null,sChanged=sNow&&d.META?.planSeason&&sNow.key!==d.META.planSeason;
   box.hidden=false;
@@ -3223,6 +3557,7 @@ function applyCheckin(res,stage){
     else if(v==="notyet")notes.push(`<li><b>${esc(p.n)}</b>: start it when you're ready, one new product every few days.</li>`);
   }
   META.checks=[...(META.checks||[]),{stage,at:Date.now(),res:Object.fromEntries(Object.entries(res).map(([i,v])=>[PL.slots[+i].p?.id||i,v]))}];
+  checkinSaved(stage,META.checks[META.checks.length-1].res,avoidNew);
   const keepIds=PL.slots.map(s=>s.keep?"keep":s.p?.id||null);const beforeKeep=PL.slots.map(s=>s.keep);
   for(const sw of swapped)keepIds[sw.i]=null;
   RESTORE_IDS=keepIds;
@@ -3252,7 +3587,7 @@ function handleTyped(text){
   if(G.rx.test(t)){botSay("I can't advise on prescription treatments or medicines; a dermatologist can tell you if one is right for you. I can help with products from our range.","hold");return refocus()}
   if(G.fair.test(t)){botSay("I don't recommend products to change your skin tone; every tone deserves good skincare. If dark spots or tanning bother you, pick those as your concern and I'll build a plan.","hold");return refocus()}
   if(G.guarantee.test(t)&&!/\bP1\d{3}\b/.test(t)){botSay("I can't promise results; skin responds differently from person to person. I'll tell you what most people can expect and how long it usually takes.");return refocus()}
-  if(G.del.test(t)){$("deleteBtn").click();return}
+  if(G.del.test(t)){confirmDelete();return refocus()}   // always ask: "remove tan… photo" also matches
   const p=findProduct(t);if(p){productCheck(p);return refocus()}
   const slots=parseSlots(t);
   if(stepNow==="concerns"&&slots.concerns&&slots.concerns.length){const cs=uniq(slots.concerns.filter(x=>PROBLEMS[x])).slice(0,MAX_CONCERNS);if(cs.length){TYPED_CONCERNS=cs;botSay(`I've ticked <b>${esc(cs.map(k=>PROBLEMS[k].label.toLowerCase()).join(" and "))}</b>. Answer the quick follow-up inside ${cs.length>1?"each":"it"} and tap Continue.`);return ask("concerns")}}
@@ -3267,6 +3602,160 @@ function refocus(){const q=thread.querySelector(".q:not(.answered)");if(q){threa
 function findCity(t){const low=t.toLowerCase();for(const[st,s]of Object.entries(INDIA))for(const c of Object.keys(s.c))if(new RegExp("\\b"+c.toLowerCase().replace(/[()]/g,"")+"\\b").test(low))return{state:st,city:c,climate:s.c[c]||s.d};return null}
 $("askForm").addEventListener("submit",e=>{e.preventDefault();const v=$("askInput").value;$("askInput").value="";handleTyped(v.slice(0,400))});
 
+/* =====================================================================
+   ACCOUNT + DATABASE (src/db.js). All of this is skipped when no database
+   is configured: the app then runs exactly as before, on this device only.
+   ===================================================================== */
+let LAST_PLAN=null,ACCT_SENT=null;const SYNCED_REACTIONS=new Set();
+const SENSITIVE_RULES=/^(A\d|B3|B4)$/;   // pregnancy and reaction rules never go into analytics
+function syncToAccount(st){
+  if(!DB.enabled||!DB.user())return;
+  DB.pushState(st,NAME);syncReactions();
+}
+function syncReactions(){
+  if(!DB.consented())return;
+  const fresh=(P.reactions||[]).filter(r=>!SYNCED_REACTIONS.has(r));
+  if(fresh.length){fresh.forEach(r=>SYNCED_REACTIONS.add(r));DB.saveReactions(fresh,"profile")}
+}
+function savePlanToAccount(){
+  if(DB.consented()&&PL&&META.planAt)DB.savePlan({madeAt:META.planAt,concern:PROB,productIds:PL.slots.map(s=>s.keep?"keep":s.p?.id||"none"),extras:META.extraIds||[]});
+}
+function afterPlanRendered(){
+  if(!DB.enabled||!PL)return;
+  savePlanToAccount();
+  const ids=PL.slots.map(s=>s.keep?"keep":s.p?.id||null),key=META.planAt||0,shelf=(P.shelf||[]).length,budget=P.budget??null;
+  if(!LAST_PLAN||LAST_PLAN.key!==key){
+    const R=removedFor(uniq(PL.slots.flatMap(s=>s.slot.cats)));
+    const counts=Object.fromEntries(Object.entries(R.c).filter(([k])=>!SENSITIVE_RULES.test(k)));
+    DB.track("plan_shown",{concern:PROB,skin:P.skin||null,climate:P.climate||null,budget,products:ids,pool:R.n});
+    if(Object.keys(counts).length)DB.track("set_aside",{concern:PROB,counts});
+  }else if(ids.join()!==LAST_PLAN.ids.join()){
+    const tuned=budget!==LAST_PLAN.budget||shelf!==LAST_PLAN.shelf;
+    DB.track(tuned?"plan_tuned":"product_swapped",tuned?{concern:PROB,budget,products:ids}
+      :{concern:PROB,changes:PL.slots.map((s,i)=>({slot:s.slot.cats[0],from:LAST_PLAN.ids[i],to:ids[i]})).filter(c=>c.from!==c.to)});
+  }
+  LAST_PLAN={key,ids,budget,shelf};
+}
+function checkinSaved(stage,results,newReactions){
+  if(!DB.enabled)return;
+  DB.track("checkin_saved",{stage,results});
+  if(DB.consented()){
+    DB.saveCheckin({stage,results,planMadeAt:META.planAt});
+    if(newReactions?.length){newReactions.forEach(r=>SYNCED_REACTIONS.add(r));DB.saveReactions(newReactions,"checkin")}
+  }
+}
+const CONSENT_TEXT="I agree to Aaina storing my answers, plans and check-ins in my account, including pregnancy status and reactions if I've shared them. My selfie is never uploaded. I can delete everything at any time.";
+function accountCard(){
+  if(!DB.enabled)return null;
+  const u=DB.user(),box=document.createElement("div");box.className="acct";
+  if(u&&DB.consented()){
+    box.innerHTML=`<div class="acct-row"><span class="acct-ic">${SVG('<path d="M5 12l4 4 10-10"/>')}</span><div class="acct-tx"><b>Saved to your account</b><span>${esc(u.email||"")}. Your plan and check-ins are there on any device you sign in on.</span></div><button type="button" class="link small" data-out>Sign out</button></div>`;
+  }else if(!u&&ACCT_SENT){
+    box.innerHTML=`<div class="acct-row"><span class="acct-ic">${SVG('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>')}</span><div class="acct-tx"><b>Check your inbox</b><span>I've emailed a sign-in link to <b>${esc(ACCT_SENT)}</b>. Open it on this device and your plan will be saved to your account.</span></div><button type="button" class="link small" data-again>Use another email</button></div>`;
+  }else{
+    box.innerHTML=`<div class="acct-tx"><b>${u?"Save this plan to your account":"Keep your plan on any device"}</b><span>${u?`Signed in as ${esc(u.email||"")}.`:"I'll email you a sign-in link. No password."}</span></div>
+      ${u?"":`<input type="email" class="acct-email" placeholder="you@example.com" autocomplete="email" aria-label="Email address" maxlength="120">`}
+      <label class="agree"><input type="checkbox" data-consent> <span>${CONSENT_TEXT}</span></label>
+      <div class="acct-act"><button type="button" class="btn primary" data-go disabled>${u?"Save to my account":"Email me a sign-in link"}</button>${u?`<button type="button" class="link small" data-out>Sign out</button>`:""}</div>
+      <p class="acct-err" data-err role="alert" hidden></p>`;
+  }
+  const $$=s=>box.querySelector(s),err=m=>{const e=$$("[data-err]");if(e){e.hidden=!m;e.textContent=m||""}};
+  const em=$$(".acct-email"),cb=$$("[data-consent]"),go=$$("[data-go]");
+  const ready=()=>{if(go)go.disabled=!(cb?.checked&&(!em||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim())))};
+  cb?.addEventListener("change",ready);em?.addEventListener("input",()=>{err("");ready()});
+  em?.addEventListener("keydown",e=>{if(e.key==="Enter"&&go&&!go.disabled){e.preventDefault();go.click()}});
+  if(go)go.onclick=async()=>{
+    go.disabled=true;err("");DB.setPendingConsent(true);
+    if(u){go.textContent="Saving…";saveState();await DB.flush();
+      if(DB.consented()){savePlanToAccount();syncReactions();refreshAccountCards()}
+      else{err("I couldn't save to your account just now. Your plan is still safe on this device; please try again.");go.textContent="Save to my account";go.disabled=false}
+      return}
+    go.textContent="Sending…";saveState();const r=await DB.sendLink(em.value);
+    if(r.ok){ACCT_SENT=em.value.trim();refreshAccountCards()}
+    else{DB.setPendingConsent(false);err(r.error);go.textContent="Email me a sign-in link";ready()}
+  };
+  const out=$$("[data-out]");if(out)out.onclick=async()=>{out.disabled=true;await DB.flush();await DB.signOut();ACCT_SENT=null;
+    botSay("You're signed out. Your answers are still saved on this device; use <b>Delete my answers</b> at the bottom to remove them here too.");refreshAccountCards()};
+  const again=$$("[data-again]");if(again)again.onclick=()=>{ACCT_SENT=null;DB.setPendingConsent(false);refreshAccountCards()};
+  return box;
+}
+function refreshAccountCards(){
+  thread.querySelectorAll(".plan:not(.old) .acct").forEach(old=>{const n=accountCard();if(n)old.replaceWith(n);else old.remove()});
+  renderAcctLine();
+}
+function acctNotice(msg){
+  if(!$("advisor").hidden){botSay(msg);return}
+  const n=$("acctNote");if(n){n.hidden=false;n.innerHTML=msg}
+}
+// welcome page: who is signed in, or a way back in on a new device
+function renderAcctLine(){
+  const el=$("acctLine");if(!el)return;
+  if(!DB.enabled){el.hidden=true;return}
+  const u=DB.user();el.hidden=false;
+  if(u){el.innerHTML=`<span>Signed in as <b>${esc(u.email||"")}</b>${DB.consented()?"":" (nothing saved to your account yet)"}</span><button type="button" class="link small" data-wout>Sign out</button>`;
+    el.querySelector("[data-wout]").onclick=async()=>{await DB.flush();await DB.signOut();renderAcctLine()};return}
+  if(ACCT_SENT){el.innerHTML=`<span>Sign-in link sent to <b>${esc(ACCT_SENT)}</b>. Open it on this device.</span>`;return}
+  el.innerHTML=`<span>Saved a plan before?</span><button type="button" class="link small" data-win>Sign in with email</button>`;
+  el.querySelector("[data-win]").onclick=()=>{
+    el.innerHTML=`<input type="email" class="acct-email" placeholder="you@example.com" autocomplete="email" aria-label="Email address" maxlength="120"><button type="button" class="btn" data-wsend>Email me a link</button><span class="acct-err" data-werr role="alert" hidden></span>`;
+    const em=el.querySelector("input"),b=el.querySelector("[data-wsend]"),er=el.querySelector("[data-werr]");em.focus();
+    const send=async()=>{b.disabled=true;b.textContent="Sending…";const r=await DB.sendLink(em.value);   // signing in alone stores nothing new
+      if(r.ok){ACCT_SENT=em.value.trim();renderAcctLine()}else{er.hidden=false;er.textContent=r.error;b.disabled=false;b.textContent="Email me a link"}};
+    b.onclick=send;em.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();send()}});
+  };
+}
+function confirmDelete(){
+  const u=DB.enabled?DB.user():null,inChat=!$("advisor").hidden;
+  const m=document.createElement("div");m.className="exitm";m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");m.setAttribute("aria-labelledby","delT");
+  m.innerHTML=`<div class="exbox"><h3 id="delT">Delete your answers?</h3>
+    <p>${u?`This deletes everything on this device <b>and your Aaina account</b> (${esc(u.email||"")}): saved answers, plans, check-ins and reactions.`:"This deletes your answers, plan and check-ins from this device."} It can't be undone.</p>
+    <p class="acct-err" data-err role="alert" hidden></p>
+    <div class="qactions"><button type="button" class="btn danger" data-yes>${u?"Delete everything":"Delete my answers"}</button><button type="button" class="btn ghost" data-no>Keep them</button></div></div>`;
+  document.body.appendChild(m);
+  const close=()=>{m.remove();document.removeEventListener("keydown",onKey)};const onKey=e=>{if(e.key==="Escape")close()};document.addEventListener("keydown",onKey);
+  m.addEventListener("click",e=>{if(e.target===m)close()});
+  m.querySelector("[data-no]").onclick=()=>{close();if(inChat)botSay("No problem, I haven't deleted anything.")};
+  m.querySelector("[data-yes]").onclick=async e=>{
+    const b=e.currentTarget;b.disabled=true;
+    if(u){b.textContent="Deleting…";const r=await DB.deleteAll();
+      if(!r.ok){const er=m.querySelector("[data-err]");er.hidden=false;er.textContent=r.error;b.disabled=false;b.textContent="Try again";return}}
+    close();SYNCED_REACTIONS.clear();ACCT_SENT=null;DB.setPendingConsent(false);
+    wipeLocal(u?"Done. I've deleted your answers from this device and your Aaina account.":undefined);renderAcctLine();
+  };
+  m.querySelector("[data-no]").focus();
+}
+async function dbBoot(){
+  if(!DB.enabled)return;
+  DB.onChange(refreshAccountCards);
+  // a newer catalogue in the database replaces the bundled one, but only before
+  // anyone has started, so a plan never changes under someone's feet
+  const cat=DB.fetchCatalogue(CAT_VERSION).then(c=>{
+    if(c&&!$("welcome").hidden&&!PL&&replaceCatalogue(c.list))DB.track("catalogue_refreshed",{version:c.version,products:c.list.length});
+  }).catch(()=>{});
+  const r=await DB.init();
+  if(r.error)acctNotice(esc(r.error));
+  if(DB.user()){
+    const saved=loadState(),local=saved&&(saved.DONE||[]).length?saved:null;   // an untouched local state never beats a saved plan
+    const row=r.profile,idle=!$("welcome").hidden&&!PL;
+    if(row){
+      (row.state?.P?.reactions||[]).forEach(x=>SYNCED_REACTIONS.add(x));
+      const remote=row.state;
+      if(remote&&remote.v===1&&remote.NAME!==undefined&&(!local||(remote.updated||0)>(local.updated||0))){
+        if(idle){try{store()?.setItem(STORE_KEY,JSON.stringify(remote))}catch{}renderResume();if(r.signedIn)acctNotice(`Welcome back! Your saved plan is ready.`)}
+      }else if(local)DB.pushState(local,local.NAME);
+    }else if(DB.pendingConsent()){
+      // back from the sign-in email with consent already ticked: save what's on this device
+      DB.pushState(local||{v:1},local?.NAME);await DB.flush();
+      if(DB.consented()){
+        if(local?.META?.planAt&&local.planIds)DB.savePlan({madeAt:local.META.planAt,concern:local.PROB,productIds:local.planIds.map(x=>x||"none"),extras:local.META.extraIds||[]});
+        if(local?.P?.reactions?.length){local.P.reactions.forEach(x=>SYNCED_REACTIONS.add(x));DB.saveReactions(local.P.reactions,"profile")}
+        if(r.signedIn)acctNotice("You're signed in, and your plan is saved to your account.");
+      }
+    }else if(r.signedIn)acctNotice("You're signed in. To save your plan to your account, tick the consent box under your plan.");
+  }
+  renderAcctLine();refreshAccountCards();await cat;
+}
+
 /* ---------- welcome page wiring ---------- */
 $("nameInput").addEventListener("input",()=>{$("nameGo").disabled=!cleanName($("nameInput").value)});
 $("nameForm").addEventListener("submit",e=>{e.preventDefault();const n=cleanName($("nameInput").value);if(n)setName(n)});
@@ -3274,7 +3763,10 @@ document.querySelectorAll(".skipbtn").forEach(b=>b.addEventListener("click",()=>
 $("learnBtn").addEventListener("click",()=>{const l=$("learnMore");l.hidden=!l.hidden;$("learnBtn").setAttribute("aria-expanded",String(!l.hidden))});
 /* ---------- boot ---------- */
 $("advIcon").innerHTML=`<span class="brandmark"></span>`;
-window.addEventListener("pagehide",()=>{if(nameAsked)saveState()});
+window.addEventListener("pagehide",()=>{if(nameAsked)saveState();DB.flush()});
+dbBoot();
+// a sign-in link opened in this same tab only changes the #hash; reload so it's read on boot
+window.addEventListener("hashchange",()=>{if(DB.enabled&&/access_token=|error_description=/.test(location.hash)){if(nameAsked)saveState();location.reload()}});
 if(false)botSay(`<p>Hi, I'm Aaina's AI skin advisor. Tell me what's bothering your skin, and I'll recommend <b>three products that work together</b>, then explain exactly why I chose each one.</p><p class="small muted">About nine quick taps. I check every ingredient list against your answers and never suggest anything that clashes with them.</p>`);
 next();
 

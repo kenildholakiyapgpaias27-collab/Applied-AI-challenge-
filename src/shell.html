@@ -933,6 +933,7 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
   #advisor .journey{padding:8px 6px 10px;overflow:hidden}
   #advisor .journey ol{min-width:0;max-width:100%}
   #advisor .jn{min-width:0}
+  #advisor .jn:not(.now) .jl{visibility:hidden}   /* 7 steps: only the current step is named on phones */
   #advisor .jc{width:24px;height:24px;font-size:9.5px}
   #advisor .jn::before{top:11px}
   #advisor .jl{font-size:10px;white-space:nowrap}
@@ -946,6 +947,29 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
   #advisor .ask .btn{height:44px;padding:0 16px;font-size:14px}
   .frame-foot{padding:8px 16px 10px}
 }
+
+/* ---------- account (database) ---------- */
+.acct{margin:18px 0 6px;padding:16px 18px;border:1px solid var(--line,#eadfe4);border-radius:18px;background:var(--surface,#fff);display:flex;flex-direction:column;gap:10px}
+.acct-row{display:flex;gap:12px;align-items:flex-start}
+.acct-ic{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft,#f6e6ee);color:var(--accent)}
+.acct-ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.acct-tx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.acct-tx b{font-size:15px;color:var(--ink)}
+.acct-tx span{font-size:14px;color:var(--muted);line-height:1.45}
+.acct .agree{font-weight:400;font-size:13.5px;line-height:1.45;color:var(--ink);margin-top:0}
+.acct-email{width:100%;max-width:360px;padding:11px 14px;border:1px solid var(--line,#ddd);border-radius:12px;font:inherit;font-size:15px;background:var(--bg,#fff);color:var(--ink)}
+.acct-email:focus{outline:2px solid var(--accent);outline-offset:1px}
+.acct-act{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.acct-err{margin:0;font-size:13.5px;color:var(--bad)}
+.acct-note{margin:0 0 10px;padding:10px 14px;border-radius:12px;background:var(--accent-soft,#f6e6ee);font-size:14px;color:var(--ink)}
+.acct-line{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:13.5px;color:var(--muted)}
+.acct-line .acct-email{max-width:240px;padding:8px 12px;font-size:14px}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.danger:hover{filter:brightness(.92)}
+.shadeline{display:flex;gap:10px;align-items:center;margin:4px 0 10px;padding:8px 10px;border-radius:12px;background:var(--sunken)}
+.shadeline div{display:flex;flex-direction:column;min-width:0}.shadeline b{font-size:14px}.shadeline small{font-size:12px;color:var(--muted)}
+.about .goalopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:10px;margin-top:6px}
+.about .goalopts .opt{text-align:left}.about .goalic svg{width:26px;height:26px}
 </style>
 
 <div class="page">
@@ -966,7 +990,7 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
         <span class="pill"><span aria-hidden="true">✦</span> AI Skin Advisor</span>
         <h1 class="wl-title"><span id="greetText">Hello!</span> <span class="wl-ic" id="greetIc" aria-hidden="true"></span></h1>
         <p class="wl-sub" id="greetSub">Let's take a look at your skin together.</p>
-        <p class="wl-body">Tell me your first name to get started, and I'll create a <b>personalised skin plan</b> with <b>three products</b> that work together, just for you.</p>
+        <p class="wl-body">Tell me your first name to get started, and I'll find the <b>skincare or base makeup</b> that suits you, checked against everything you tell me.</p>
       </div>
     </div>
     <ul class="wl-feats">
@@ -975,13 +999,15 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
       <li><span class="fi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l2 6.2L20 12l-6 2.8L12 21l-2-6.2L4 12l6-2.8z"/></svg></span><span><span class="fw">Radiate</span>Discover simple next steps</span></li>
     </ul>
     <div class="resume" id="resume" hidden aria-live="polite"></div>
+    <p class="acct-note" id="acctNote" hidden role="status"></p>
     <form class="wl-card" id="nameForm">
       <label for="nameInput">Your first name <span class="req" aria-hidden="true">*</span></label>
       <div class="wl-row">
         <input id="nameInput" type="text" maxlength="24" placeholder="e.g. Priya" autocomplete="given-name" autocapitalize="words">
         <button class="btn primary big" type="submit" id="nameGo" disabled>Nice to meet you <span aria-hidden="true">→</span></button>
       </div>
-      <p class="wl-safe"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Your name and answers stay on this device</p>
+      <p class="wl-safe"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Your name and answers stay on this device unless you choose to save them to an account</p>
+      <div class="acct-line" id="acctLine" hidden></div>
     </form>
         <div class="wl-note">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
@@ -991,7 +1017,7 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
     <div class="learn" id="learnMore" hidden>
       <div><b>Safety checks first.</b> I read every product's full ingredient list and remove anything that clashes with your answers before ranking.</div>
       <div><b>Sponsored kept separate.</b> Brands can pay to be shown, never to be chosen. Sponsored picks pass the same checks and carry a label.</div>
-      <div><b>Your privacy.</b> Your answers stay in your browser. A selfie is only kept, for 18 months, if you agree when you take it.</div>
+      <div><b>Your privacy.</b> Your answers stay in your browser unless you sign in and agree to save them to your account; you can delete that account at any time. A selfie is only kept, for 18 months, if you agree when you take it, and it is never uploaded. Anonymous usage counts (which products were shown or swapped) help improve the picks and never include your name, location, pregnancy or reaction answers.</div>
       <div><b>Cosmetic, not medical.</b> I don't diagnose. Painful, spreading or bleeding skin needs a dermatologist, and I'll say so.</div>
     </div>
   </section>
@@ -1000,7 +1026,7 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
     <section class="chat" aria-label="Chat with the skin advisor">
       <div class="chathead">
         <div class="ic" id="advIcon" aria-hidden="true"></div>
-        <div class="grow"><div class="eyebrow">AI skin advisor <span class="eta" id="eta"></span></div><h2 id="advTitle">Three products for your skin</h2></div>
+        <div class="grow"><div class="eyebrow">AI skin advisor <span class="eta" id="eta"></span></div><h2 id="advTitle">Products picked for your skin</h2></div>
         <button class="btn" type="button" id="backBtn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Back</button>
       </div>
       <div class="progress" aria-hidden="true"><i id="bar"></i></div>
