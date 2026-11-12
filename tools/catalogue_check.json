@@ -1,0 +1,89 @@
+{
+ "fixes": [],
+ "review": [
+  [
+   "P1025",
+   "Clearcode Skin Hydrating Cleanser",
+   "ingredients",
+   "ingredient list missing (blocked for anyone with a safety constraint)",
+   "get INCI from the brand"
+  ],
+  [
+   "P1054",
+   "Silkroute Beauty Clarifying Cleanser",
+   "ingredients",
+   "ingredient list missing (blocked for anyone with a safety constraint)",
+   "get INCI from the brand"
+  ],
+  [
+   "P1090",
+   "Petal & Pore Licorice Balancing Toner",
+   "ingredients",
+   "ingredient list missing (blocked for anyone with a safety constraint)",
+   "get INCI from the brand"
+  ],
+  [
+   "P1107",
+   "Sundari Naturals Calming Toner",
+   "ingredients",
+   "ingredient list missing (blocked for anyone with a safety constraint)",
+   "get INCI from the brand"
+  ],
+  [
+   "P1197",
+   "Coastline Care Bakuchiol Renewal Serum",
+   "ingredients",
+   "ingredient list missing (blocked for anyone with a safety constraint)",
+   "get INCI from the brand"
+  ],
+  [
+   "P1324",
+   "Monsoon Rose Daily Moisturiser",
+   "ingredients",
+   "ingredient list missing (blocked for anyone with a safety constraint)",
+   "get INCI from the brand"
+  ],
+  [
+   "P1446",
+   "Aaina Essentials Resurfacing Exfoliant",
+   "skin types",
+   "hydration claim but not for dry skin (exfoliant: may be intentional)",
+   "review"
+  ],
+  [
+   "P1450",
+   "Aqualume Resurfacing Exfoliant",
+   "skin types",
+   "hydration claim but not for dry skin (exfoliant: may be intentional)",
+   "review"
+  ],
+  [
+   "P1456",
+   "Monsoon Rose Salicylic Resurfacing Exfoliant",
+   "skin types",
+   "hydration claim but not for dry skin (exfoliant: may be intentional)",
+   "review"
+  ],
+  [
+   "P1463",
+   "Sundari Naturals Lactic Peel Exfoliant",
+   "skin types",
+   "hydration claim but not for dry skin (exfoliant: may be intentional)",
+   "review"
+  ],
+  [
+   "P1465",
+   "Dewdrop Labs Salicylic Smooth Skin Exfoliant",
+   "skin types",
+   "hydration claim but not for dry skin (exfoliant: may be intentional)",
+   "review"
+  ],
+  [
+   "P1479",
+   "Bloomwell Smooth Skin Exfoliant",
+   "skin types",
+   "hydration claim but not for dry skin (exfoliant: may be intentional)",
+   "review"
+  ]
+ ]
+}
