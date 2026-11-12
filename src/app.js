@@ -83,10 +83,37 @@ const PROBLEMS={
       ["Puffy as well","Swelling in the morning",{boost:[[/caffeine/i,3]]}]]},
     plan:[{role:"Brighten eyes",when:"Morning and night",cats:["Eye cream"],con:"dark circles",primary:true},{role:"Hydrate",when:"Morning and night",cats:["Moisturiser"],con:"dehydration"},{role:"Protect",when:"Every morning",cats:["Sunscreen"],con:""}],
     expect:"Eye creams help with how dark circles look over 4–8 weeks; sleep, allergies and genetics play a big part too."},
+  /* searches chosen on Q1 ("What are you looking for?"), not skin concerns: goal:true keeps them out of the concerns grid */
+  sunscreen:{label:"Sunscreen",sub:"Daily sun protection",ic:"sun",goal:true,
+    follow:{ask:"Where will you wear your sunscreen most?",opts:[
+      ["Daily commute and errands","Short spells in the sun",{spf:30,boost:[[/invisible|aqua/i,1.5]]}],
+      ["Long hours outdoors","Travel, sport or outdoor work",{spf:50}],
+      ["Under makeup","A light base that won't pill",{boost:[[/matte|invisible|primer/i,2]]}],
+      ["Mostly indoors","Near windows or screens",{spf:30,boost:[[/invisible|aqua|hybrid/i,1]]}]]},
+    plan:[{role:"Protect",when:"Every morning, reapply every 2–3 hours outdoors",cats:["Sunscreen"],con:"tanning",primary:true}],
+    expect:"Use about two finger-lengths for face and neck, 15 minutes before you go out, and reapply when you're outdoors for long."},
+  makeup:{label:"Base makeup",sub:"Foundation, concealer and powder in your shade",ic:"spark",goal:true,
+    follow:{ask:"What finish do you like on your skin?",opts:[
+      ["Natural","Looks like skin, not shiny or flat",{finish:"natural"}],
+      ["Matte","Keeps shine down all day",{finish:"matte"}],
+      ["Dewy","A fresh, glowy look",{finish:"dewy"}]]},
+    plan:[{role:"Base",when:"All over, after sunscreen",cats:["Foundation","BB / CC cream"],shade:true,primary:true},{role:"Conceal",when:"Where you need it",cats:["Concealer"],shade:true},{role:"Set",when:"To finish",cats:["Compact powder"],shade:true}],
+    expect:"Swatch a shade on your jawline in daylight before you buy; the right one disappears into your skin."},
 };
+const GOALS={routine:{label:"A skincare routine",sub:"Three products that work together",ic:"dropper"},sunscreen:{label:"Just a sunscreen",sub:"One great match for your skin and city",ic:"sun"},makeup:{label:"Foundation or base makeup",sub:"Your exact shade, matched to tone and undertone",ic:"spark"}};
+const GENDERS=[["woman","Woman"],["man","Man"],["nonbinary","Non-binary"],["unsaid","Prefer not to say"]];
+const CONCERN_KEYS=Object.keys(PROBLEMS).filter(k=>!PROBLEMS[k].goal);
+/* which questions to ask, from Q1's answers */
+function stepsFor(goal,gender){
+  if(goal==="sunscreen")return["about","follow","safety","location","skin"];                       // no shade or undertone for a sunscreen
+  if(goal==="makeup")return["about","follow","safety","skin","tone","undertone"];
+  return["about","concerns","safety","location","skin","tone",...(gender==="man"?[]:["undertone"])]; // undertone only matters for base makeup
+}
+const showBaseShades=()=>P.goal!=="sunscreen"&&P.goal!=="makeup"&&P.gender!=="man"&&STEPS.includes("undertone");
+const UNDERTONES=[["warm","Warm","Golden or peachy; gold jewellery suits you; veins look greenish"],["cool","Cool","Pink or rosy; silver suits you; veins look bluish or purple"],["neutral","Neutral","A mix of both; gold and silver both work"],["olive","Olive","Greenish or grey-beige; often looks warm and cool at once"],["unsure","Not sure","I'll pick shades that suit most undertones"]];
 
 /* actives that belong to each problem; strong actives outside this list are kept out */
-const RELEVANT={acne:/salicylic|azelaic|niacinamide|zinc|tea tree|melaleuca/i,pigmentation:/vitamin c|ascorb|niacinamide|tranexamic|arbutin|licorice|glycyrrhiza|azelaic/i,dullness:/vitamin c|ascorb|lactic|glycolic|niacinamide/i,dehydration:/hyaluronic|ceramide|squalane/i,oiliness:/niacinamide|zinc|salicylic/i,tanning:/vitamin c|ascorb|lactic|glycolic|niacinamide/i,redness:/centella|ceramide|azelaic|licorice|glycyrrhiza|niacinamide/i,"fine lines":/retinol|retinal|bakuchiol|peptide|hyaluronic/i,"dark circles":/caffeine|vitamin c|ascorb|niacinamide|peptide/i};
+const RELEVANT={sunscreen:/niacinamide|vitamin c|ascorb|hyaluronic/i,makeup:/niacinamide|hyaluronic/i,acne:/salicylic|azelaic|niacinamide|zinc|tea tree|melaleuca/i,pigmentation:/vitamin c|ascorb|niacinamide|tranexamic|arbutin|licorice|glycyrrhiza|azelaic/i,dullness:/vitamin c|ascorb|lactic|glycolic|niacinamide/i,dehydration:/hyaluronic|ceramide|squalane/i,oiliness:/niacinamide|zinc|salicylic/i,tanning:/vitamin c|ascorb|lactic|glycolic|niacinamide/i,redness:/centella|ceramide|azelaic|licorice|glycyrrhiza|niacinamide/i,"fine lines":/retinol|retinal|bakuchiol|peptide|hyaluronic/i,"dark circles":/caffeine|vitamin c|ascorb|niacinamide|peptide/i};
 const HARSH_NAME=/exfoliating|resurfacing|peel|clarifying/i;
 /* ---------- ingredient explainer ---------- */
 const INGR=[
@@ -116,21 +143,36 @@ function actives(p){const src=(p.a||"")+" || "+(p.i||"");const out=[];for(const[
 /* ---------- state ---------- */
 let PROB=null,SUB=null,PREF={boost:[]},FLOW=[],DONE=new Set(),stepNow=null,PL=null,turn=0;
 const thread=$("thread");
-const DEFAULT_STEPS=["concerns","safety","location","skin","tone"];   // budget and "already using" are set on the plan page
+const DEFAULT_STEPS=stepsFor(null,null);   // Q1 "about" decides the rest; budget and "already using" are set on the plan page
 let STEPS=[...DEFAULT_STEPS];
 const FACE_SKIN=[["Shiny all over","Oily skin","oily"],["Shiny T-zone, normal cheeks","Combination skin","combination"],["Tight, rough or flaky","Dry skin","dry"],["Comfortable","Normal skin","normal"]];
 const SK_CATS=["Cleanser","Serum","Moisturiser","Sunscreen","Exfoliant","Toner","Spot treatment","Eye cream"];
 const MAX_CONCERNS=3;
 const STEP={
+  about:{title:"About you",side:"About you",q:()=>({ask:"First, tell me a little about you",help:"This decides **which questions I ask**, so you only answer what matters for what you're after.",about:true}),
+    apply:v=>{const prevGoal=P.goal,prevGender=P.gender;P.gender=v.gender;P.goal=v.goal;
+      // men aren't asked the pregnancy question; if that changes, ask it again
+      if(v.gender==="man"){if(P.pregnancy!==false)P.pregAuto=true;P.pregnancy=false}
+      else if(prevGender==="man"&&P.pregAuto){P.pregnancy=null;P.pregAuto=false;DONE.delete("safety")}
+      if(prevGoal!==v.goal){
+        DONE.delete("follow");DONE.delete("concerns");DONE.delete("undertone");FOLLOW_IDX=null;
+        if(v.goal==="routine"){PROB=null;SUB=null;PREF={boost:[]};P.concerns=[];P.concernFU={}}
+        else{STEP.problem.apply(v.goal);P.concerns=v.goal==="sunscreen"?["tanning"]:[]}}
+      STEPS=stepsFor(v.goal,v.gender)},
+    show:()=>[GENDERS.find(g=>g[0]===P.gender)?.[1],GOALS[P.goal]?.label].filter(Boolean).join(" · ")||"–"},
+  undertone:{title:"Your skin",side:"Undertone",q:()=>({ask:"What's your undertone?",help:P.undertoneSource==="selfie"&&P.undertone?`Your selfie suggests **${P.undertone}**. Tap it to confirm, or pick another. Undertone decides **which shade family** suits you.`:"Undertone is the colour **under** your skin tone, and it decides **which shade family** suits you. Look at your wrist in daylight.",
+      opts:UNDERTONES.map(([value,label,sub])=>({label:label+(P.undertoneSource==="selfie"&&P.undertone===value?" (from your selfie)":""),sub,value}))}),
+    apply:v=>{P.undertone=v==="unsure"?null:v;P.undertoneSource=v==="unsure"?"unsure":"you picked"},
+    show:()=>P.undertone?cap(P.undertone):P.undertoneSource==="unsure"?"Not sure":"–"},
   problem:{title:"Your skin",side:"Main concern",q:()=>({ask:"What's bothering your skin the most right now?",help:"Pick **the one that bothers you most**. You can also describe it in your own words below.",
-      opts:Object.entries(PROBLEMS).map(([k,v])=>({label:v.label,sub:v.sub,value:k}))}),
+      opts:CONCERN_KEYS.map(k=>({label:PROBLEMS[k].label,sub:PROBLEMS[k].sub,value:k}))}),
     apply:v=>{PROB=v;SUB=null;PREF={boost:[]};P.concerns=[v];for(const k of["follow","extra"])DONE.delete(k)},show:()=>PROBLEMS[PROB]?.label||"–"},
   follow:{title:"Your skin",side:"Details",q:()=>{const F=PROBLEMS[PROB].follow;return{ask:F.ask,opts:F.opts.map(([label,sub],i)=>({label,sub,value:i}))}},
-    apply:v=>{const o=PROBLEMS[PROB].follow.opts[v];SUB=o[0];const fx=o[2]||{};PREF={boost:[...(fx.boost||[])],spf:fx.spf||null,gentle:!!fx.gentle,noRet:!!fx.noRet,noStrongRet:!!fx.noStrongRet,escalate:!!fx.escalate,exfoliateFirst:!!fx.exfoliateFirst};
+    apply:v=>{const o=PROBLEMS[PROB].follow.opts[v];SUB=o[0];const fx=o[2]||{};PREF={boost:[...(fx.boost||[])],spf:fx.spf||null,gentle:!!fx.gentle,noRet:!!fx.noRet,noStrongRet:!!fx.noStrongRet,escalate:!!fx.escalate,exfoliateFirst:!!fx.exfoliateFirst,finish:fx.finish||null};
       PREF.forceSens=!!fx.sensitive;PREF.forceFrag=!!fx.frag;if(fx.sensitive)P.sensitive=true;if(fx.frag)P.avoidFrag=true;
       if(fx.noRet&&!P.reactions.includes("retinoids"))P.reactions=[...P.reactions,"retinoids"];},
     show:()=>SUB||"–"},
-  extra:{title:"Your skin",side:"Also bothering you",q:()=>{const others=Object.entries(PROBLEMS).filter(([k])=>k!==PROB).map(([k,v])=>({label:v.label,value:k}));
+  extra:{title:"Your skin",side:"Also bothering you",q:()=>{const others=CONCERN_KEYS.filter(k=>k!==PROB).map(k=>({label:PROBLEMS[k].label,value:k}));
       return{ask:"Anything else you'd like the plan to help with?",help:"Optional. Pick **up to two**, and I'll lean towards products that also help with these.",multi:true,max:2,opts:others,none:"No, just that",pre:P.concerns.filter(c=>c!==PROB)}},
     apply:v=>{P.concerns=uniq([PROB,...v])},show:()=>P.concerns.filter(c=>c!==PROB).map(c=>PROBLEMS[c].label).join(", ")||"Nothing else"},
   concerns:{title:"Your skin",side:"Skin concerns",q:()=>({ask:"What's bothering your skin?",help:"Tap a concern and answer **one quick follow-up** inside it. You can pick **up to three**; the first is your **main concern**.",concerns:true}),
@@ -156,7 +198,7 @@ const STEP={
   preg:{title:"Safety",side:"Pregnancy caution",q:()=>({ask:"Should I be pregnancy-cautious?",help:"This only means I skip **retinoids and strong salicylic acid**. Your answer stays on this page.",
       opts:[{label:"Yes, be cautious",value:true},{label:"No",value:false},{label:"Prefer not to say",sub:"I'll stay cautious to be safe",value:null}]}),
     apply:v=>{P.pregnancy=v},show:()=>P.pregnancy===null?"Cautious (not answered)":P.pregnancy?"Yes":"No"},
-  safety:{title:"Safety check",side:"Safety check",q:()=>({ask:"Quick safety check",help:"Answer all four so **every product is safe for you**. Tap **None** where nothing applies.",safety:true}),
+  safety:{title:"Safety check",side:"Safety check",q:()=>({ask:"Quick safety check",help:`Answer all ${P.gender==="man"?"three":"four"} so **every product is safe for you**.`+" Tap **None** where nothing applies.",safety:true}),
     apply:v=>{STEP.avoid.apply(v.avoid);STEP.react.apply(PREF.noRet?uniq([...v.react,"retinoids"]):v.react);STEP.preg.apply(v.preg);P.redflags=v.sym;
       if(v.sym.length){PREF.escalate=true;PREF.gentle=true}else PREF.escalate=PREF.fuEscalate??!!PROBLEMS[PROB]?.follow.opts[FOLLOW_IDX]?.[2]?.escalate},
     show:()=>[STEP.avoid.show(),P.reactions.length?P.reactions.map(cap).join(", "):"",P.pregnancy===false?"":"Pregnancy-cautious",(P.redflags||[]).length?"Warning signs":""].filter(x=>x&&x!=="Nothing").join(" · ")||"No restrictions"},
@@ -264,6 +306,8 @@ const EMPATHY={
   redness:"Sensitive skin deserves kindness. I'll keep every pick <b>gentle and calming</b>.",
   "fine lines":"Fine lines are a natural part of your skin's story. We'll keep it <b>smooth, strong and well protected</b>.",
   "dark circles":"Let's help your eyes look <b>as rested</b> as you'd like them to feel.",
+  sunscreen:"Daily sunscreen is <b>the single best thing</b> you can do for your skin. Let's find one you'll actually enjoy wearing.",
+  makeup:"Finding <b>your exact shade</b> shouldn't be guesswork. I'll match it to your tone and undertone.",
 };
 let OPEN_SELFIE=false;
 /* ---------- a warm, personal line at the top of every question ---------- */
@@ -277,7 +321,10 @@ function stepGreeting(key){
     case"location":return PREF.escalate?`You're being really sensible about this${N}. <b>I'll keep everything gentle</b> while you get it checked.${matched?` ${matched} products have already passed your safety checks.`:""}`
       :`That was the most important part, and you did it beautifully${N}. ${matched?`<b>${matched} products</b> have already passed your safety checks. `:""}Now, where you live changes what your skin needs.`;
     case"skin":return`${left<=2?"You're so close":"More than halfway"}${N}! ${city?`I'm already matching textures to <b>${city}'s weather</b>. `:""}${left===2?"<b>Just two quick questions</b> and your plan is ready.":""}`;
-    case"tone":return`<b>Last one${N}</b>, and then I'll show you your plan. ${prob?`Your routine for ${esc(prob)} is almost ready`:"Your routine is almost ready"}, and every pick has been checked against what you told me.`;
+    case"about":return`Let's start with you${N}. <b>Two quick taps</b>, and I'll only ask what matters for what you're after.`;
+    case"follow":return P.goal==="makeup"?`Lovely${N}. Shade matching is my favourite part. First, <b>how you like it to look</b>.`:P.goal==="sunscreen"?`Good choice${N}. <b>Where you'll wear it</b> changes how strong and how light it should be.`:`You're doing great${N}.`;
+    case"tone":return`${left===1?`<b>Last one${N}</b>, and then I'll show you your plan.`:`<b>Nearly there${N}.</b> Just your shade, then your undertone.`} ${P.goal==="makeup"?"This is what your shade match is built on":prob?`Your routine for ${esc(prob)} is almost ready`:"Your routine is almost ready"}, and every pick has been checked against what you told me.`;
+    case"undertone":return`<b>Last one${N}</b>, and then I'll show you your plan. Undertone is what makes a shade look like <b>your skin</b> rather than sitting on top of it.`;
     default:return left===1?`<b>Last one${N}!</b> Your plan is ready right after this.`:`You're doing great${N}.`}
 }
 
@@ -331,12 +378,13 @@ function setName(n,startKey){
   $("welcome").hidden=true;$("advisor").hidden=false;thread.innerHTML="";CUR_BLOCK=null;
   if(startKey&&startKey!=="concerns"){STEPS=[startKey,...STEPS.filter(k=>k!==startKey)];if(startKey==="tone")OPEN_SELFIE=true}
   const d=dayPart();
-  botSay(n?`<p>${d.hello.replace("!","")}, <b>${esc(n)}</b>! Lovely to meet you. Tell me what's bothering your skin, and I'll put together <b>three products that work together</b>, then explain exactly why I chose each one.</p><p class="small muted">It takes about two minutes, and every pick is checked against what you tell me.</p>`
-          :`<p>${d.hello} No problem at all. ${startKey==="tone"?"Let's start with your skin tone, then I'll ask what's bothering your skin":startKey==="skin"?"Let's start with your skin type, then I'll ask what's bothering your skin":"Tell me what's bothering your skin"}, and I'll put together <b>three products that work together</b>, then explain exactly why I chose each one.</p><p class="small muted">It takes about two minutes, and every pick is checked against what you tell me.</p>`);
+  botSay(n?`<p>${d.hello.replace("!","")}, <b>${esc(n)}</b>! Lovely to meet you. Tell me a little about you and what you're looking for, and I'll pick <b>products that suit you</b>, then explain exactly why I chose each one.</p><p class="small muted">It takes about two minutes, and every pick is checked against what you tell me.</p>`
+          :`<p>${d.hello} No problem at all. ${startKey==="tone"?"Let's start with your skin tone, then I'll ask what's bothering your skin":startKey==="skin"?"Let's start with your skin type, then I'll ask what's bothering your skin":"Tell me a little about you"}, and I'll pick <b>products that suit you</b>, then explain exactly why I chose each one.</p><p class="small muted">It takes about two minutes, and every pick is checked against what you tell me.</p>`);
   updateTitle();next();saveState();
 }
 function updateTitle(){
-  $("advTitle").textContent=PROB?`${NAME?NAME+"'s":"Your"} plan for ${PROBLEMS[PROB].label.toLowerCase()}`:NAME?`Hi ${NAME}, let's find your three`:"Three products for your skin";
+  const who=NAME?NAME+"'s":"Your";
+  $("advTitle").textContent=P.goal==="sunscreen"?`${who} sunscreen match`:P.goal==="makeup"?`${who} base makeup shades`:PROB?`${who} plan for ${PROBLEMS[PROB].label.toLowerCase()}`:NAME?`Hi ${NAME}, let's find what suits you`:"Products picked for your skin";
 }
 /* ---------- thread helpers ---------- */
 function avatar(){return`<div class="av brandav" aria-hidden="true"><span class="brandmark"></span></div>`}
@@ -368,13 +416,31 @@ function ask(key){
   lockAll();const s=STEP[key],Q=s.q();const idx=STEPS.indexOf(key)+1;
   const box=document.createElement("div");box.className="q";box.dataset.step=key;
   box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">Q${idx} of ${STEPS.length} · ${esc(s.title)}${STEPS.length-idx===0?" · last one":""}</span><p class="qgreet" hidden></p><h3 class="qtitle">${esc(Q.ask)}</h3>${Q.help?`<p class="qhelp">${fmt(Q.help)}</p>`:""}</div></div>`;
-  const sl=PROB&&key!=="concerns"?shortlistPanel(key):null;SL_PANEL=sl;
-  box.appendChild(Q.location?locationWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():Q.safety?safetyWidget():Q.concerns?concernsWidget():optionsWidget(key,Q));
+  const sl=PROB&&key!=="concerns"&&key!=="about"?shortlistPanel(key):null;SL_PANEL=sl;
+  box.appendChild(Q.about?aboutWidget():Q.location?locationWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():Q.safety?safetyWidget():Q.concerns?concernsWidget():optionsWidget(key,Q));
   if(sl){box.classList.add("hassl");box.appendChild(sl)}else if(key==="concerns")SL_PREV=null;
   {const g=stepGreeting(key),el=box.querySelector(".qgreet");if(g&&el){el.innerHTML=`<span class="qgic">${SVG('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>')}</span><span>${g}</span>`;el.hidden=false}}
   const nav=document.createElement("div");nav.className="qnav";nav.innerHTML=`<button type="button" class="btn backcta">${SVG('<path d="M15 6l-6 6 6 6"/>')}Back</button><span class="qnav-step">Question ${idx} of ${STEPS.length}</span>`;
   nav.querySelector("button").onclick=goBack;box.appendChild(nav);
   newBlock(key).appendChild(box);progress();requestAnimationFrame(()=>thread.scrollTo({top:0}));
+}
+/* Q1: who it's for and what they're after; the rest of the quiz follows from this */
+function aboutWidget(){
+  const w=document.createElement("div");w.className="qbody safety about";
+  let gender=P.gender||null,goal=P.goal||null;
+  w.innerHTML=`<section class="sg" data-g="gender"><h4><span class="sn">1</span>You are</h4>
+      <div class="scs">${GENDERS.map(([v,l])=>`<label class="sc"><input type="radio" name="agender" value="${v}" ${gender===v?"checked":""}><span><b>${esc(l)}</b></span></label>`).join("")}</div>
+      <p class="small muted sgnote">Only used to skip questions that don't apply to you.</p></section>
+    <section class="sg" data-g="goal"><h4><span class="sn">2</span>What are you looking for?</h4>
+      <div class="opts goalopts">${Object.entries(GOALS).map(([k,g])=>`<button type="button" class="opt" data-goal="${k}" aria-pressed="${goal===k}"><i class="art goalic">${IC[g.ic]}</i><b>${esc(g.label)}</b><span>${esc(g.sub)}</span></button>`).join("")}</div></section>
+    <div class="qactions"><button type="button" class="btn primary" data-go disabled>Continue</button><span class="small muted" data-left></span></div>`;
+  const go=w.querySelector("[data-go]"),left=w.querySelector("[data-left]");
+  const update=()=>{go.disabled=!(gender&&goal);left.textContent=!gender&&!goal?"":!gender?"Pick one under \"You are\". \"Prefer not to say\" counts.":!goal?"Pick what you're looking for.":"";
+    w.querySelectorAll("[data-goal]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.goal===goal)))};
+  w.querySelectorAll('input[name="agender"]').forEach(r=>r.onchange=()=>{gender=r.value;update()});
+  w.querySelectorAll("[data-goal]").forEach(b=>b.onclick=()=>{goal=b.dataset.goal;update();if(gender)focusEl(go)});
+  go.onclick=()=>answer("about",{gender,goal},`${GENDERS.find(g=>g[0]===gender)[1]} · ${GOALS[goal].label}`);
+  update();return w;
 }
 function optionsWidget(key,Q){
   const w=document.createElement("div");w.className="qbody";
@@ -402,7 +468,7 @@ function afterNote(key){
     if(esc_)return[`<p>Because you mentioned <b>${esc(esc_[1][0].toLowerCase())}</b>, please have a dermatologist look at them, as they can scar and may need treatment I can't give. I'll still suggest a gentle, low-irritation plan for day-to-day care.</p>`,"escalate"];
     const more=P.concerns.slice(1).map(k=>PROBLEMS[k].label.toLowerCase());
     return more.length?[`<p class="small">I'll build the plan around <b>${esc(PROBLEMS[PROB].label.toLowerCase())}</b> and lean towards products that also help with <b>${esc(more.join(" and "))}</b>.</p>`]:null}
-  if(key==="problem")return[`<p>${nm("","," )} ${NAME?EMPATHY[PROB][0].toLowerCase()+EMPATHY[PROB].slice(1):EMPATHY[PROB]}</p><p class="small muted">A few quick questions so I can choose <b>the right three</b> for you.</p>`];
+  if(key==="problem")return[`<p>${nm("","," )} ${NAME?EMPATHY[PROB][0].toLowerCase()+EMPATHY[PROB].slice(1):EMPATHY[PROB]}</p><p class="small muted">A few quick questions so I can choose <b>the right ones</b> for you.</p>`];
   if(key==="safety"&&(P.redflags||[]).length)return[`<p><b>Please see a dermatologist soon${nm(", ")}.</b> ${esc(cap((P.redflags||[]).map(k=>(SYMPTOMS.find(x=>x[0]===k)||[,k])[1].toLowerCase()).join(", ")))} ${P.redflags.length>1?"are signs that need":"is a sign that needs"} a doctor to look at it, and can need treatment I can't give. Meanwhile I'll keep your plan gentle and low-irritation.</p>`,"escalate"];
   if(key==="preg")return[`Thank you${nm(", ")}. <b>That's the important safety part done.</b>`];
   if(key==="follow"&&PREF.escalate)return["<p>Deep, painful lumps are best looked at by a dermatologist, as they can scar and may need treatment I can't give. I'll still suggest a gentle, low-irritation plan for day-to-day care.</p>","escalate"];
@@ -462,7 +528,7 @@ function toneWidget(){
   area.addEventListener("pickscale",()=>choose());
   let failures=0;
 
-  const finish=(t,ut,label)=>{P.tone=t;P.undertone=ut||P.undertone||null;answer("tone",t,label)};
+  const finish=(t,ut,label)=>{P.tone=t;if(ut){P.undertone=ut;P.undertoneSource="selfie"}answer("tone",t,label)};
 
   /* 1. choose: scale or selfie */
   const choose=()=>{
@@ -597,7 +663,7 @@ function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
 
 /* ---------- your shade in base makeup: exact names from the shade library ---------- */
 function baseShadesHTML(){
-  if(!P.tone)return"";const ut=P.undertone||null,out=[];
+  if(!P.tone||!showBaseShades())return"";const ut=P.undertone||"neutral",out=[];
   for(const cat of["Foundation","BB / CC cream","Concealer","Compact powder"]){
     const cands=CAT.filter(p=>p.c===cat&&p.s&&p.s.length&&!p.sp&&check(p).ok&&(!P.budget||p.p<=P.budget*1.5));
     let best=null;for(const p of cands){const m=bestShade(p,P.tone,ut);if(m&&(!best||m.score<best.m.score))best={p,m}}
@@ -605,10 +671,15 @@ function baseShadesHTML(){
   if(!out.some(x=>x.best))return"";
   return`<div class="baseshades"><h4>Your shade in base makeup</h4><p class="small muted">Matched to skin tone ${P.tone} (${esc(TONE_NAME[P.tone])})${P.toneRead&&P.toneRead.lab&&P.toneRead.tone===P.tone?" using the colour measured from your selfie":""}. Not part of your three-step routine.</p>
     <ul>${out.map(({cat,best})=>best?`<li><span class="bsw" style="background:${best.m.hex}"></span><div><b>${esc(best.m.name)}</b><small>${esc(best.p.n)} · ${esc(cat)} · ${rupee(best.p.p)}</small></div></li>`:`<li class="none"><span class="bsw"></span><div><b>No close shade in this range</b><small>${esc(cat)} · I'd rather tell you than suggest the wrong one</small></div></li>`).join("")}</ul></div>`}
-/* ---------- building the 3-product plan ---------- */
+/* ---------- building the plan ---------- */
+const NUMW=["no","one","two","three","four","five"],numw=n=>NUMW[n]||String(n);
+// undertone "not sure" matches neutral shades, which suit the widest range
+const shadeFor=p=>P.tone?bestShade(p,P.tone,P.undertone||"neutral"):null;
+const shadeOK=p=>{const m=shadeFor(p);return!!(m&&m.good)};
 const hay=p=>p.n+" "+(p.a||"")+" "+(p.i||"");
 function slotScore(p,slot){
   let s=score(p,P);
+  if(slot.shade){const m=shadeFor(p);if(m)s-=m.score*2;if(PREF.finish&&p.fin===PREF.finish)s+=2}
   if(slot.con&&p.con.includes(slot.con))s+=4;
   for(const c of P.concerns)if(c!==PROB&&p.con.includes(c))s+=1;
   for(const[re,w]of[...(slot.boost||[]),...(PREF.boost||[])])if(re.test(hay(p)))s+=w;
@@ -638,7 +709,7 @@ function slotScore(p,slot){
   return s;
 }
 function rankSlot(slot,ctx){
-  return CAT.filter(p=>slot.cats.includes(p.c)&&check(p).ok&&!p.sp&&!ctx.used.has(p.id)&&!clash(p,ctx)&&!(P.excluded||[]).includes(p.id)&&!(P.shelf||[]).some(x=>x.id===p.id))
+  return CAT.filter(p=>slot.cats.includes(p.c)&&(!slot.shade||shadeOK(p))&&check(p).ok&&!p.sp&&!ctx.used.has(p.id)&&!clash(p,ctx)&&!(P.excluded||[]).includes(p.id)&&!(P.shelf||[]).some(x=>x.id===p.id))
     .map(p=>({p,s:slotScore(p,slot)})).sort((a,b)=>b.s-a.s||(a.p.p||0)-(b.p.p||0)||a.p.id.localeCompare(b.p.id)).map(x=>x.p);
 }
 function clash(p,ctx){return (ctx.ret&&(p.aha||p.bha||p.ret)&&p.c!=="Sunscreen")||((ctx.acid)&&p.ret)||(ctx.bp&&p.ret)}
@@ -695,14 +766,18 @@ function cardHTML(i,s){
     <div class="phead"><span class="stepn">${i+1}</span><div class="role">${esc(role)} <span class="when">· ${esc(s.slot.when)}</span></div><div class="price">${rupee(p.p)}</div></div>
     <div class="ptop"><div class="thumb">${IC[CAT_IC[p.c]||"dropper"]}</div><div style="min-width:0"><div class="brand">${esc(p.b)}</div><div class="nm">${esc(p.n.replace(p.b+" ",""))}</div><div class="cat">${esc(p.c)}</div></div></div>
     ${act.length?`<div class="keyact">${act.map(a=>`<span>${esc(a.name)}</span>`).join("")}${p.spf?`<span>SPF ${p.spf}${p.pa?" "+esc(p.pa):""}</span>`:""}</div>`:p.spf?`<div class="keyact"><span>SPF ${p.spf}${p.pa?" "+esc(p.pa):""}</span></div>`:""}
-    <p class="why1">${lineHTML(p,s.slot)}</p>
+    ${s.slot.shade?shadeLineHTML(p):""}<p class="why1">${lineHTML(p,s.slot)}</p>
     <div class="pfoot"><span class="small muted">${esc(p.sz||"")} · check availability</span>${s.list.length>1?`<button type="button" class="btn ghost swap" data-i="${i}">Show another</button>`:""}</div>
   </article>`;
 }
+function shadeLineHTML(p){const m=shadeFor(p);if(!m)return"";
+  return`<div class="shadeline"><span class="bsw" style="background:${esc(m.hex)}"></span><div><b>Your shade: ${esc(m.name)}</b><small>Tone ${m.depth} · ${esc(m.und||m.undertone||"")} undertone${m.cov?` · ${esc(m.cov)} coverage`:""}</small></div></div>`}
 function lineHTML(p,slot){let h=esc(oneLine(p,slot));const a=actives(p)[0];
   if(a)h=h.replace(esc(a.name),`<b>${esc(a.name)}</b>`);h=h.replace(/(SPF \d+)/,"<b>$1</b>");return h}
 function oneLine(p,slot){
   const a=actives(p)[0];const prob=PROBLEMS[PROB].label.toLowerCase();
+  if(slot&&slot.shade){const m=shadeFor(p);const fin=p.fin?`${p.fin} finish${PREF.finish===p.fin?", as you asked":""}`:"";
+    return`The closest match to your tone ${P.tone}${P.undertone?` and ${P.undertone} undertone`:""}${fin?`, with a ${fin}`:""}.`}
   if(p.c==="Sunscreen")return`Daily SPF ${p.spf||""} so your ${PROB==="pigmentation"||PROB==="tanning"?"spots and tan don't come back":"skin stays protected"}${humid()&&/matte|invisible|aqua/i.test(p.n)?", light enough for humid weather":""}.`;
   if(a)return`${a.name} ${a.does}.`;
   return`Chosen for ${prob} and your ${P.skin||""} skin.`;
@@ -719,18 +794,25 @@ function spReason(p){
   const helps=(p.con||[]).filter(c=>P.concerns.includes(c)).map(c=>PROBLEMS[c]?.label.toLowerCase()).filter(Boolean);
   return `${oneLine(p,slot)} ${helps.length?`It also targets ${helps.join(" and ")}`:`A good ${p.c.toLowerCase()} option for ${prob}`}${fits.length?`, and suits your answers: ${fits.join(", ")}`:""}. You could use it in place of your plan's ${p.c.toLowerCase()} step.`.replace(/\s+/g," ");
 }
+function planHeading(prob){
+  const n=PL.slots.length,lbl=esc(prob.label.toLowerCase());
+  if(PL.slots.every(s=>s.keep))return n===1?`You already have a good ${lbl}`:`You already have all ${numw(n)} steps for ${lbl}`;
+  if(P.goal==="sunscreen")return"Your sunscreen match";
+  if(P.goal==="makeup")return"Your base makeup, in your shade";
+  return`${cap(numw(n))} steps for ${lbl}`;
+}
 function renderPlan(){
   thread.querySelectorAll(".plan").forEach(r=>r.classList.add("old"));
   const box=document.createElement("div");box.className="plan";
   const exN=(PL.extras||[]).length;const total=PL.slots.reduce((t,s)=>t+(s.p?.p||0),0)+(PL.extras||[]).reduce((t,x)=>t+(x.p.p||0),0);const keptN=PL.slots.filter(s=>s.keep).length;const newN=PL.slots.filter(s=>s.p).length+exN;
   const prob=PROBLEMS[PROB];
   const applied=[P.avoidFrag&&"Fragrance-free",P.avoidEO&&"No essential oils",P.noClog&&"Won't clog pores",P.reactions.length&&"No "+P.reactions.join(", "),P.pregnancy!==false&&"Pregnancy-safe",P.skin&&cap(P.skin)+" skin",P.city&&(P.weather?`${P.city} weather, last 7 days`:`${P.city} climate`),P.budget&&`Each under ${rupee(P.budget)}`].filter(Boolean);
-  let h=`<div class="phero"><div class="eyebrow">${NAME?`${esc(NAME)}, your plan is ready`:"Your plan is ready"}</div><h3>${PL.slots.every(s=>s.keep)?`You already have all three steps for ${esc(prob.label.toLowerCase())}`:`Three steps for ${esc(prob.label.toLowerCase())}`}</h3><p class="lead">${SUB?`Made for what you described: ${esc(SUB.toLowerCase())}. `:""}Each product has one clear job, and together they take just a few minutes a day.</p>
+  let h=`<div class="phero"><div class="eyebrow">${NAME?`${esc(NAME)}, your plan is ready`:"Your plan is ready"}</div><h3>${planHeading(prob)}</h3><p class="lead">${SUB?`Made for what you described: ${esc(SUB.toLowerCase())}. `:""}${PL.slots.length===1?"Checked against every answer you gave me, with alternatives one tap away.":P.goal==="makeup"?"Each shade is matched to your skin tone and undertone, and every formula passed your safety checks.":"Each product has one clear job, and together they take just a few minutes a day."}</p>
     <div class="applied">${applied.map(x=>`<span class="chip ok">✓ ${esc(x)}</span>`).join("")}</div></div>
     ${tuneHTML()}
     <div class="pcards">${PL.slots.map((s,i)=>cardHTML(i,s)).join("")}</div>
     ${extrasHTML()}
-    <div class="total"><span>${!keptN&&!exN?"Total for all three":newN===0?"Nothing new to buy":`Total for ${newN===1?"the new product":`the ${newN} new products`}`}${keptN?`<small>${keptN===PL.slots.length?"You already have all three steps covered":`You're keeping ${keptN} from your routine`}${keptN&&!exN?". See the upgrade picks and combos below.":""}</small>`:""}</span><b>${rupee(total)}</b></div>${combosHTML()}${shareBarHTML()}${shelfPlanNote()}`;
+    <div class="total"><span>${!keptN&&!exN?(PL.slots.length===1?"Price":`Total for all ${numw(PL.slots.length)}`):newN===0?"Nothing new to buy":`Total for ${newN===1?"the new product":`the ${newN} new products`}`}${keptN?`<small>${keptN===PL.slots.length?"You already have all three steps covered":`You're keeping ${keptN} from your routine`}${keptN&&!exN?". See the upgrade picks and combos below.":""}</small>`:""}</span><b>${rupee(total)}</b></div>${combosHTML()}${shareBarHTML()}${shelfPlanNote()}`;
   // sponsored alternative (same checks, labelled, separate)
   const sp=CAT.filter(p=>p.sp&&PL.slots.some(s=>s.slot.cats.includes(p.c))&&check(p).ok&&!PL.ctx.used.has(p.id)&&!clash(p,PL.ctx))
     .map(p=>({p,s:slotScore(p,PL.slots.find(s=>s.slot.cats.includes(p.c)).slot)})).sort((a,b)=>b.s-a.s);
@@ -743,7 +825,8 @@ function renderPlan(){
   box.innerHTML=h;
   const nx=document.createElement("div");nx.className="next";
   const add=(label,fn,primary)=>{const b=document.createElement("button");b.type="button";b.className="btn"+(primary?" primary":"");b.textContent=label;b.onclick=fn;nx.appendChild(b)};
-  add("Plan for another concern",()=>{meSay("Plan for another concern");DONE.delete("concerns");P.concerns=[];P.concernFU={};PROB=null;botSay(`Of course${nm(", ")}. I'll keep your safety, location and skin answers, so this one is quicker.`);next()},true);
+  if(P.goal&&P.goal!=="routine")add("Look for something else",()=>{meSay("Look for something else");DONE.delete("about");botSay(`Sure${nm(", ")}. I'll keep your safety answers.`);next()},true);
+  else add("Plan for another concern",()=>{meSay("Plan for another concern");DONE.delete("concerns");P.concerns=[];P.concernFU={};PROB=null;botSay(`Of course${nm(", ")}. I'll keep your safety, location and skin answers, so this one is quicker.`);next()},true);
   add("How's it going? Check in",()=>openCheckin());
   add("Check a product",()=>{$("askInput").focus();$("askInput").placeholder="Type a product name or code, e.g. P1025"});
   box.appendChild(nx);
@@ -804,7 +887,7 @@ function explainHTML(){
   let h=`<section class="explain" aria-label="Why these products"><div class="eyebrow">Why I recommended these</div><h3>How this plan fits you</h3>
     <p class="exlede">${NAME?`${esc(NAME)}, here's`:"Here's"} what you told me, and what I did with it.</p>
     <div class="told">${told().map(([k,v])=>`<div><span>${esc(k)}</span><b>${v}</b></div>`).join("")}</div>
-    <p class="exlede">So I built a <b>three-step plan</b> where each product has one clear job: ${PL.slots.filter(s=>s.p).map(s=>`<b>${esc(s.slot.role.toLowerCase())}</b>`).join(", then ")}.</p>`;
+    <p class="exlede">So I built a <b>${PL.slots.length===1?"one-product pick":numw(PL.slots.length)+"-step plan"}</b>${PL.slots.length===1?":":" where each product has one clear job:"} ${PL.slots.filter(s=>s.p).map(s=>`<b>${esc(s.slot.role.toLowerCase())}</b>`).join(", then ")}.</p>`;
   PL.slots.forEach((s,i)=>{if(!s.p)return;const p=s.p,act=actives(p);
     const fit=[];
     if(P.skin&&p.st.includes(P.skin))fit.push(`made for ${P.skin} skin${p.st.length<4?" specifically":""}`);
@@ -837,7 +920,7 @@ function explainHTML(){
 }
 
 /* ---------- side panel ---------- */
-const SHORT={concerns:"Concerns",safety:"Safety",shelf:"Routine",problem:"Concern",follow:"Details",extra:"Also",avoid:"Avoid",react:"Reactions",preg:"Pregnancy",location:"Location",skin:"Skin type",tone:"Skin tone",budget:"Budget"};
+const SHORT={about:"About you",undertone:"Undertone",concerns:"Concerns",safety:"Safety",shelf:"Routine",problem:"Concern",follow:"Details",extra:"Also",avoid:"Avoid",react:"Reactions",preg:"Pregnancy",location:"Location",skin:"Skin type",tone:"Skin tone",budget:"Budget"};
 function renderSide(){
   const j=$("journey");if(!j)return;j.innerHTML="";
   const ol=document.createElement("ol");
@@ -1146,7 +1229,7 @@ function concernsWidget(){
   let order=TYPED_CONCERNS?[...TYPED_CONCERNS]:(P.concerns||[]).filter(k=>PROBLEMS[k]);
   const fu=Object.assign({},P.concernFU||{});for(const k of Object.keys(fu))if(!order.includes(k))delete fu[k];TYPED_CONCERNS=null;
   const open=new Set(order.filter(k=>fu[k]==null));
-  w.innerHTML=`<div class="cgrid">${Object.entries(PROBLEMS).map(([k,v])=>`
+  w.innerHTML=`<div class="cgrid">${Object.entries(PROBLEMS).filter(([k])=>!PROBLEMS[k].goal).map(([k,v])=>`
     <div class="cc" data-k="${k}">
       <button type="button" class="cchead" aria-pressed="false"><i class="art">${artFor("problem",{value:k})||""}</i><span class="cct"><b>${esc(v.label)}</b><small>${esc(v.sub)}</small></span><em class="cbadge" hidden></em></button>
       <div class="cfu" hidden>
@@ -1160,7 +1243,7 @@ function concernsWidget(){
   const go=w.querySelector("[data-go]"),left=w.querySelector("[data-left]"),cmax=w.querySelector(".cmax");
   const card=k=>w.querySelector(`.cc[data-k="${k}"]`);
   const paint=()=>{
-    for(const [k,v] of Object.entries(PROBLEMS)){const c=card(k),i=order.indexOf(k),on=i>=0;
+    for(const [k,v] of Object.entries(PROBLEMS).filter(([k])=>!PROBLEMS[k].goal)){const c=card(k),i=order.indexOf(k),on=i>=0;
       c.classList.toggle("on",on);c.style.order=on?String(i-10):"";c.querySelector(".cchead").setAttribute("aria-pressed",String(on));
       const b=c.querySelector(".cbadge");b.hidden=!on;b.textContent=i===0?"Main concern":"Also";b.classList.toggle("main",i===0);
       c.querySelector(".cfu").hidden=!on;c.querySelector(".cmain").hidden=i<=0;
@@ -1187,7 +1270,7 @@ function concernsWidget(){
   paint();return w;
 }
 function safetyWidget(){
-  const w=document.createElement("div");w.className="qbody safety";
+  const w=document.createElement("div");w.className="qbody safety";const askPreg=P.gender!=="man";
   const av=STEP.avoid.q(),pre={avoid:new Set(av.pre),react:new Set(P.reactions),sym:new Set(P.redflags||[])};
   const from={sens:PREF.forceSens?"From your earlier answer":"",frag:PREF.forceFrag?"From your earlier answer":"",retinoids:PREF.noRet?"From your earlier answer":""};
   const chip=(sec,v,l,sub)=>`<label class="sc"><input type="checkbox" data-sec="${sec}" value="${v}" ${pre[sec].has(v)?"checked":""}><span><b>${esc(l)}</b>${sub?`<small>${esc(sub)}</small>`:""}</span></label>`;
@@ -1199,10 +1282,10 @@ function safetyWidget(){
    <section class="sg" data-g="react"><h4><span class="sn">2</span>Ever reacted to any of these?</h4>
      <div class="scs">${REACT_TOP.map(r=>chip("react",r,cap(r),from[r])).join("")}<span class="more" hidden>${rest.map(r=>chip("react",r,cap(r),"")).join("")}</span>
        <button type="button" class="btn ghost smore">+ ${rest.length} more</button>${none("react")}</div></section>
-   <section class="sg" data-g="preg"><h4><span class="sn">3</span>Should I be pregnancy-cautious?</h4>
+   ${askPreg?`<section class="sg" data-g="preg"><h4><span class="sn">3</span>Should I be pregnancy-cautious?</h4>
      <div class="scs">${[["true","Yes, be cautious",""],["false","No",""],["null","Prefer not to say","I'll stay cautious"]].map(([v,l,s])=>`<label class="sc"><input type="radio" name="spreg" data-sec="preg" value="${v}" ${DONE.has("safety")&&String(P.pregnancy)===v?"checked":""}><span><b>${l}</b>${s?`<small>${s}</small>`:""}</span></label>`).join("")}</div>
-     <p class="small muted sgnote">This only means I skip retinoids and strong salicylic acid.</p></section>
-   <section class="sg" data-g="sym"><h4><span class="sn">4</span>Is any of this happening right now?</h4>
+     <p class="small muted sgnote">This only means I skip retinoids and strong salicylic acid.</p></section>`:""}
+   <section class="sg" data-g="sym"><h4><span class="sn">${askPreg?4:3}</span>Is any of this happening right now?</h4>
      <div class="scs">${SYMPTOMS.map(([v,l])=>chip("sym",v,l,"")).join("")}${none("sym")}</div>
      <div class="notice escalate symnote" hidden><b>Please see a dermatologist soon.</b> These signs need a doctor to look at them, and can need treatment I can't give. I'll keep your plan gentle in the meantime.</div></section>
    <div class="safesum" aria-live="polite"></div>
@@ -1215,10 +1298,10 @@ function safetyWidget(){
   const go=w.querySelector("[data-go]"),left=w.querySelector("[data-left]"),sum=w.querySelector(".safesum"),symnote=w.querySelector(".symnote");
   const NAMES={avoid:"what to avoid",react:"past reactions",preg:"pregnancy",sym:"warning signs"};
   const update=()=>{
-    const miss=["avoid","react","preg","sym"].filter(s=>!answered(s));
+    const miss=["avoid","react",...(askPreg?["preg"]:[]),"sym"].filter(s=>!answered(s));
     w.querySelectorAll(".sg").forEach(g=>g.classList.toggle("todo",miss.includes(g.dataset.g)&&g.dataset.touched==="1"));
     go.disabled=!!miss.length;left.textContent=miss.length?`Still to answer: ${miss.map(m=>NAMES[m]).join(", ")}. "None" counts.`:"";
-    const a=vals("avoid"),r=vals("react"),pg=w.querySelector('input[name="spreg"]:checked')?.value,sy=vals("sym");
+    const a=vals("avoid"),r=vals("react"),pg=askPreg?w.querySelector('input[name="spreg"]:checked')?.value:"false",sy=vals("sym");
     const preg=pg==="true"||pg==="null";const skip=[a.includes("frag")&&"fragrance",a.includes("eo")&&"essential oils",a.includes("pores")&&"pore-clogging formulas",...r.filter(x=>!(preg&&(x==="retinoids"||x==="salicylic acid"))),preg&&"retinoids and strong salicylic acid"].filter(Boolean);
     sum.innerHTML=skip.length||a.includes("sens")?`${SVG('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>')}<span>I'll skip <b>${esc(uniq(skip).join(", ")||"nothing extra")}</b>${a.includes("sens")?" and keep everything <b>gentle</b>":""}.</span>`:"";
     symnote.hidden=!sy.length;
@@ -1230,7 +1313,7 @@ function safetyWidget(){
     if(sec!=="preg"){if(x.value==="__none"&&x.checked)w.querySelectorAll(`input[data-sec="${sec}"]`).forEach(y=>{if(y!==x)y.checked=false});
       else if(x.checked)w.querySelector(`input[data-sec="${sec}"][value="__none"]`).checked=false}
     update()});
-  go.onclick=()=>{const pg=w.querySelector('input[name="spreg"]:checked').value;
+  go.onclick=()=>{const pg=askPreg?w.querySelector('input[name="spreg"]:checked').value:"false";
     const v={avoid:vals("avoid"),react:vals("react"),preg:pg==="true"?true:pg==="false"?false:null,sym:vals("sym")};
     const bits=[v.avoid.length?`${v.avoid.length} to avoid`:null,v.react.length?`${v.react.length} reaction${v.react.length>1?"s":""}`:null,v.preg!==false?"pregnancy-cautious":null,v.sym.length?"warning signs":null].filter(Boolean);
     w.querySelectorAll(".sg").forEach(g=>g.dataset.touched="1");answer("safety",v,bits.join(", ")||"No restrictions")};
@@ -1496,20 +1579,28 @@ function dueCheck(meta){
   if(!meta||!meta.planAt)return null;const d=daysSince(meta.planAt),done=new Set((meta.checks||[]).map(c=>c.stage));
   if(d>=14&&!done.has("week2"))return"week2";if(d>=3&&!done.has("day3"))return"day3";return null;
 }
+// saves from before Q1 existed were all skincare routines: treat them as such, without asking again
+function migrateAbout(p,done){
+  if(p.goal||!done.size)return;
+  p.goal="routine";p.gender=p.gender||"unsaid";done.add("about");
+  if(done.has("tone"))done.add("undertone");
+}
 function restoreState(d){
   NAME=d.NAME;nameAsked=true;PROB=d.PROB;SUB=d.SUB;FOLLOW_IDX=d.FOLLOW_IDX;PREF={boost:[]};
   if(PROB&&FOLLOW_IDX!=null&&PROBLEMS[PROB]?.follow.opts[FOLLOW_IDX])STEP.follow.apply(FOLLOW_IDX);
   P=Object.assign(emptyProfile(),d.P||{});DONE=new Set(d.DONE||[]);
   if(!DONE.has("concerns")&&DONE.has("problem")&&DONE.has("follow")&&PROB&&FOLLOW_IDX!=null){DONE.add("concerns");P.concerns=[PROB];P.concernFU={[PROB]:FOLLOW_IDX}}  // saves from the older 3-step version
   if(DONE.has("concerns")&&P.concernFU&&PROB)STEP.concerns.apply({main:PROB,list:P.concerns||[PROB],fu:P.concernFU});
-  STEPS=[...DEFAULT_STEPS];if(DONE.has("avoid")&&DONE.has("react")&&DONE.has("preg"))DONE.add("safety");
+  if(DONE.has("avoid")&&DONE.has("react")&&DONE.has("preg"))DONE.add("safety");
+  migrateAbout(P,DONE);STEPS=stepsFor(P.goal,P.gender);
   META=Object.assign({planAt:null,planProb:null,checks:[]},d.META||{});RESTORE_IDS=d.planIds||null;
 }
 function renderResume(){
   const box=$("resume");if(!box)return;const d=loadState();
   if(!d||!d.NAME||!(d.DONE||[]).length){box.hidden=true;box.innerHTML="";return}
-  const steps=DEFAULT_STEPS,done=steps.filter(k=>(d.DONE||[]).includes(k)).length,finished=done>=steps.length&&d.PROB;
-  const nextIdx=steps.findIndex(k=>!(d.DONE||[]).includes(k))+1;const prob=d.PROB&&PROBLEMS[d.PROB]?PROBLEMS[d.PROB].label.toLowerCase():null;
+  const dp=Object.assign({},d.P||{}),dd=new Set(d.DONE||[]);migrateAbout(dp,dd);
+  const steps=stepsFor(dp.goal,dp.gender),done=steps.filter(k=>dd.has(k)).length,finished=done>=steps.length&&d.PROB;
+  const nextIdx=steps.findIndex(k=>!dd.has(k))+1;const prob=d.PROB&&PROBLEMS[d.PROB]?PROBLEMS[d.PROB].label.toLowerCase():null;
   const due=finished?dueCheck(d.META):null;
   const sNow=finished&&d.P?.seasonAlert&&d.P?.state?seasonFor(d.P.state,d.P.climate):null,sChanged=sNow&&d.META?.planSeason&&sNow.key!==d.META.planSeason;
   box.hidden=false;

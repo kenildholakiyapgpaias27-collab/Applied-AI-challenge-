@@ -54,8 +54,11 @@ def serve(folder, port):
 
 
 def journey(pg):
-    """Same answers as the manual test: acne, fragrance-free, sensitive, pregnant, Pune, oily, tone 6."""
+    """Same answers as the manual test: woman, routine, acne, fragrance-free, sensitive, pregnant, Pune, oily, tone 6, warm."""
     pg.fill("#nameInput", "Manasvi"); pg.keyboard.press("Enter"); pg.wait_for_timeout(600)
+    pg.locator('.q:not(.answered) input[name="agender"][value="woman"]').check()
+    pg.locator('.q:not(.answered) [data-goal="routine"]').click()
+    pg.locator(".q:not(.answered) [data-go]").click(); pg.wait_for_timeout(700)
     pg.locator("label:visible, button:visible").filter(has_text="Breakouts and acne").last.click()
     pg.locator("label.sc:visible:has-text('Blackheads and whiteheads')").first.click()
     pg.locator("button:visible:has-text('Continue')").first.click(); pg.wait_for_timeout(700)
@@ -66,7 +69,8 @@ def journey(pg):
     pg.fill("input[placeholder^='Start typing']", "Pune"); pg.wait_for_timeout(600)
     pg.locator("button:visible:has-text('Continue')").first.click(); pg.wait_for_timeout(900)
     pg.locator("button:visible:has-text('Shiny all over')").first.click(); pg.wait_for_timeout(900)
-    pg.locator("button[aria-label='Skin tone 6, Medium Tan']").first.click(); pg.wait_for_timeout(1500)
+    pg.locator("button[aria-label='Skin tone 6, Medium Tan']").first.click(); pg.wait_for_timeout(900)
+    pg.locator("button:visible:has-text('Warm')").first.click(); pg.wait_for_timeout(1500)
 
 
 def sql(q, *a):

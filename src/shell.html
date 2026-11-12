@@ -933,6 +933,7 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
   #advisor .journey{padding:8px 6px 10px;overflow:hidden}
   #advisor .journey ol{min-width:0;max-width:100%}
   #advisor .jn{min-width:0}
+  #advisor .jn:not(.now) .jl{visibility:hidden}   /* 7 steps: only the current step is named on phones */
   #advisor .jc{width:24px;height:24px;font-size:9.5px}
   #advisor .jn::before{top:11px}
   #advisor .jl{font-size:10px;white-space:nowrap}
@@ -965,6 +966,10 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
 .acct-line .acct-email{max-width:240px;padding:8px 12px;font-size:14px}
 .btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
 .btn.danger:hover{filter:brightness(.92)}
+.shadeline{display:flex;gap:10px;align-items:center;margin:4px 0 10px;padding:8px 10px;border-radius:12px;background:var(--sunken)}
+.shadeline div{display:flex;flex-direction:column;min-width:0}.shadeline b{font-size:14px}.shadeline small{font-size:12px;color:var(--muted)}
+.about .goalopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:10px;margin-top:6px}
+.about .goalopts .opt{text-align:left}.about .goalic svg{width:26px;height:26px}
 </style>
 
 <div class="page">
@@ -985,7 +990,7 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
         <span class="pill"><span aria-hidden="true">✦</span> AI Skin Advisor</span>
         <h1 class="wl-title"><span id="greetText">Hello!</span> <span class="wl-ic" id="greetIc" aria-hidden="true"></span></h1>
         <p class="wl-sub" id="greetSub">Let's take a look at your skin together.</p>
-        <p class="wl-body">Tell me your first name to get started, and I'll create a <b>personalised skin plan</b> with <b>three products</b> that work together, just for you.</p>
+        <p class="wl-body">Tell me your first name to get started, and I'll find the <b>skincare or base makeup</b> that suits you, checked against everything you tell me.</p>
       </div>
     </div>
     <ul class="wl-feats">
@@ -1021,7 +1026,7 @@ body{background:radial-gradient(900px 520px at 0% 0%,var(--blush) 0%,transparent
     <section class="chat" aria-label="Chat with the skin advisor">
       <div class="chathead">
         <div class="ic" id="advIcon" aria-hidden="true"></div>
-        <div class="grow"><div class="eyebrow">AI skin advisor <span class="eta" id="eta"></span></div><h2 id="advTitle">Three products for your skin</h2></div>
+        <div class="grow"><div class="eyebrow">AI skin advisor <span class="eta" id="eta"></span></div><h2 id="advTitle">Products picked for your skin</h2></div>
         <button class="btn" type="button" id="backBtn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Back</button>
       </div>
       <div class="progress" aria-hidden="true"><i id="bar"></i></div>

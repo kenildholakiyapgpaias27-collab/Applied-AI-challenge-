@@ -1,15 +1,24 @@
 # Aaina AI Skin Advisor
 
 > **Reflect. Reveal. Radiate.**
-> A guided skincare advisor that asks ten short questions and builds a **3-product plan** (treat → hydrate → protect), then explains exactly why each product was chosen.
+> A guided skincare advisor that asks a few short questions, adapted to who the user is and what they want, and builds a **3-product plan** (treat → hydrate → protect), a single sunscreen pick, or base makeup in their shade, then explains exactly why each product was chosen.
 
 Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products in the catalogue are fictional (demo data).
 
 ## What it does
 
 - **Personal start:** asks your first name and greets you by time of day.
-- **A 5-step journey (Q1–Q5):** skin concerns, safety check, location, skin type, skin tone. A progress bar shows each step, one question at a time, with a Back button on every screen.
-- **One-page skin concerns (Q1):** tap a concern and its follow-up question opens inside the same card (for example, Breakouts → "What do your breakouts usually look like?"). Pick up to three concerns; the first is the main concern the plan is built around, and any other can be made the main one with one tap. Safety signals from every concern count (a "deep, painful lumps" answer triggers the dermatologist notice even when acne isn't the main concern), while ingredient nudges from the other concerns count at half weight. Continue unlocks once every picked concern's follow-up is answered.
+- **"About you" first (Q1):** gender (woman, man, non-binary, prefer not to say) and what the user is looking for: a skincare routine, just a sunscreen, or foundation/base makeup. The rest of the quiz adapts to these answers:
+
+  | Looking for | Steps after Q1 | Result |
+  |---|---|---|
+  | Skincare routine | concerns → safety → location → skin type → skin tone → undertone (undertone skipped for men) | 3-step plan (treat → hydrate → protect) |
+  | Just a sunscreen | where they wear it → safety → location → skin type (no shade or undertone) | One sunscreen pick |
+  | Base makeup | preferred finish → safety → skin type → skin tone → undertone | Foundation, concealer and powder in the matched shade |
+
+  Men are not asked the pregnancy question. Undertone (warm, cool, neutral, olive, not sure) comes straight after skin shade; a selfie read pre-selects it. Shade matching uses tone + undertone, and the finish preference (natural, matte, dewy) nudges base products. Saved answers from the older 5-step version are migrated automatically.
+- **A progress bar** shows each step, one question at a time, with a Back button on every screen. Editing Q1 later re-shapes the remaining steps without losing answers that still apply.
+- **One-page skin concerns (routine goal):** tap a concern and its follow-up question opens inside the same card (for example, Breakouts → "What do your breakouts usually look like?"). Pick up to three concerns; the first is the main concern the plan is built around, and any other can be made the main one with one tap. Safety signals from every concern count (a "deep, painful lumps" answer triggers the dermatologist notice even when acne isn't the main concern), while ingredient nudges from the other concerns count at half weight. Continue unlocks once every picked concern's follow-up is answered.
 - **One-page safety check (Q2):** everything that keeps a product safe is answered together: ingredients to avoid, past reactions, pregnancy caution and warning signs happening right now (pain, spreading, bleeding, a changing mole, fever). Every section must be answered (**None** counts) before Continue unlocks, and a live line sums up what will be skipped. Earlier answers carry in (for example "I'd rather avoid retinol" pre-ticks retinoids). Any warning sign shows a dermatologist notice and keeps the plan gentle.
 - **Live shortlist on every step:** from Q2 on, a panel (beside the question on desktop, a tap-to-open bar on phones) shows how many products still match and how many are set aside, the product leading each step of the routine right now, and what has been set aside for the user, grouped by reason (fragrance, past reaction, pregnancy caution, skin type, over budget, missing ingredient list) with examples. It says what the last answer changed ("Your last answer set aside 88"), and on the safety page it updates live as boxes are ticked. Answers not given yet never set anything aside; final picks come after the last question.
 - **A personal line on every question:** each step opens with a warm note that uses the user's name, concern, city and progress, such as empathy for their concern before the safety check, "129 products have already passed your safety checks" before location, and "Last one, Kenil" before skin tone. Escalation cases get a gentler, reassuring line.
