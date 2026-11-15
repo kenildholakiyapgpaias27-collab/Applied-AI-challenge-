@@ -3,6 +3,7 @@
 
     python3 build.py
 """
+import base64
 import hashlib
 import json
 from pathlib import Path
@@ -18,12 +19,20 @@ db_cfg = {"url": db_cfg.get("url", ""), "anonKey": db_cfg.get("anonKey", "")}
 # same hash tools/seed_catalogue.py writes into the database
 cat_version = hashlib.sha256((ROOT / "data/catalogue.json").read_bytes()).hexdigest()[:12]
 
+# Virtual try-on: demo shade colours (never part of the catalogue) and the illustrated model faces, inlined
+tryon_models = json.loads(read("data/tryon_models.json"))
+for m in tryon_models["models"]:
+    m["src"] = "data:image/jpeg;base64," + base64.b64encode((ROOT / m.pop("file")).read_bytes()).decode()
+tryon_js = ("const TRYON_DEMO=" + read("data/demo_colours.json") + ";\nconst TRYON_MODELS=" + json.dumps(tryon_models, separators=(",", ":"))
+            + ";\n" + read("src/tryon.js"))
+
 page = (read("src/shell.html")
         .replace("__CATALOGUE__", read("data/catalogue.json"))
         .replace("__INDIA__", read("src/india.js") + "\n" + read("src/climate.js"))
         .replace("__ENGINE__", "const AAINA_CAL=" + (read("data/calibration.json") if (ROOT / "data/calibration.json").exists() else "null") + ";\n" + read("src/engine.js")
                   + "\nconst AAINA_DB_CONFIG=" + json.dumps(db_cfg) + ";\nconst CAT_VERSION=" + json.dumps(cat_version) + ";\n" + read("src/db.js"))
-        .replace("__APP__", read("src/app.js")))
+        .replace("__APP__", read("src/app.js"))
+        .replace("__TRYON__", tryon_js))
 
 html = ("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">"
