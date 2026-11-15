@@ -73,13 +73,32 @@ check("database code never references the demo colours", "TRYON_DEMO" not in db_
 check("seed tool never reads demo_colours.json", "demo_colours" not in (ROOT / "tools/seed_catalogue.py").read_text(encoding="utf-8"))
 
 # ---- model faces ----
-models = json.loads((ROOT / "data/tryon_models.json").read_text(encoding="utf-8"))
-tones = sorted(m["tone"] for m in models["models"])
-check("3-4 model faces", 3 <= len(models["models"]) <= 4)
-check("model faces span light to deep (Monk <=3 and >=8)", tones[0] <= 3 and tones[-1] >= 8, tones)
-check("each model has 478 landmarks inside the image", all(len(m["landmarks"]) == 478 and all(0 <= x <= 1 and 0 <= y <= 1 for x, y in m["landmarks"]) for m in models["models"]))
-check("each model image exists", all((ROOT / m["file"]).exists() for m in models["models"]))
-check("model source says they are illustrations", "No photographs of real people" in models["source"])
+faces = json.loads((ROOT / "data/model_faces.json").read_text(encoding="utf-8"))
+lms = json.loads((ROOT / "data/model_faces_landmarks.json").read_text(encoding="utf-8"))
+want_hex = ["#e6d0cd", "#f3c6a8", "#d39b78", "#ab6f51", "#91604b", "#483026"]
+check("six model faces with the given base tones, fair to very deep", [f["hex"] for f in faces["faces"]] == want_hex, [f["hex"] for f in faces["faces"]])
+check("each face has id, label, hex, Monk tone, undertone and image file",
+      all(set(f) >= {"id", "label", "hex", "monk", "undertone", "file"} and f["undertone"] in {"warm", "cool", "neutral", "olive"} and 1 <= f["monk"] <= 10 for f in faces["faces"]))
+check("Monk tones rise from fair to very deep", [f["monk"] for f in faces["faces"]] == sorted(f["monk"] for f in faces["faces"]))
+check("each face has 478 landmarks inside the image", all(len(lms[f["id"]]) == 478 and all(0 <= x <= 1 and 0 <= y <= 1 for x, y in lms[f["id"]]) for f in faces["faces"]))
+check("each face image exists", all((ROOT / f["file"]).exists() for f in faces["faces"]))
+check("faces are rendered, not photographs", "No photographs of real people" in faces["source"])
+check("old doll faces are gone", not (ROOT / "data/tryon_models.json").exists() and not (ROOT / "data/tryon_models").exists())
+try:
+    from PIL import Image
+    import numpy as np
+    def mid_tone(f):
+        im = np.asarray(Image.open(ROOT / f["file"]).convert("RGB"), float)
+        lm = lms[f["id"]]; h, w = im.shape[:2]
+        pts = [lm[i] for i in (205, 425, 50, 280)]
+        return np.median(np.concatenate([im[int(y * h) - 4:int(y * h) + 4, int(x * w) - 4:int(x * w) + 4].reshape(-1, 3) for x, y in pts]), axis=0)
+    def dist(f):
+        c = mid_tone(f); b = [int(f["hex"][i:i + 2], 16) for i in (1, 3, 5)]
+        return float(np.abs(c - b).mean())
+    d = {f["id"]: round(dist(f), 1) for f in faces["faces"]}
+    check("rendered cheeks sit near each face's base tone (mean channel gap < 22)", all(v < 22 for v in d.values()), d)
+except ImportError:
+    print("SKIP base-tone check: Pillow/numpy not installed")
 
 # ---- JS colour maths ----
 node = shutil.which("node")

@@ -20,10 +20,12 @@ db_cfg = {"url": db_cfg.get("url", ""), "anonKey": db_cfg.get("anonKey", "")}
 cat_version = hashlib.sha256((ROOT / "data/catalogue.json").read_bytes()).hexdigest()[:12]
 
 # Virtual try-on: demo shade colours (never part of the catalogue) and the illustrated model faces, inlined
-tryon_models = json.loads(read("data/tryon_models.json"))
-for m in tryon_models["models"]:
-    m["src"] = "data:image/jpeg;base64," + base64.b64encode((ROOT / m.pop("file")).read_bytes()).decode()
-tryon_js = ("const TRYON_DEMO=" + read("data/demo_colours.json") + ";\nconst TRYON_MODELS=" + json.dumps(tryon_models, separators=(",", ":"))
+model_faces = json.loads(read("data/model_faces.json"))
+face_landmarks = json.loads(read("data/model_faces_landmarks.json"))
+for f in model_faces["faces"]:
+    f["src"] = "data:image/jpeg;base64," + base64.b64encode((ROOT / f.pop("file")).read_bytes()).decode()
+    f["landmarks"] = face_landmarks[f["id"]]
+tryon_js = ("const TRYON_DEMO=" + read("data/demo_colours.json") + ";\nconst TRYON_MODELS=" + json.dumps({"models": model_faces["faces"]}, separators=(",", ":"))
             + ";\n" + read("src/tryon.js"))
 
 page = (read("src/shell.html")

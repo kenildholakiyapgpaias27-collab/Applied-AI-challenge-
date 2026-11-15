@@ -1,0 +1,98 @@
+#!/usr/bin/env node
+/* Runs the REAL advisor engine (src/engine.js) on test-set profiles. Called by tools/eval_testset.py.
+
+    node tools/eval_engine.js <inputs.json> <out.json>
+
+inputs.json holds only what a customer tells the quiz (self-reported fields). If any key starting
+with "true_" reaches this script, it stops: ground truth is for scoring only and lives in Python.
+
+For each profile it maps the answers to the profile object P exactly as the quiz does, then records:
+  - top-5 ranked products per category (engine rank(), which only returns products passing check())
+  - every product that passes check() (the try-on shows the rest as "Not suitable for you")
+  - for every foundation: the try-on's "Your match", calling bestShade exactly as matchFor() in
+    src/tryon.js does (with matchTone(), the self-report correction, when the try-on uses it)
+*/
+const fs = require("fs"), path = require("path"), vm = require("vm");
+const ROOT = process.env.AAINA_EVAL_ROOT || path.join(__dirname, "..");     // AAINA_EVAL_ROOT: an older copy of the sources, for before/after runs
+const [, , inPath, outPath, monthArg] = process.argv;
+const input = JSON.parse(fs.readFileSync(inPath, "utf8"));
+
+// guard: never let ground truth in
+for (const row of input.profiles) for (const k of Object.keys(row)) if (/^true_/.test(k)) { console.error(`REFUSED: input field ${k} is ground truth`); process.exit(2) }
+
+// guard: the try-on must still compute "Your match" the way this harness calls it
+const tryon = fs.readFileSync(path.join(ROOT, "src/tryon.js"), "utf8");
+const TRYON_CALL = tryon.includes("UNSURE_ALT") && tryon.includes("const m=bestShade(p,t,ut)") ? "matchTone+unsure"
+  : tryon.includes('bestShade(p,typeof matchTone==="function"?matchTone():tone,P.undertone||"neutral")') ? "matchTone"
+  : tryon.includes('bestShade(p,tone,P.undertone||"neutral")') ? "rawTone" : null;
+if (!TRYON_CALL) { console.error("src/tryon.js matchFor() changed: update the harness"); process.exit(3) }
+
+const ctx = {console, Math, JSON, Number, String, Object, Array, Set, Map, RegExp, Date, parseFloat, parseInt, isNaN};
+ctx.CAT = JSON.parse(fs.readFileSync(path.join(ROOT, "data/catalogue.json"), "utf8"));
+const cal = path.join(ROOT, "data/calibration.json");
+ctx.AAINA_CAL = fs.existsSync(cal) ? JSON.parse(fs.readFileSync(cal, "utf8")) : null;
+vm.createContext(ctx);
+vm.runInContext(fs.readFileSync(path.join(ROOT, "src/engine.js"), "utf8") +
+  "\nthis.E={emptyProfile,check,rank,bestShade,correctedTone,matchTone:typeof matchTone==='function'?matchTone:null,REACTIONS,setP:v=>{P=v},getP:()=>P,"+
+  "UNSURE:typeof UNSURE_UNDERTONE!=='undefined'?[UNSURE_UNDERTONE,UNSURE_ALT]:null};", ctx);
+const E = ctx.E;
+
+// concern keys the quiz offers, read from PROBLEMS in src/app.js (goal entries like "sunscreen" are not concerns)
+const appSrc = fs.readFileSync(path.join(ROOT, "src/app.js"), "utf8");
+const probBlock = appSrc.slice(appSrc.indexOf("const PROBLEMS="), appSrc.indexOf("\n};", appSrc.indexOf("const PROBLEMS=")));
+const CONCERN_KEYS = new Set([...probBlock.matchAll(/\n  "?([a-z ]+)"?:\{label:"[^"]*"(.{0,200})/g)].filter(m => !/goal:true/.test(m[2])).map(m => m[1]));
+// the Tune-your-plan budget options, read from src/app.js
+const BUDGET_OPTS = JSON.parse(appSrc.match(/const BUDGET_OPTS=(\[.*?\]);/)[1].replace(/,"[^"]*"\]/g, "]")).map(o => o[0]);
+const bandMax = {"under ₹500": 500, "₹500–1,000": 1000, "₹1,000–2,000": 2000, "over ₹2,000": null};
+
+function toProfile(r, month) {
+  const P = E.emptyProfile();
+  const notes = [];
+  P.month = month;
+  P.city = r.city; P.climate = r.climate;
+  P.skin = r.skin_type_self; P.skinConfirmed = true;                     // skin step
+  const cs = String(r.concerns || "").split(",").map(s => s.trim()).filter(Boolean);
+  P.concerns = cs.filter(c => CONCERN_KEYS.has(c));
+  const dropped = cs.filter(c => !CONCERN_KEYS.has(c)); if (dropped.length) notes.push(`concerns the quiz can't take: ${dropped.join(", ")}`);
+  P.avoidFrag = !!r.avoid_fragrance; P.avoidEO = !!r.avoid_essential_oils; P.sensitive = !!r.sensitive_skin_self;   // avoid step
+  P.reactions = [];
+  if (r.known_reactions_to) {                                              // react step, typed answer matched like the quiz does
+    const hit = Object.entries(E.REACTIONS).find(([, fam]) => fam.say.test(r.known_reactions_to));
+    if (hit) P.reactions = [hit[0]]; else notes.push(`reaction not recognised: ${r.known_reactions_to}`);
+  }
+  P.pregnancy = !!r.pregnancy_caution_optin;                               // preg step: yes / no
+  const mx = bandMax[r.budget_band];                                       // Tune panel: the largest option not above the band
+  P.budget = mx == null ? null : BUDGET_OPTS.filter(b => b != null && b <= mx).pop() ?? BUDGET_OPTS[0];
+  P.tone = r.monk_tone_self; P.toneSource = "you picked";                  // tone step
+  const ut = String(r.undertone_self || "").toLowerCase();
+  if (ut === "don't know" || ut === "dont know" || ut === "unsure" || !ut) { P.undertone = null; P.undertoneSource = "unsure" }   // "Not sure", then "Still not sure" in the helper
+  else { P.undertone = ut; P.undertoneSource = "you picked" }
+  return {P, notes};
+}
+
+const month = monthArg != null ? +monthArg : new Date().getMonth();
+const cats = input.categories;
+const foundations = ctx.CAT.filter(p => p.c === "Foundation" && p.s && p.s.length).map(p => p.id);
+const out = {month, tryon_call: TRYON_CALL, concern_keys: [...CONCERN_KEYS], profiles: []};
+for (const r of input.profiles) {
+  const {P, notes} = toProfile(r, month);
+  E.setP(P);
+  const top5 = {};
+  for (const c of cats) top5[c] = E.rank(c, P).slice(0, 5).map(p => p.id);
+  const passing = ctx.CAT.filter(p => E.check(p, P).ok).map(p => p.id);
+  const blocked = {};
+  for (const p of ctx.CAT) { const res = E.check(p, P); if (!res.ok) blocked[p.id] = res.blocks.map(b => b[1]).join("; ") }
+  const match = {};
+  for (const id of foundations) {
+    const p = ctx.CAT.find(x => x.id === id);
+    const idx = m => m ? p.s.findIndex(s => s[0] === m.name && s[3] === m.hex) : -1;
+    const tone = TRYON_CALL === "rawTone" ? P.tone : E.matchTone();     // exactly what matchFor() in src/tryon.js passes
+    const unsure = TRYON_CALL === "matchTone+unsure" && !P.undertone;
+    const tryon = E.bestShade(p, tone, P.undertone || (unsure ? E.UNSURE[0] : "neutral"));
+    const alt = unsure ? E.bestShade(p, tone, E.UNSURE[1]) : null;      // the "also try" shade shown when undertone is unknown
+    match[id] = {tryon: idx(tryon), tryon_good: !!(tryon && tryon.good), alt: alt && alt.name !== tryon.name ? idx(alt) : -1};
+  }
+  out.profiles.push({customer_id: r.customer_id, P: JSON.parse(JSON.stringify(P)), notes, top5, passing, blocked, match});
+}
+fs.writeFileSync(outPath, JSON.stringify(out));
+console.log(`engine run: ${out.profiles.length} profiles, month ${month}`);

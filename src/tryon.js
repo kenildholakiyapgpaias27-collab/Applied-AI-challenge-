@@ -118,8 +118,11 @@ const TRYON=(()=>{
   function matchFor(p){
     if(!(p.s&&p.s.length)||typeof bestShade!=="function")return null;
     const tone=(typeof P!=="undefined"&&P.tone)||null;
-    if(tone){const m=bestShade(p,tone,P.undertone||"neutral");return m?{name:m.name,good:m.good,label:m.good?"Your match":"Closest to you",you:true}:null}
-    if(S.model){const m=bestShade(p,S.model.tone,S.model.undertone);return m?{name:m.name,good:m.good,label:"Matches this model",you:false}:null}
+    if(tone){const t=typeof matchTone==="function"?matchTone():tone,unsure=!P.undertone,ut=P.undertone||(typeof UNSURE_UNDERTONE!=="undefined"?UNSURE_UNDERTONE:"neutral");   /* matchTone corrects the known bias in self-picked tones */
+      const m=bestShade(p,t,ut);if(!m)return null;
+      const a=unsure&&typeof UNSURE_ALT!=="undefined"?bestShade(p,t,UNSURE_ALT):null;   /* not sure of undertone: also offer the warm match (most common) */
+      return{name:m.name,good:m.good,label:m.good?"Your match":"Closest to you",you:true,alt:a&&a.name!==m.name?a.name:null}}
+    if(S.model){const m=bestShade(p,S.model.monk,S.model.undertone);return m?{name:m.name,good:m.good,label:"Matches this model",you:false}:null}
     return null}
   const hasPlan=()=>typeof PL!=="undefined"&&!!PL;
   const inPlan=id=>hasPlan()&&((PL.extras||[]).some(x=>x.p.id===id)||PL.slots.some(s=>s.p&&s.p.id===id));
@@ -149,11 +152,11 @@ const TRYON=(()=>{
             <div class="to-ways">
               <button type="button" class="to-way" data-to="consent"><span class="to-wayic">${ICON.camera}</span><b>Use my camera</b><small>A live mirror that follows your face</small></button>
               <label class="to-way" tabindex="0"><span class="to-wayic">${ICON.upload}</span><b>Upload a photo</b><small>A clear, front-facing photo works best</small><input type="file" accept="image/*" data-to="file" hidden></label>
-              <div class="to-way to-way-models"><span class="to-wayic">${ICON.face}</span><b>Try on a model</b><small>Illustrated faces, light to deep</small>
-                <div class="to-models">${MODELS.map((m,i)=>`<button type="button" class="to-model" data-to="model" data-i="${i}" aria-label="Model ${e(m.name)}, skin tone ${m.tone}"><img src="${m.src}" alt=""><span>${e(m.name)} <small>Tone ${m.tone}</small></span></button>`).join("")}</div></div>
+              <div class="to-way to-way-models"><span class="to-wayic">${ICON.face}</span><b>Try on a model</b><small>Six faces, fair to very deep</small>
+                <div class="to-models">${MODELS.map((m,i)=>`<button type="button" class="to-model" data-to="model" data-i="${i}" aria-label="Model face: ${e(m.label)}, about Monk tone ${m.monk}"><span class="to-mimg"><img src="${m.src}" alt=""></span><span class="to-mlab">${e(m.label)}</span><span class="to-mclose">Closest to you</span></button>`).join("")}</div></div>
             </div>
             <p class="to-consentnote">${ICON.lock}<span>Your camera and photos stay on this device. Frames are processed in your browser and never uploaded or stored.</span></p>
-            <p class="to-tip">Tip: face a window or soft, even light, with no beauty filter. Model faces are illustrations, not photos of real people.</p>
+            <p class="to-tip">Tip: face a window or soft, even light, with no beauty filter. Model faces are computer-rendered, not photos of real people.</p>
           </section>
           <section class="to-consent" data-pane="consent" hidden>
             <h3 class="to-h">Before your camera turns on</h3>
@@ -207,7 +210,12 @@ const TRYON=(()=>{
     wireHandle();wireSheet();
     if("ResizeObserver"in window)new ResizeObserver(()=>{if(S.open&&S.src){layout();kick()}}).observe(stage);
   }
-  const pane=name=>{root.querySelectorAll("[data-pane]").forEach(x=>x.hidden=x.dataset.pane!==name);root.dataset.pane=name};
+  const pane=name=>{root.querySelectorAll("[data-pane]").forEach(x=>x.hidden=x.dataset.pane!==name);root.dataset.pane=name;if(name==="start")markClosest()};
+  /* the model face closest to the user's tone and undertone, if we know them */
+  function closestModel(){
+    const tone=typeof P!=="undefined"&&P.tone;if(!tone||!MODELS.length)return -1;const ut=P.undertone||null;
+    let best=-1,bs=1e9;MODELS.forEach((m,i)=>{const sc=Math.abs(m.monk-tone)+(ut&&m.undertone!==ut?(typeof utPenalty==="function"?utPenalty(ut,m.undertone)*0.4:0.6):0);if(sc<bs){bs=sc;best=i}});return best}
+  function markClosest(){const k=closestModel();root.querySelectorAll(".to-model").forEach((b,i)=>{const on=i===k;b.classList.toggle("closest",on);const l=b.getAttribute("aria-label").replace(/ \(closest to you\)$/,"");b.setAttribute("aria-label",on?l+" (closest to you)":l)})}
   function onClick(ev){
     const t=ev.target.closest("[data-to],[data-tab],[data-cat],[data-pid],[data-shade],[data-rm],[data-pick]");if(!t||!root.contains(t))return;
     if(t.dataset.tab){S.tab=t.dataset.tab;S.cat=TABS.find(x=>x[0]===S.tab)[2][0];S.pid=null;renderPanel();return}
@@ -255,7 +263,9 @@ const TRYON=(()=>{
       ${demo?`<p class="to-demo">Demo colour, not real product data</p>`:""}
       ${S.compare?`<p class="to-cmphint">Tap shades to compare (${S.cmp.length}/4). The oldest is replaced after four.</p>`:""}
       <div class="to-shades" role="listbox" aria-label="Shades of ${e(p.n)}">${sh.map((s,i)=>{const isM=m&&m.name===s.name,on=S.compare?S.cmp.some(c=>c.p.id===p.id&&c.s.name===s.name):curName===s.name;
-        return`<button type="button" role="option" aria-selected="${on}" class="to-sw${on?" on":""}${isM?" match":""}" data-shade="${i}" title="${e(shadeInfo(s))}" aria-label="${e(shadeInfo(s))}${isM?`, ${e(m.label)}`:""}"><i style="background:${e(s.hex)}"></i></button>`}).join("")}</div>
+        const isA=m&&m.alt===s.name;
+        return`<button type="button" role="option" aria-selected="${on}" class="to-sw${on?" on":""}${isM?" match":""}${isA?" alt":""}" data-shade="${i}" title="${e(shadeInfo(s))}" aria-label="${e(shadeInfo(s))}${isM?`, ${e(m.label)}`:""}${isA?", also try: warm match":""}"><i style="background:${e(s.hex)}"></i></button>`}).join("")}</div>
+      ${m&&m.alt?`<p class="to-althint">Not sure of your undertone? This is a neutral match. The ringed dot is the warm match, the most common undertone: <b>${e(m.alt)}</b>.</p>`:""}
       <p class="to-swinfo" aria-live="polite"></p>`;
     swInfo();
   }
@@ -349,7 +359,7 @@ const TRYON=(()=>{
   }
   function fallbackRender(){
     if(!S.fallback||!root)return;const box=root.querySelector("[data-pane=fallback]");
-    const tone=(typeof P!=="undefined"&&P.tone)||(S.model&&S.model.tone)||5,skin=(typeof MONK_HEX!=="undefined"?MONK_HEX[tone]:"#d7bd96");
+    const tone=(typeof P!=="undefined"&&P.tone)||(S.model&&S.model.monk)||5,skin=(typeof MONK_HEX!=="undefined"?MONK_HEX[tone]:"#d7bd96");
     const parts=Object.entries(S.look).map(([k,v])=>{const on=k==="lips"||k==="blush"||k==="liner"?v.s.hex:C.onSkin(skin,v.s.hex,v.s.cov,v.s.fin);
       return`<li><span class="to-fs"><i style="background:${skin}"></i><i style="background:${e(on)}"></i></span><div><b>${SLOT_LABEL[k]}: ${e(v.s.name)}</b><small>${e(v.p.n)}${v.s.demo?" · demo colour":""}</small></div></li>`});
     box.innerHTML=`<div class="to-fbmsg" role="status">${S.fallback}</div>
@@ -468,7 +478,8 @@ const TRYON=(()=>{
     const path=pts=>{const p=new Path2D();pts.forEach((q,j)=>j?p.lineTo(q[0],q[1]):p.moveTo(q[0],q[1]));p.closePath();return p};
     // A: R face, G exclusions, B lips
     let g=maskA.getContext("2d");g.globalCompositeOperation="source-over";g.fillStyle="#000";g.fillRect(0,0,W,H);g.globalCompositeOperation="lighter";
-    softFill(g,poly(LM.oval),"#ff0000",fw*0.035);
+    {const o=LM.oval.map(P),cx=o.reduce((t,q)=>t+q[0],0)/o.length,cy=o.reduce((t,q)=>t+q[1],0)/o.length;   // shrink so the soft edge stays inside the face, not on hair, scarves or background
+     softFill(g,path(o.map(q=>[cx+(q[0]-cx)*0.955,cy+(q[1]-cy)*0.965])),"#ff0000",fw*0.03)}
     const ex=[path(grow(eyePts(LM.eyeR),1.18)),path(grow(eyePts(LM.eyeL),1.18)),poly(LM.browR),poly(LM.browL)];
     for(const x of ex)softFill(g,x,"#00ff00",fw*0.012);
     softFill(g,poly(LM.lipsOut),"#00ff00",fw*0.008);
@@ -625,20 +636,23 @@ void main(){vec2 t=vec2(uMirror>0.5?1.-uv.x:uv.x,uv.y);vec3 S=s2l(texture2D(uTex
     if(!root)build();
     if(!S.open){S.open=true;root.hidden=false;if(S.setSheet)S.setSheet(false);document.documentElement.classList.add("to-lock");
       if(location.hash!=="#try-on"){history.pushState(null,"",location.pathname+location.search+"#try-on");S.pushedHash=true}}
-    if(opts.pid&&typeof BY_ID!=="undefined"&&BY_ID[opts.pid]){const p=BY_ID[opts.pid];S.tab=TABS.find(t=>t[2].includes(p.c))[0];S.cat=p.c;pickProduct(p.id)}
+    if(opts.pid&&typeof BY_ID!=="undefined"&&BY_ID[opts.pid]){const p=BY_ID[opts.pid];S.tab=TABS.find(t=>t[2].includes(p.c))[0];S.cat=p.c;pickProduct(p.id);
+      if(opts.shade){const s=shadesOf(p).find(x=>x.name===opts.shade);if(s){S.look[SLOT[p.c]]={p,s};renderPanel()}}}
     else if(opts.base){S.tab="face";S.cat="Foundation";S.pid=null;renderPanel();const list=products("Foundation").filter(x=>x.st.ok);if(list[0])pickProduct(list[0].p.id)}
     else renderPanel();
+    if(opts.model==="closest"&&!S.src){const k=closestModel();if(k>=0){useModel(k);return}}
     if(!S.src)pane("start");else{layout();kick()}
     root.querySelector(".to-x").focus();
   }
   function close(){
-    if(!S.open)return;S.open=false;toggleCompare(false,true);stopCamera();stopLoop();root.hidden=true;document.documentElement.classList.remove("to-lock");
-    if(location.hash==="#try-on"){if(S.pushedHash){S.pushedHash=false;history.back()}else history.replaceState(null,"",location.pathname+location.search)}
+    if(!S.open)return;S.open=false;toggleCompare(false,true);stopCamera();
+    try{const b=S.look.base;window.dispatchEvent(new CustomEvent("tryon:close",{detail:{look:{base:b?{pid:b.p.id,name:b.s.name}:null}}}))}catch{}stopLoop();root.hidden=true;document.documentElement.classList.remove("to-lock");
+    if(location.hash==="#try-on"){if(S.pushedHash){S.pushedHash=false;window.__aainaTryonBack=true;history.back()}else history.replaceState(null,"",location.pathname+location.search)}
   }
   window.addEventListener("hashchange",()=>{if(location.hash==="#try-on"&&!S.open)open();else if(location.hash!=="#try-on"&&S.open){S.pushedHash=false;close()}});
   window.addEventListener("popstate",()=>{if(location.hash!=="#try-on"&&S.open){S.pushedHash=false;close()}});
   window.addEventListener("resize",()=>{if(S.open&&S.src){layout();kick()}});
   document.addEventListener("click",ev=>{const b=ev.target.closest&&ev.target.closest("[data-tryon]");if(!b||(root&&root.contains(b)))return;ev.preventDefault();open(b.dataset.tryon==="base"?{base:true}:{pid:b.dataset.tryon||null})});
   if(location.hash==="#try-on")setTimeout(()=>open(),0);
-  return{open,close,setSplit,state:S,_draw:draw,_products:products,_status:status};
+  return{open,close,setSplit,closestModel,state:S,_draw:draw,_products:products,_status:status};
 })();

@@ -16,7 +16,7 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
   |---|---|---|
   | Skincare routine | concerns → safety → location → skin type → skin tone → undertone (undertone skipped for men) | 3-step plan (treat → hydrate → protect) |
   | Just a sunscreen | where they wear it → safety → location → skin type (no shade or undertone) | One sunscreen pick |
-  | Base makeup | preferred finish → safety → skin type → skin tone → undertone | Foundation, concealer and powder in the matched shade |
+  | Base makeup | preferred finish → safety → skin type → skin tone → undertone → shade preview | Foundation, concealer and powder in the matched shade |
 
   Men are not asked the pregnancy question. Undertone (warm, cool, neutral, olive, not sure) comes straight after skin shade; a selfie read pre-selects it. Shade matching uses tone + undertone, and the finish preference (natural, matte, dewy) nudges base products. Saved answers from the older 5-step version are migrated automatically.
 - **A progress bar** shows each step, one question at a time, with a Back button on every screen. Editing Q1 later re-shapes the remaining steps without losing answers that still apply.
@@ -43,7 +43,7 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
   - **Retakes only when unreadable:** no face in the oval, face too small, face blown out to white, or too dark to hold colour.
   - **Test (`tools/tone_eval.py`, 450 simulated selfies: 50 people x 9 lighting conditions, light applied to face, eyes and wall together):** retake rate 62.2% → 4.9%; of all photos, exact shade 16.9% → 62.2% and within one shade 26.2% → 84.0%; the same person got the same answer across lighting 23.8% → 73.3% of the time. Weakest cases: phone auto-exposure and photos with closed eyes. These are simulated photos, not real selfies, so validate on real labelled selfies before relying on the numbers.
 - **Filter check:** warns when a photo looks filtered (airbrushed skin with a sharp background, black-and-white, boosted colour or colour casts) and asks for a retake without a filter.
-- **Tune your plan (on the plan page):** one panel to change the budget per product and what you already use, together. Each budget option previews what it would give you (how many steps are covered and the total). Change several things, then press **Update my plan** once; the advisor rebuilds the plan, says how many steps changed, and keeps every safety rule. The plan starts at up to ₹700 per product.
+- **Tune your plan (on the plan page):** one panel to change the budget per product (up to ₹500, ₹1,000, ₹2,000 or no limit) and what you already use, together. Each budget option previews what it would give you (how many steps are covered and the total). Change several things, then press **Update my plan** once; the advisor rebuilds the plan, says how many steps changed, and keeps every safety rule. The plan starts at up to ₹700 per product.
 - **Save and resume:** answers are saved on the device after every step. Returning users see "Continue where I left off" (or "View my plan"), and **Delete my answers** clears everything.
 - **Builds around what you already use:** if you already own a product that covers a step and passes your checks, the plan keeps it instead of selling you another. New picks never clash with your routine (retinoid + acids, retinoid + benzoyl peroxide), avoid doubling up on actives you already use, and warn you about owned products that fail your safety answers.
 - **Upgrade picks and combos for products you already own:** every "Already yours" step shows an **Upgrade pick**: the best product for that step that passes your checks, with reasons it's better than what you have (for example, it adds an ingredient that targets your concern, it's made for your concern or skin type, it has SPF 50, or it suits this week's weather). **Switch to this** swaps it in. When you already own one or more steps, the plan also offers two **combos** (a *Quick boost* and a *Full routine upgrade*) of add-on products, such as a lightweight moisturiser, a weekly exfoliant or a mask, chosen to work with your existing routine without clashing, with prices and how your morning, night and weekly routine would look. **Add to my plan** adds them as add-ons, which are counted in the total, saved, shared and included in the PDF.
@@ -55,7 +55,8 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
 - **Honest empty steps:** if nothing in the range is safe for a step, the card says how many products were checked, the top reasons they were ruled out, and what to do next, including a one-tap button to raise the budget when that would unlock safe options.
 - **The plan:** three products that work together, a total price, two clearly labelled sponsored suggestions with relevance reasons, and a detailed "Why I recommended these" section.
 - **Quick experience feedback:** at the end of the plan, a short, sweet 1-tap rating (Loved it, Helpful, Good, Just okay, Needs work) with contextual tags and an optional note lets users share how the advisor worked for them, saved to their session and account.
-- **Virtual try-on (`#try-on`):** see shades on a face before buying. Start from the **live camera** (front camera, mirrored, with a consent screen first and a **Stop camera** button), an **uploaded photo**, or one of four **illustrated model faces** (Monk tones 2, 5, 7 and 9).
+- **Shade preview in the base-makeup quiz:** the last question shows your foundation match (the same pick the plan will make) with **See it on a face**, which opens the try-on on that shade and the model face closest to your tone. Try other shades there; back in the quiz you can **Use** the one you tried, and the plan leads with it. Keep or Skip goes straight to the plan.
+- **Virtual try-on (`#try-on`):** see shades on a face before buying. Start from the **live camera** (front camera, mirrored, with a consent screen first and a **Stop camera** button), an **uploaded photo**, or one of six **model faces** (fair to very deep, about Monk 3 to 9; the one closest to your tone is marked).
   - **Real complexion data:** every Foundation, BB / CC cream, Concealer and Compact powder shade in the catalogue (597 shades) is tried on in its own colour. Coverage sets opacity (sheer < medium < full) and the product finish sets sheen (matte, natural, dewy). Base products cover the face but not the eyes, brows, lips or nostrils; concealer goes under the eyes and on the centre of the face.
   - **Lips, cheeks and eyes use demo colours:** the catalogue has no colours for Lipstick, Blush or Kajal / eyeliner, so `data/demo_colours.json` holds 4–8 generated shades per product (`tools/tryon/make_demo_colours.py`, deterministic). Every one is marked `"demo": true` and labelled **Demo colour, not real product data** on screen. They never go into the catalogue, `seed.sql` or the database.
   - **Looks like makeup, not paint:** the shade replaces the skin's low-frequency colour in OKLab and the photo's own texture and shading are put back. A shade that is too light for deep skin looks grey and ashy, as it would in real life ([examples](docs/tryon_screens.png)).
@@ -63,6 +64,22 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
   - **Tied to the advisor:** your tone and undertone pre-select your best shade (the same `bestShade()` as the plan), marked **Your match**. Every product goes through the same `check()` filter: products that fail your checks can be previewed but show **Not suitable for you** with the reason and are never offered for your plan.
   - **Where it lives:** **Try it on** on complexion product cards, on the base-makeup plan and in **Your shade in base makeup**, plus the `#try-on` link.
   - **On the device, offline-friendly:** face tracking is Google's MediaPipe Face Landmarker (`@mediapipe/tasks-vision@0.10.35`, pinned), loaded from jsDelivr only when the camera or a photo is used. The model faces ship with their landmarks, so they work fully offline. With no WebGL, no face found, a slow device or no network, it says so and shows the shades as swatches on your skin tone instead.
+
+## Accuracy
+
+Measured on 2026-11-15 against the organisers' labelled test set (220 synthetic customers, `data/eval/PS-14_recommendation_test_set.xlsx`), using only what each customer told the quiz. Full results: [reports/eval_testset.md](reports/eval_testset.md). Re-run with `python3 tools/eval_testset.py --visual` (add `--compare <git ref>` for a before/after table).
+
+| Measure | Before fixes | Now | Target |
+|---|---|---|---|
+| Try-on "Your match" = labelled best shade | 39.1% | **52.3%** (naive baseline: 47.7%) | |
+| Shade depth within 1 step of measured tone | 71.4% (MAE 1.15) | **84.1%** (MAE 0.86) | |
+| Gap between tone bands (within 1 of labelled best) | 20.6 pts | **7.3 pts** (1–3: 88.9%, 4–7: 89.2%, 8–10: 96.2%) | under 5 pts |
+| Profiles with a MUST_NOT product in a top 5 | 0.5% | **0.9%** (2 customers whose stated skin type differs from the measured one) | 0 |
+| MUST_NOT products blocked by `check()` | 96.4% | **97.3%**; 100% on what the quiz can know | 100% |
+| Undertone "don't know" (38 customers): best shade among those shown | 50.0% (one shade) | **60.5%** (match + warm "also try") | |
+| GOOD product in the top 5 | 65.3% | **74.2%** | |
+
+What changed: "Your match" and the plan's shades now use the engine's correction for self-picked tones (`matchTone()`), and shade matching weighs depth above undertone. The 14 skin-type tags an earlier catalogue clean-up added were restored to the organisers' values, and `tools/catalogue_check.py` now only reports such cases. "Not sure" of undertone now brings up one helper question (jewellery and veins); if still unsure, the match stays neutral and the warm match is shown as "also try" (54% of "don't know" customers measured warm in the organisers' in-store data). The 65.3% relevance figure was understated by an evaluation bug that dropped the quiz's "dark circles" and "fine lines" answers; with it fixed, relevance is 65.5%. Budget options now follow the bands shoppers use (₹500 / ₹1,000 / ₹2,000 / no limit, default ₹1,000) instead of ₹400 / ₹700 / ₹1,200, which lifted relevance to 74.2%; the lower limits had been blocking many suitable products (and, by chance, two unsafe ones for customers who misdescribed their skin type). Still open: the 10 remaining MUST_NOT misses use the measured skin type where the customer told the quiz something else; tones 8–10 often have no shade deep enough in the catalogue; and agreement with the measured undertone fell from 45.9% to 40.0% because depth now wins ties.
 
 ## Guardrails enforced in code
 
@@ -105,15 +122,18 @@ aaina-skin-advisor/
 │   ├── catalogue.json  # 806-product demo catalogue (bundled; also the database seed)
 │   ├── supabase.json   # database URL + public anon key (empty = offline mode)
 │   ├── demo_colours.json   # DEMO lipstick/blush/kajal colours for the try-on (not real product data)
-│   ├── tryon_models.json   # illustrated model faces: tone, undertone and 478 face landmarks each
-│   └── tryon_models/       # the model face images
+│   ├── model_faces.json    # six try-on model faces: label, base hex, Monk tone, undertone, image
+│   ├── model_faces_landmarks.json   # their 478 face landmarks each
+│   └── model_faces/        # the model face images
 ├── supabase/
 │   ├── migrations/     # schema, row-level security, erasure function, report views
 │   ├── seed.sql        # generated catalogue upsert (tools/seed_catalogue.py)
 │   └── tests/          # RLS tests + end-to-end browser test against a mocked API
+├── reports/            # test-set evaluation results (tools/eval_testset.py)
 └── tools/
+    ├── eval_testset.py # scores the real engine on the labelled test set (with eval_engine.js)
     ├── seed_catalogue.py
-    └── tryon/          # make_models.py (model faces), make_demo_colours.py, MediaPipe canonical mesh + licence
+    └── tryon/          # make_faces.py (model faces), make_demo_colours.py, MediaPipe canonical mesh + licence
 ```
 
 ## Run locally
@@ -202,7 +222,7 @@ The selfie consent screen tells users their photo is stored for **18 months**. T
 
 **Virtual try-on:** camera frames and uploaded photos are processed in the browser and never uploaded or stored. Snapshots are saved only as a download on the user's device. The face tracker's code and model file are downloaded from public CDNs (jsDelivr and Google's model storage); no image goes with those requests.
 
-**Model faces:** the four try-on models are illustrations rendered by `tools/tryon/make_models.py` from MediaPipe's canonical face mesh (Apache-2.0, `tools/tryon/MEDIAPIPE_LICENSE`). They are not photographs of real people, so no model release is needed.
+**Model faces:** the six try-on models are computer-rendered by `tools/tryon/make_faces.py` from MediaPipe's canonical face mesh (Apache-2.0, `tools/tryon/MEDIAPIPE_LICENSE`), with skin mid-tones sampled from real skin (#e6d0cd fair, #f3c6a8 light, #d39b78 medium, #ab6f51 tan, #91604b deep, #483026 very deep). They are not photographs and are not based on any real person, so no model release is needed.
 
 ## Disclaimer
 

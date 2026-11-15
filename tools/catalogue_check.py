@@ -3,8 +3,9 @@
 Finds tags that contradict each other, because the guardrails trust the catalogue: a wrong
 skin-type tag silently removes good products (or lets a wrong one through).
 
-  --fix    applies the safe, rule-based corrections below and writes catalogue.json
-           (a backup is kept); anything ambiguous is only reported, for a human to review.
+  --fix    applies safe, rule-based corrections (none at present) and writes catalogue.json
+           (a backup is kept). Skin-type contradictions are only reported: the organisers'
+           labelled test set showed auto-adding skin types let unsuitable products through.
 """
 import json, sys, pathlib, shutil, re, collections
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -19,12 +20,13 @@ for p in cat:
     if p["c"] not in SKINCARE: continue
     st, con, inci, act = set(p["st"]), set(p["con"]), (p.get("i") or "").lower(), (p.get("a") or "").lower()
     # R1: a product made for acne or oil control must suit oily skin (who else has those concerns?)
+    # Report only: the organisers' labelled test set treats these tags as deliberate (auto-adding them let unsuitable products through).
     if (con & {"acne", "oiliness"}) and "oily" not in st and p["c"] != "Face oil":
-        fixes.append((p["id"], p["n"], "skin types", "acne / oil-control product not tagged for oily skin", "add 'oily'")); p["st"] = p["st"] + ["oily"]
+        review.append((p["id"], p["n"], "skin types", "acne / oil-control product not tagged for oily skin", "confirm with the brand before adding 'oily'"))
     # R2: a product made for dryness must suit dry skin, except exfoliants (can be too harsh: human review)
     if "dehydration" in con and "dry" not in st:
         if p["c"] == "Exfoliant": review.append((p["id"], p["n"], "skin types", "hydration claim but not for dry skin (exfoliant: may be intentional)", "review"))
-        else: fixes.append((p["id"], p["n"], "skin types", "hydration product not tagged for dry skin", "add 'dry'")); p["st"] = p["st"] + ["dry"]
+        else: review.append((p["id"], p["n"], "skin types", "hydration product not tagged for dry skin", "confirm with the brand before adding 'dry'"))
     # R3: flags that disagree with the ingredient list (the engine already uses the stricter of the two; reported so the data gets corrected at source)
     for k, rx in RX.items():
         has = bool(re.search(rx, inci + " " + act)); flag = p["fl"][k] == "1"
