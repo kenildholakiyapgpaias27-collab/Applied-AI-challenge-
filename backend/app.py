@@ -133,9 +133,13 @@ def classify_direct_color(payload: DirectColorRequest) -> Dict[str, Any]:
 INDEX_FILE = ROOT_DIR / "index.html"
 DECK_FILE = ROOT_DIR / "deck.html"
 SRC_DIR = ROOT_DIR / "src"
+ASSETS_DIR = ROOT_DIR / "assets"
 
 if SRC_DIR.exists():
     app.mount("/src", StaticFiles(directory=str(SRC_DIR)), name="src")
+
+if ASSETS_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
 
 
 @app.get("/", response_class=HTMLResponse)

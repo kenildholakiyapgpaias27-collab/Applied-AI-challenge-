@@ -3,40 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AAINA — Pitch Deck: The Constraint-Checked Skincare Engine</title>
+    <title>AAINA — Precision Skincare Pitch Deck</title>
     
-    <!-- Google Fonts: Cormorant Garamond & Plus Jakarta Sans -->
+    <!-- Google Fonts: Plus Jakarta Sans & IBM Plex Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         /* ===========================================
-           FIXED 16:9 STAGE BASE CSS (MANDATORY)
+           FIXED 16:9 STAGE BASE CSS (MANDATORY INVARIANT)
+           DARK BLUE & CRISP WHITE CLINICAL TECH THEME
            =========================================== */
         :root {
-            --stage-bg: #0c0a09;
-            --slide-bg: #fbf7f4;
-            --bg-peach: #f5e4db;
-            --bg-peach-light: #fbf0ea;
-            --bg-peach-deep: #edd5c8;
-            --bg-card: #ffffff;
-            --ink-primary: #181411;
-            --ink-secondary: #5e564f;
-            --ink-muted: #8c827a;
-            --accent-gold: #8c5e28;
-            --accent-terracotta: #b85d38;
-            --accent-emerald: #2a7a4b;
-            --line-subtle: rgba(140, 94, 40, 0.16);
-            --line-card: rgba(24, 20, 17, 0.08);
-            --shadow-luxury: 0 16px 40px -12px rgba(140, 94, 40, 0.12), 0 4px 12px rgba(0,0,0,0.03);
+            --stage-bg: #030712;
+            --slide-bg: #070d1e;
+            --card-bg: #0e1a38;
+            --card-border: rgba(56, 189, 248, 0.22);
+            --card-hover: rgba(56, 189, 248, 0.35);
             
-            --font-display: 'Cormorant Garamond', Georgia, serif;
-            --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            --ink-white: #ffffff;
+            --ink-silver: #94a3b8;
+            --ink-muted: #64748b;
+            
+            --blue-accent: #38bdf8;
+            --blue-glow: rgba(56, 189, 248, 0.15);
+            --blue-vibrant: #2563eb;
+            --blue-deep: #1e3a8a;
+            
+            --emerald-calib: #10b981;
+            --amber-warn: #f59e0b;
+            --red-alert: #ef4444;
+
+            --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'IBM Plex Mono', monospace;
-            
+
             --ease-luxury: cubic-bezier(0.16, 1, 0.3, 1);
-            --duration-smooth: 0.65s;
+            --duration: 0.5s;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -46,8 +49,8 @@
             height: 100%;
             overflow: hidden;
             background: var(--stage-bg);
-            font-family: var(--font-sans);
-            color: var(--ink-primary);
+            font-family: var(--font-main);
+            color: var(--ink-white);
             -webkit-font-smoothing: antialiased;
         }
 
@@ -70,9 +73,10 @@
             overflow: hidden;
             transform-origin: 0 0;
             background: var(--slide-bg);
-            box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+            box-shadow: 0 25px 90px rgba(0, 0, 0, 0.85);
         }
 
+        /* Slide visibility rule */
         .slide {
             position: absolute;
             inset: 0;
@@ -84,8 +88,8 @@
             opacity: 0;
             pointer-events: none;
             background: var(--slide-bg);
-            transition: opacity var(--duration-smooth) var(--ease-luxury),
-                        transform var(--duration-smooth) var(--ease-luxury);
+            transition: opacity var(--duration) var(--ease-luxury),
+                        transform var(--duration) var(--ease-luxury);
             transform: scale(1.015);
         }
 
@@ -98,16 +102,29 @@
             z-index: 1;
         }
 
-        /* Ambient luxury background glow */
+        /* Atmospheric tech glows */
         .slide::before {
             content: '';
             position: absolute;
-            top: -200px;
-            right: -200px;
-            width: 800px;
-            height: 800px;
+            top: -150px;
+            right: -150px;
+            width: 900px;
+            height: 900px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(245, 228, 219, 0.8) 0%, rgba(251, 247, 244, 0) 70%);
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.25) 0%, rgba(7, 13, 30, 0) 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .slide::after {
+            content: '';
+            position: absolute;
+            bottom: -200px;
+            left: -100px;
+            width: 700px;
+            height: 700px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, rgba(7, 13, 30, 0) 70%);
             pointer-events: none;
             z-index: 0;
         }
@@ -116,19 +133,19 @@
             position: relative;
             width: 100%;
             height: 100%;
-            padding: 70px 90px;
+            padding: 64px 84px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             z-index: 1;
         }
 
-        /* Reveal animations */
+        /* Staggered Entrance Animations */
         .reveal {
             opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.6s var(--ease-luxury),
-                        transform 0.6s var(--ease-luxury);
+            transform: translateY(18px);
+            transition: opacity 0.5s var(--ease-luxury),
+                        transform 0.5s var(--ease-luxury);
         }
 
         .slide.active .reveal {
@@ -136,19 +153,19 @@
             transform: translateY(0);
         }
 
-        .slide.active .reveal:nth-child(1) { transition-delay: 0.10s; }
-        .slide.active .reveal:nth-child(2) { transition-delay: 0.18s; }
-        .slide.active .reveal:nth-child(3) { transition-delay: 0.26s; }
-        .slide.active .reveal:nth-child(4) { transition-delay: 0.34s; }
+        .slide.active .reveal:nth-child(1) { transition-delay: 0.08s; }
+        .slide.active .reveal:nth-child(2) { transition-delay: 0.15s; }
+        .slide.active .reveal:nth-child(3) { transition-delay: 0.22s; }
+        .slide.active .reveal:nth-child(4) { transition-delay: 0.30s; }
 
         /* Typography */
         .eyebrow {
-            font-family: var(--font-sans);
+            font-family: var(--font-mono);
             font-size: 13px;
             font-weight: 600;
-            letter-spacing: 0.18em;
+            letter-spacing: 0.2em;
             text-transform: uppercase;
-            color: var(--accent-gold);
+            color: var(--blue-accent);
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -156,287 +173,185 @@
         }
 
         .display-title {
-            font-family: var(--font-display);
-            font-size: 80px;
-            line-height: 1.02;
-            font-weight: 500;
-            letter-spacing: -0.02em;
-            color: var(--ink-primary);
+            font-size: 70px;
+            line-height: 1.05;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--ink-white);
         }
 
         .display-title em {
-            font-style: italic;
-            font-weight: 400;
-            color: var(--accent-terracotta);
+            font-style: normal;
+            color: var(--blue-accent);
+            text-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
         }
 
         .subtitle {
-            font-family: var(--font-sans);
-            font-size: 21px;
-            line-height: 1.5;
-            color: var(--ink-secondary);
-            max-width: 820px;
-            margin-top: 12px;
+            font-size: 18px;
+            line-height: 1.55;
+            color: var(--ink-silver);
+            max-width: 900px;
+            margin-top: 8px;
             font-weight: 400;
         }
 
-        /* Editorial Arched Framing */
-        .arch-frame {
-            border-radius: 200px 200px 20px 20px;
-            overflow: hidden;
-            position: relative;
-            background: var(--bg-peach);
-            border: 1px solid rgba(140, 94, 40, 0.2);
-        }
-
-        .arch-pill {
-            border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 18px;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--line-card);
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            color: var(--ink-primary);
-        }
-
+        /* Grid Layouts */
         .grid-2col {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 50px;
-            align-items: center;
-            height: 100%;
+            gap: 36px;
+            align-items: stretch;
+            margin-top: 18px;
         }
 
         .grid-3col {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-            margin-top: 24px;
+            gap: 28px;
+            align-items: stretch;
+            margin-top: 20px;
         }
 
-        /* Luxury Cards */
-        .luxury-card {
-            background: var(--bg-card);
-            border-radius: 18px;
-            padding: 34px 30px;
-            border: 1px solid var(--line-card);
-            box-shadow: var(--shadow-luxury);
+        /* Clinical Tech Cards */
+        .tech-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 32px 30px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             position: relative;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
             transition: all 0.3s ease;
         }
 
-        .luxury-card.accent-peach {
-            background: var(--bg-peach);
-            border-color: rgba(140, 94, 40, 0.18);
-        }
-
-        .card-number {
-            font-family: var(--font-display);
-            font-size: 40px;
-            font-weight: 600;
-            color: var(--accent-gold);
-            line-height: 1;
-            margin-bottom: 10px;
-        }
-
-        .card-title {
-            font-family: var(--font-display);
-            font-size: 26px;
-            font-weight: 600;
-            color: var(--ink-primary);
-            line-height: 1.2;
-            margin-bottom: 10px;
-        }
-
-        .card-body {
-            font-size: 15px;
-            line-height: 1.55;
-            color: var(--ink-secondary);
-        }
-
-        /* Screenshot placeholder boxes */
-        .screenshot-box {
-            border: 2px dashed rgba(140, 94, 40, 0.35);
-            border-radius: 18px;
-            background: rgba(255, 255, 255, 0.7);
-            height: 380px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-luxury);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .screenshot-box:hover {
-            border-color: var(--accent-gold);
-            background: #ffffff;
+        .tech-card:hover {
+            border-color: var(--card-hover);
             transform: translateY(-2px);
         }
 
-        .screenshot-box.drag-over {
-            border-color: var(--accent-emerald) !important;
-            background: rgba(42, 122, 75, 0.08) !important;
-            transform: scale(1.02);
+        .tech-card.highlight-blue {
+            border-color: rgba(56, 189, 248, 0.4);
+            background: linear-gradient(145deg, #0f2249 0%, #0a1530 100%);
         }
 
-        .screenshot-box img.preview-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-            inset: 0;
-            z-index: 5;
-            background: #ffffff;
-        }
-
-        .screenshot-box .remove-btn {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            z-index: 10;
-            background: rgba(24, 20, 17, 0.85);
-            color: #ffffff;
-            border: none;
-            border-radius: 20px;
-            padding: 4px 10px;
-            font-size: 11px;
+        .card-num {
             font-family: var(--font-mono);
-            cursor: pointer;
-            backdrop-filter: blur(4px);
-            display: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--blue-accent);
+            margin-bottom: 8px;
+            letter-spacing: 0.1em;
         }
 
-        .screenshot-box.has-image .remove-btn {
-            display: block;
+        .card-head {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--ink-white);
+            margin-bottom: 10px;
+            line-height: 1.25;
         }
 
-        /* Monk Tone Swatches */
-        .monk-bar {
+        .card-p {
+            font-size: 15px;
+            color: var(--ink-silver);
+            line-height: 1.55;
+        }
+
+        /* Evidence Screenshot Container */
+        .ss-frame {
+            background: #040916;
+            border: 2px solid rgba(56, 189, 248, 0.25);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+            height: 480px;
+        }
+
+        .ss-frame.calibrated {
+            border-color: rgba(16, 185, 129, 0.5);
+            box-shadow: 0 16px 40px rgba(16, 185, 129, 0.15);
+        }
+
+        .ss-frame.drifted {
+            border-color: rgba(239, 68, 68, 0.45);
+            box-shadow: 0 16px 40px rgba(239, 68, 68, 0.15);
+        }
+
+        .ss-image-wrap {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
             display: flex;
             align-items: center;
-            gap: 10px;
-            background: #ffffff;
-            padding: 10px 16px;
-            border-radius: 40px;
-            border: 1px solid var(--line-card);
-            box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+            justify-content: center;
+            background: #020611;
         }
 
-        .monk-swatch {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            outline: none;
+        .ss-image-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
         }
 
-        .monk-swatch:hover {
-            transform: scale(1.2);
-            z-index: 2;
+        .ss-meta-bar {
+            padding: 16px 20px;
+            background: rgba(10, 20, 44, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .monk-swatch.active {
-            transform: scale(1.28);
-            border-color: var(--accent-gold);
-            box-shadow: 0 0 0 3px rgba(140, 94, 40, 0.35);
-            z-index: 3;
-        }
-
-        .monk-swatch::after {
-            content: attr(data-mst);
-            position: absolute;
-            bottom: -22px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-family: var(--font-mono);
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--ink-secondary);
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            pointer-events: none;
-            white-space: nowrap;
-        }
-
-        .monk-swatch:hover::after,
-        .monk-swatch.active::after {
-            opacity: 1;
-        }
-
-        /* Stress Test Pulse */
-        @keyframes alert-pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(184, 93, 56, 0.4); }
-            50% { box-shadow: 0 0 0 12px rgba(184, 93, 56, 0); }
-        }
-
-        .stress-active {
-            animation: alert-pulse 1.4s infinite;
-        }
-
-        /* Interactive Widgets inside slides */
-        .interactive-tag {
+        /* Badges & Pills */
+        .pill {
             font-family: var(--font-mono);
             font-size: 11px;
             font-weight: 600;
-            color: var(--accent-gold);
-            letter-spacing: 0.1em;
-            background: rgba(140, 94, 40, 0.1);
-            padding: 3px 8px;
-            border-radius: 4px;
+            padding: 4px 12px;
+            border-radius: 20px;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            animation: pulse-glow 2s infinite ease-in-out;
+            gap: 6px;
+            letter-spacing: 0.05em;
         }
 
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 0.8; }
-            50% { opacity: 1; transform: scale(1.02); }
-        }
+        .pill-blue { background: rgba(56, 189, 248, 0.15); color: var(--blue-accent); border: 1px solid rgba(56, 189, 248, 0.3); }
+        .pill-emerald { background: rgba(16, 185, 129, 0.15); color: var(--emerald-calib); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .pill-red { background: rgba(239, 68, 68, 0.15); color: var(--red-alert); border: 1px solid rgba(239, 68, 68, 0.3); }
 
-        /* Chip buttons */
+        /* Interactive Buttons / Switches */
         .chip-btn {
-            background: #ffffff;
-            border: 1px solid var(--line-card);
+            background: #0d1e3f;
+            border: 1px solid rgba(56, 189, 248, 0.3);
             border-radius: 30px;
             padding: 8px 16px;
             font-size: 13px;
             font-weight: 600;
-            color: var(--ink-primary);
+            color: var(--ink-white);
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             display: inline-flex;
             align-items: center;
             gap: 6px;
         }
 
         .chip-btn:hover {
-            border-color: var(--accent-gold);
+            border-color: var(--blue-accent);
+            background: #142a58;
             transform: translateY(-2px);
         }
 
         .chip-btn.selected {
-            background: var(--ink-primary);
-            color: #ffffff;
-            border-color: var(--ink-primary);
+            background: var(--blue-accent);
+            color: #030712;
+            border-color: var(--blue-accent);
+            font-weight: 700;
         }
 
         /* Presentation Navigation Floating Dock */
@@ -446,79 +361,73 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 9999;
-            background: rgba(20, 16, 14, 0.90);
+            background: rgba(10, 20, 44, 0.90);
             backdrop-filter: blur(16px);
-            border: 1px solid rgba(215, 189, 150, 0.25);
-            padding: 8px 18px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 8px 20px;
             border-radius: 40px;
             display: flex;
             align-items: center;
             gap: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.6);
         }
 
         .deck-btn {
-            background: none;
+            background: transparent;
             border: none;
-            color: #f5ede4;
-            font-family: var(--font-sans);
+            color: var(--ink-white);
             font-size: 13px;
             font-weight: 600;
+            padding: 4px 10px;
             cursor: pointer;
-            padding: 6px 14px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            border-radius: 6px;
             transition: all 0.2s ease;
         }
 
         .deck-btn:hover {
-            background: rgba(215, 189, 150, 0.2);
-            color: #ffffff;
+            color: var(--blue-accent);
+            background: rgba(56, 189, 248, 0.1);
         }
 
         .deck-pill-counter {
             font-family: var(--font-mono);
-            font-size: 13px;
-            font-weight: 500;
-            color: #d7bd96;
-            letter-spacing: 0.1em;
-            padding: 0 10px;
-            border-left: 1px solid rgba(215, 189, 150, 0.2);
-            border-right: 1px solid rgba(215, 189, 150, 0.2);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--blue-accent);
+            background: rgba(56, 189, 248, 0.12);
+            padding: 3px 10px;
+            border-radius: 12px;
         }
 
         .deck-dots {
             display: flex;
-            gap: 6px;
+            gap: 8px;
         }
 
         .deck-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: rgba(245, 237, 228, 0.25);
+            background: rgba(255,255,255,0.25);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         .deck-dot.active {
-            background: #d7bd96;
-            width: 24px;
+            width: 22px;
             border-radius: 10px;
+            background: var(--blue-accent);
         }
 
-        .badge-pill {
-            background: #181411;
-            color: #ffffff;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            padding: 4px 12px;
-            border-radius: 30px;
-            display: inline-block;
-            margin-bottom: 10px;
+        /* Pulse glow */
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(56, 189, 248, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+
+        .active-pulse {
+            animation: pulse-ring 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
         }
     </style>
 </head>
@@ -527,592 +436,276 @@
         <main class="deck-stage" id="deckStage">
 
             <!-- ==========================================
-                 SLIDE 1: COVER (Vision & Purpose)
+                 SLIDE 1: THE CORE PROBLEM (Why Users Buy Wrong Skincare)
                  ========================================== -->
-            <section class="slide title-slide active" data-slide="0">
+            <section class="slide active" data-slide="0">
                 <div class="slide-inner">
-                    <header class="reveal" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span class="eyebrow">✦ Pitch Deck · Series Seed</span>
-                        <span class="arch-pill">PARIS · MUMBAI · BENGALURU</span>
+                    <header class="reveal">
+                        <span class="eyebrow">✦ CLINICAL CONSUMER REALITY</span>
+                        <h1 class="display-title">Why Consumers Buy The <em>Wrong Products</em></h1>
+                        <p class="subtitle">
+                            The $30 Billion Indian beauty market is plagued by guesswork. Users waste thousands on products that cause breakouts, dark spots, and damaged barriers due to three invisible structural flaws.
+                        </p>
                     </header>
 
-                    <div class="grid-2col" style="margin: auto 0;">
-                        <div>
-                            <div class="reveal">
-                                <span class="badge-pill">PRECISION DERMATOLOGY</span>
+                    <div class="grid-3col">
+                        <!-- Problem 01 -->
+                        <div class="tech-card reveal">
+                            <div>
+                                <span class="card-num">PROBLEM 01 · OPTICAL DRIFT</span>
+                                <h3 class="card-head">The 4-Shade Camera Lie</h3>
+                                <p class="card-p">
+                                    Smartphone cameras auto-adjust white balance against indoor 2700K tungsten lamps. Skin tone is falsely classified <strong>3 to 4 shades darker</strong>, feeding wrong melanin parameters into recommendation engines.
+                                </p>
                             </div>
-                            <h1 class="display-title reveal">
-                                AAINA<br>
-                                <em>L'Ordonnance</em><br>
-                                de Soin
-                            </h1>
-                            <p class="subtitle reveal">
-                                An intelligent skincare engine that replaces 10-step influencer guesswork with a clinically constrained, 3-product routine built for your exact skin barrier, tone, and climate.
-                            </p>
-                            <div class="reveal" style="margin-top: 32px; display: flex; gap: 14px; align-items: center;">
-                                <div class="arch-pill" style="background: var(--ink-primary); color: #ffffff;">
-                                    Clinical Constraint Engine
-                                </div>
-                                <div class="arch-pill">
-                                    3-Product Minimalist Protocol
-                                </div>
+                            <div style="margin-top: 24px; padding: 12px 16px; background: rgba(239, 68, 68, 0.1); border-left: 3px solid var(--red-alert); border-radius: 8px; font-size: 13px; color: #fca5a5;">
+                                <strong>Impact:</strong> Mismatched formulas &amp; false PIH risk tags.
                             </div>
                         </div>
 
-                        <!-- Arched Aesthetic Motif -->
-                        <div class="reveal" style="display: flex; justify-content: center;">
-                            <div class="arch-frame" style="width: 360px; height: 500px; display: flex; flex-direction: column; justify-content: space-between; padding: 40px 32px; box-shadow: var(--shadow-luxury);">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--accent-gold);">PRESCRIPTION NO. 1</span>
-                                    <span style="font-size: 16px; color: var(--accent-gold);">✦</span>
-                                </div>
-                                
-                                <div style="text-align: center;">
-                                    <div style="width: 110px; height: 110px; border-radius: 50%; margin: 0 auto 20px; border: 2px dashed rgba(140, 94, 40, 0.4); display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.7);">
-                                        <div style="width: 86px; height: 86px; border-radius: 50%; background: #8c5e28; color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 28px;">
-                                            3
-                                        </div>
-                                    </div>
-                                    <h3 style="font-family: var(--font-display); font-size: 30px; font-weight: 600; color: var(--ink-primary);">Cleanse. Treat. Shield.</h3>
-                                    <p style="font-size: 14px; color: var(--ink-secondary); margin-top: 6px;">Zero product collisions. Zero barrier damage.</p>
-                                </div>
+                        <!-- Problem 02 -->
+                        <div class="tech-card reveal">
+                            <div>
+                                <span class="card-num">PROBLEM 02 · CHEMICAL CLASH</span>
+                                <h3 class="card-head">Hazardous Active Collisions</h3>
+                                <p class="card-p">
+                                    Influencers push multi-step acid layering. Combining low-pH chemical peels (10% Glycolic Acid, pH 3.2) with Retinoids (pH 5.8) causes an acid shockwave, collapsing intercellular lipid bilayers.
+                                </p>
+                            </div>
+                            <div style="margin-top: 24px; padding: 12px 16px; background: rgba(239, 68, 68, 0.1); border-left: 3px solid var(--red-alert); border-radius: 8px; font-size: 13px; color: #fca5a5;">
+                                <strong>Impact:</strong> Severe contact dermatitis &amp; barrier rupture.
+                            </div>
+                        </div>
 
-                                <div style="background: rgba(255,255,255,0.8); border-radius: 12px; padding: 12px 16px; text-align: center; font-size: 12px; font-weight: 600; color: var(--accent-gold);">
-                                    Calibrated to Indian Climate &amp; Skin Types
-                                </div>
+                        <!-- Problem 03 -->
+                        <div class="tech-card reveal">
+                            <div>
+                                <span class="card-num">PROBLEM 03 · THE 10-STEP TRAP</span>
+                                <h3 class="card-head">60%+ Routine Abandonment</h3>
+                                <p class="card-p">
+                                    Over-complicated Korean 10-step routines overwhelm users. Research by the American Academy of Dermatology proves adherence drops below 40% when protocols exceed 3 core steps.
+                                </p>
+                            </div>
+                            <div style="margin-top: 24px; padding: 12px 16px; background: rgba(56, 189, 248, 0.1); border-left: 3px solid var(--blue-accent); border-radius: 8px; font-size: 13px; color: #bae6fd;">
+                                <strong>The Antidote:</strong> AAINA's strict 3-step constraint engine.
                             </div>
                         </div>
                     </div>
 
-                    <footer class="reveal" style="display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-muted); border-top: 1px solid var(--line-subtle); padding-top: 14px;">
-                        <span>CONFIDENTIAL · FOR EVALUATION ONLY</span>
-                        <span>AAINA AI INTELLIGENCE</span>
+                    <footer class="reveal" style="font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+                        <span>BAIN &amp; CO. 2024 REPORT: $30B INDIAN BEAUTY MARKET BY 2030</span>
+                        <span>AAINA INTELLIGENT REPUTATION ENGINE</span>
                     </footer>
                 </div>
             </section>
 
             <!-- ==========================================
-                 SLIDE 2: THE PROBLEM (Skincare Shopping is Broken)
+                 SLIDE 2: THE BREAKTHROUGH (Before vs After Screenshots)
                  ========================================== -->
             <section class="slide" data-slide="1">
                 <div class="slide-inner">
-                    <header class="reveal">
-                        <span class="eyebrow">✦ The Consumer Dilemma</span>
-                        <h2 class="display-title">Skincare Shopping is <em>Completely Broken</em></h2>
+                    <header class="reveal" style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div>
+                            <span class="eyebrow">✦ REAL-WORLD COMPUTER VISION BREAKTHROUGH</span>
+                            <h2 class="display-title">The White Paper Fix: <em>4 Shades Corrected</em></h2>
+                        </div>
+                        <span class="pill pill-emerald" style="font-size: 13px; padding: 6px 16px;">
+                            ✦ ONE-SHOT VON KRIES D65 CALIBRATION
+                        </span>
                     </header>
 
-                    <p class="subtitle reveal">
-                        The average consumer owns 7 to 10 half-empty bottles at home. They are overwhelmed by social media trends, conflicting active ingredients, and zero guidance on what actually works together.
+                    <p class="subtitle reveal" style="margin-top: 2px;">
+                        Evidence from live testing on our platform: holding a simple sheet of white paper under the chin provides a physical reflectance anchor, instantly eliminating yellow ambient room drift.
                     </p>
 
-                    <div class="grid-3col">
-                        <div class="luxury-card reveal">
-                            <div>
-                                <span class="card-number">01</span>
-                                <h3 class="card-title">Influencer Routine Fatigue</h3>
-                                <p class="card-body">
-                                    Promoting 10-step viral routines strips the natural stratum corneum barrier. Dermatologists report that over-exfoliation and barrier breakdown have become the #1 skin complaint.
-                                </p>
+                    <!-- Real User Screenshots Comparison Grid -->
+                    <div class="grid-2col" style="margin-top: 14px;">
+                        
+                        <!-- BEFORE: UNCALIBRATED -->
+                        <div class="ss-frame drifted reveal">
+                            <div style="position: absolute; top: 14px; left: 14px; z-index: 10;">
+                                <span class="pill pill-red">BEFORE · UNCALIBRATED CAMERA</span>
                             </div>
-                            <div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--line-card); font-size: 13px; font-weight: 600; color: var(--accent-terracotta);">
-                                &rarr; Result: Chronic irritation &amp; barrier damage
+                            <div class="ss-image-wrap">
+                                <img src="/assets/before_whitepaper.jpg" alt="Before White Paper Screenshot: Monk 07 Distortion">
                             </div>
-                        </div>
-
-                        <div class="luxury-card reveal">
-                            <div>
-                                <span class="card-number">02</span>
-                                <h3 class="card-title">Dangerous Active Clashes</h3>
-                                <p class="card-body">
-                                    Consumers unknowingly layer acidic Glycolic Acid with Retinol, or Copper Peptides with low-pH Vitamin C. These chemical pH collisions cause burning, sensitivity, and contact dermatitis.
-                                </p>
-                            </div>
-                            <div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--line-card); font-size: 13px; font-weight: 600; color: var(--accent-terracotta);">
-                                &rarr; Result: Wasted spend &amp; worsening breakouts
+                            <div class="ss-meta-bar">
+                                <div>
+                                    <div style="font-size: 11px; font-family: var(--font-mono); color: #f87171;">DETECTED TONE (WARM LIGHT DRIFT)</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: #ffffff;">Monk 07 · Tan Deep</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 11px; font-family: var(--font-mono); color: #94a3b8;">ERROR MARGIN</div>
+                                    <div style="font-size: 14px; font-weight: 600; color: #ef4444;">+4 Shades Artificially Darker</div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="luxury-card reveal">
-                            <div>
-                                <span class="card-number">03</span>
-                                <h3 class="card-title">Mismatched Shades &amp; White-Cast</h3>
-                                <p class="card-body">
-                                    Online shade matching fails in beauty e-commerce, driving high return rates, while physical sunscreens leave an ashy white cast that leads people to abandon UV protection entirely.
-                                </p>
+                        <!-- AFTER: CALIBRATED -->
+                        <div class="ss-frame calibrated reveal">
+                            <div style="position: absolute; top: 14px; left: 14px; z-index: 10;">
+                                <span class="pill pill-emerald">AFTER · STUDIO CALIBRATED (D65)</span>
                             </div>
-                            <div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--line-card); font-size: 13px; font-weight: 600; color: var(--accent-terracotta);">
-                                &rarr; Result: High e-commerce return rates
+                            <div class="ss-image-wrap">
+                                <img src="/assets/after_whitepaper.jpg" alt="After White Paper Screenshot: Monk 03 True Daylight">
+                            </div>
+                            <div class="ss-meta-bar">
+                                <div>
+                                    <div style="font-size: 11px; font-family: var(--font-mono); color: #34d399;">GROUND TRUTH (NORMALIZED D65)</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: #ffffff;">Monk 03 · Light Light (99% Confidence)</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 11px; font-family: var(--font-mono); color: #94a3b8;">CLINICAL PRECISION</div>
+                                    <div style="font-size: 14px; font-weight: 600; color: #10b981;">96% Daylight Fidelity</div>
+                                </div>
                             </div>
                         </div>
+
                     </div>
 
-                    <footer class="reveal" style="font-size: 14px; color: var(--ink-secondary); background: var(--bg-peach); padding: 14px 22px; border-radius: 12px; display: flex; justify-content: space-between;">
-                        <span><strong>The Reality:</strong> People don't need another 10 products. They need <em>exactly three</em> that are proven safe to use together.</span>
-                        <span style="font-weight: 600; color: var(--accent-gold);">The Antidote: Medical Guardrails</span>
+                    <footer class="reveal" style="font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px;">
+                        <span>HARDWARE COST: $0.00 (ANY STANDARD WHITE PAPER)</span>
+                        <span>CIE STANDARD ILLUMINANT D65 DAYLIGHT CONVERGENCE</span>
                     </footer>
                 </div>
             </section>
 
             <!-- ==========================================
-                 SLIDE 3: TRUE TONE & THE 2 SCREENSHOT BLOCKS (Skin Tone 1/3)
+                 SLIDE 3: MELANIN SAFETY & ACTIVE COLLISION ENGINE
                  ========================================== -->
             <section class="slide" data-slide="2">
                 <div class="slide-inner">
                     <header class="reveal" style="display: flex; justify-content: space-between; align-items: flex-end;">
                         <div>
-                            <span class="eyebrow">✦ Precision Optical Innovation</span>
-                            <h2 class="display-title" style="font-size: 74px;">True Tone: <em>The White Paper</em> Breakthrough</h2>
+                            <span class="eyebrow">✦ DERMATOLOGICAL SAFETY RULES</span>
+                            <h2 class="display-title">Tone As Safety: <em>Zero Chemical Clashes</em></h2>
                         </div>
-                        <div class="interactive-tag">
-                            <span>✦ INTERACTIVE TEST SUITE</span>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="chip-btn" id="btnClashRetinol">Retinol + AHA Clash</button>
+                            <button type="button" class="chip-btn selected" id="btnClashSafe">✦ Clinical Safe Synergy</button>
                         </div>
                     </header>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-                        <p class="subtitle reveal" style="margin-top: 0; font-size: 17px; max-width: 900px;">
-                            Yellow bedroom lamps deceive phone cameras into misreading skin tones by up to 2 shades. Holding a white paper under the chin provides a physical reflectance anchor, enabling AAINA to subtract ambient lighting and restore clinical daylight fidelity.
-                        </p>
-                        <!-- Live Simulation Toggle for Judges -->
-                        <div class="reveal" style="display: flex; gap: 8px; background: rgba(0,0,0,0.06); padding: 4px; border-radius: 30px;">
-                            <button type="button" class="chip-btn" id="simUncalibBtn" style="font-size: 12px; padding: 6px 14px;">Simulate Yellow Lamp (2700K)</button>
-                            <button type="button" class="chip-btn selected" id="simCalibBtn" style="font-size: 12px; padding: 6px 14px;">✦ D65 White-Paper Calibrated</button>
-                        </div>
-                    </div>
+                    <p class="subtitle reveal" style="margin-top: 2px;">
+                        Skin tone dictates biological reactivity. 65% of individuals with Fitzpatrick types IV–VI suffer from Post-Inflammatory Hyperpigmentation (PIH) caused by inappropriate acid strengths. AAINA acts as a clinical gatekeeper.
+                    </p>
 
-                    <!-- The 2 Requested Screenshot Blocks (Interactive Click / Drag-and-Drop) -->
-                    <div class="grid-2col" style="margin-top: 14px; gap: 32px;">
+                    <div class="grid-2col" style="margin-top: 16px;">
                         
-                        <!-- BLOCK 1: BEFORE WHITE PAPER -->
-                        <div class="screenshot-box reveal" id="boxBefore" style="border-color: rgba(184, 93, 56, 0.45); background: #ffffff;">
-                            <input type="file" id="inputBefore" accept="image/*" style="display: none;">
-                            <button type="button" class="remove-btn" id="removeBefore" title="Remove image">&times; Clear</button>
-                            <img id="imgBefore" class="preview-image" style="display: none;" alt="Before White Paper Screenshot">
-
-                            <div class="box-placeholder-content" id="placeholderBefore">
-                                <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(184, 93, 56, 0.1); color: var(--accent-terracotta); display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 12px;">
-                                    📷
+                        <!-- Left: Melanin Guardrails -->
+                        <div class="tech-card reveal" style="border-left: 4px solid var(--blue-accent);">
+                            <span class="eyebrow">SAFETY PILLAR 01 · MELANIN SAFETY</span>
+                            <h3 class="card-head">Melanocyte Protection &amp; White-Cast</h3>
+                            <p class="card-p">
+                                Basal melanocytes on deeper skin react to chemical trauma by hyper-producing melanin, causing dark patches that last up to 12 months. Pure physical sunscreens (Zinc Oxide) scatter light, leaving a chalky ghost cast.
+                            </p>
+                            
+                            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                                <div style="padding: 12px 16px; background: rgba(56, 189, 248, 0.08); border-radius: 8px; font-size: 13px;">
+                                    <strong style="color: var(--blue-accent);">AAINA Rule:</strong> Hard ceiling on unbuffered Glycolic Acid (&le;5%) on Monk 6–10. Substitutes gentle Azelaic Acid &amp; Niacinamide.
                                 </div>
-                                <h4 style="font-family: var(--font-display); font-size: 25px; color: var(--ink-primary); margin-bottom: 6px;">
-                                    [ Paste / Drop Screenshot: Before White Paper ]
-                                </h4>
-                                <p style="font-size: 14px; color: var(--ink-secondary); max-width: 380px; margin: 0 auto 12px;">
-                                    Raw selfie under warm bedroom lighting. Click or drag-and-drop to paste screenshot.
-                                </p>
-                                <span class="badge-pill" style="background: rgba(184, 93, 56, 0.15); color: var(--accent-terracotta); border: 1px solid rgba(184, 93, 56, 0.3);">
-                                    Uncalibrated Camera Drift (~33% Accuracy)
-                                </span>
-                                <div style="margin-top: 10px; font-size: 11px; font-family: var(--font-mono); color: var(--ink-muted);">
-                                    CLICK TO BROWSE OR DRAG IMAGE HERE
+                                <div style="padding: 12px 16px; background: rgba(56, 189, 248, 0.08); border-radius: 8px; font-size: 13px;">
+                                    <strong style="color: var(--blue-accent);">Sunscreen Filter:</strong> Replaces pure white-chalk mineral zinc with invisible hybrid photoprotection (Tinosorb M/S).
                                 </div>
                             </div>
                         </div>
 
-                        <!-- BLOCK 2: AFTER WHITE PAPER -->
-                        <div class="screenshot-box reveal" id="boxAfter" style="border-color: rgba(42, 122, 75, 0.5); background: #ffffff;">
-                            <input type="file" id="inputAfter" accept="image/*" style="display: none;">
-                            <button type="button" class="remove-btn" id="removeAfter" title="Remove image">&times; Clear</button>
-                            <img id="imgAfter" class="preview-image" style="display: none;" alt="After White Paper Screenshot">
+                        <!-- Right: Interactive Collision Engine -->
+                        <div class="tech-card reveal" id="clashCard" style="border-left: 4px solid var(--emerald-calib);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="eyebrow" id="clashEyebrow" style="color: var(--emerald-calib);">SAFETY PILLAR 02 · INCI CHECK</span>
+                                <span class="pill pill-emerald" id="clashBadge">0 COLLISIONS DETECTED</span>
+                            </div>
+                            
+                            <h3 class="card-head" id="clashTitle" style="margin-top: 8px;">
+                                Ceramide NP + 5% Niacinamide: Synergy
+                            </h3>
+                            <p class="card-p" id="clashDesc">
+                                Safe, harmonized pairing. Niacinamide stimulates endogenous ceramide synthesis by +34%, while topical Ceramides replenish intercellular surface lipids without pH disruption.
+                            </p>
 
-                            <div class="box-placeholder-content" id="placeholderAfter">
-                                <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(42, 122, 75, 0.1); color: var(--accent-emerald); display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 12px;">
-                                    ✦
-                                </div>
-                                <h4 style="font-family: var(--font-display); font-size: 25px; color: var(--ink-primary); margin-bottom: 6px;">
-                                    [ Paste / Drop Screenshot: After White Paper ]
-                                </h4>
-                                <p style="font-size: 14px; color: var(--ink-secondary); max-width: 380px; margin: 0 auto 12px;">
-                                    With white reference paper under chin. Click or drag-and-drop to paste screenshot.
-                                </p>
-                                <span class="badge-pill" style="background: rgba(42, 122, 75, 0.15); color: var(--accent-emerald); border: 1px solid rgba(42, 122, 75, 0.3);">
-                                    ✦ Studio Calibrated · D65 Normalized (96%+ Precision)
-                                </span>
-                                <div style="margin-top: 10px; font-size: 11px; font-family: var(--font-mono); color: var(--ink-muted);">
-                                    CLICK TO BROWSE OR DRAG IMAGE HERE
-                                </div>
+                            <div id="clashActionBox" style="margin-top: 20px; padding: 14px 18px; background: rgba(16, 185, 129, 0.1); border-radius: 10px; font-size: 13px; color: #a7f3d0;">
+                                <strong>Clinical Result:</strong> 100% Barrier Integrity Preserved. Safe for daily concurrent morning &amp; evening application.
                             </div>
                         </div>
 
                     </div>
 
-                    <footer class="reveal" style="font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                        <span>ONE-SHOT VON KRIES CHROMATIC ADAPTATION · ZERO HARDWARE COST</span>
-                        <div style="display: flex; gap: 8px;">
-                            <button type="button" class="chip-btn" id="loadDemoScreenshotsBtn" style="font-size: 11px; padding: 4px 10px;">✦ Load Live Benchmark Demo</button>
-                        </div>
-                        <span>OFFICIAL GOOGLE MONK SCALE (MST 1–10)</span>
+                    <footer class="reveal" style="font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px;">
+                        <span>420+ INCI CHEMICAL CONTRAINDICATION RULES</span>
+                        <span>JOURNAL OF THE AMERICAN ACADEMY OF DERMATOLOGY (JAAD) GUIDELINES</span>
                     </footer>
                 </div>
             </section>
 
             <!-- ==========================================
-                 SLIDE 4: TONE AS A SAFETY CONSTRAINT (Skin Tone 2/3)
+                 SLIDE 4: THE SOLUTION (The 3-Step Anti-Routine & Climate)
                  ========================================== -->
             <section class="slide" data-slide="3">
                 <div class="slide-inner">
                     <header class="reveal" style="display: flex; justify-content: space-between; align-items: flex-end;">
                         <div>
-                            <span class="eyebrow">✦ Melanin-Aware Safety Rules</span>
-                            <h2 class="display-title" style="font-size: 74px;">Why Skin Tone Dictates <em>Product Safety</em></h2>
+                            <span class="eyebrow">✦ THE FORMULATION OUTCOME</span>
+                            <h2 class="display-title">The Anti-Routine: <em>Three Steps, Climate-Tuned</em></h2>
                         </div>
-                        <div class="interactive-tag">
-                            <span>✦ CLICK ANY SHADE BELOW</span>
+                        <!-- City Climate Switcher -->
+                        <div class="reveal" style="display: flex; gap: 8px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 30px;">
+                            <button type="button" class="chip-btn selected" id="cityMum">🌊 Mumbai (84% Humid)</button>
+                            <button type="button" class="chip-btn" id="cityDel">❄️ Delhi (Winter · AQI 310)</button>
+                            <button type="button" class="chip-btn" id="cityBlr">🌿 Bengaluru (Temperate)</button>
                         </div>
                     </header>
 
-                    <!-- Interactive Monk Skin Tone Swatches Selector -->
-                    <div class="reveal" style="margin: 14px 0 6px; display: flex; align-items: center; justify-content: space-between; background: #ffffff; padding: 10px 22px; border-radius: 40px; border: 1px solid var(--line-card); box-shadow: var(--shadow-luxury);">
-                        <div style="display: flex; align-items: center; gap: 14px;">
-                            <span class="eyebrow" style="margin-bottom: 0; color: var(--accent-gold); font-size: 11px;">GOOGLE MONK SCALE:</span>
-                            <div class="monk-bar" id="monkScaleBar">
-                                <button type="button" class="monk-swatch" data-mst="01" data-hex="#f6ede4" style="background: #f6ede4;" title="Monk 01"></button>
-                                <button type="button" class="monk-swatch" data-mst="02" data-hex="#f3e7db" style="background: #f3e7db;" title="Monk 02"></button>
-                                <button type="button" class="monk-swatch" data-mst="03" data-hex="#f7ead0" style="background: #f7ead0;" title="Monk 03"></button>
-                                <button type="button" class="monk-swatch" data-mst="04" data-hex="#eadaba" style="background: #eadaba;" title="Monk 04"></button>
-                                <button type="button" class="monk-swatch" data-mst="05" data-hex="#d7bd96" style="background: #d7bd96;" title="Monk 05"></button>
-                                <button type="button" class="monk-swatch" data-mst="06" data-hex="#a07e56" style="background: #a07e56;" title="Monk 06"></button>
-                                <button type="button" class="monk-swatch active" data-mst="07" data-hex="#825c43" style="background: #825c43;" title="Monk 07"></button>
-                                <button type="button" class="monk-swatch" data-mst="08" data-hex="#604134" style="background: #604134;" title="Monk 08"></button>
-                                <button type="button" class="monk-swatch" data-mst="09" data-hex="#3a312a" style="background: #3a312a;" title="Monk 09"></button>
-                                <button type="button" class="monk-swatch" data-mst="10" data-hex="#292420" style="background: #292420;" title="Monk 10"></button>
-                            </div>
-                        </div>
-                        <div id="monkLiveBadge" class="badge-pill" style="background: #825c43; color: #ffffff; margin: 0; font-size: 13px; font-weight: 600;">
-                            MST 07 · Fitzpatrick Type V (Melanocompetent)
-                        </div>
-                    </div>
-
-                    <p class="subtitle reveal" style="margin-top: 4px; font-size: 17px;">
-                        In dermatological medicine, skin tone dictates biological reactivity. Darker complexions feature hyper-reactive basal melanocytes that trigger stubborn hyperpigmentation when exposed to harsh chemicals.
+                    <p class="subtitle reveal" style="margin-top: 2px;">
+                        AAINA delivers exactly what the user needs: Cleanse, Treat, and Shield. Formulations dynamically auto-tune their textures based on real-time environmental telemetry.
                     </p>
 
-                    <div class="grid-2col" style="margin-top: 14px;">
-                        <div class="luxury-card reveal" style="border-left: 5px solid var(--accent-terracotta);" id="cardPih">
-                            <span class="eyebrow" style="color: var(--accent-terracotta);" id="pihEyebrow">SAFETY CONSTRAINT 01 · PIH RISK</span>
-                            <h3 class="card-title" id="pihTitle">Post-Inflammatory Hyperpigmentation</h3>
-                            <p class="card-body" id="pihDesc">
-                                On melanocompetent skin (Monk 5–10), aggressive chemical peels or unbuffered high-strength acids trigger trauma in basal melanocytes, causing dark spots that take up to a year to fade.
-                            </p>
-                            <div style="margin-top: 20px; padding: 14px 18px; background: var(--bg-peach-light); border-radius: 12px; font-size: 14px;" id="pihRule">
-                                <strong>AAINA Rule:</strong> Hard ceiling on unbuffered Glycolic Acid (&le;5%) and Salicylic Acid (&le;2%). Automatically favors gentle Niacinamide and Azelaic Acid.
-                            </div>
-                        </div>
-
-                        <div class="luxury-card reveal" style="border-left: 5px solid var(--accent-gold);" id="cardCast">
-                            <span class="eyebrow" style="color: var(--accent-gold);" id="castEyebrow">SAFETY CONSTRAINT 02 · OPTICAL CAST</span>
-                            <h3 class="card-title" id="castTitle">Sunscreen White-Cast Penalty</h3>
-                            <p class="card-body" id="castDesc">
-                                Pure physical sunscreens (Zinc Oxide and Titanium Dioxide) scatter visible light. On deeper complexions, this leaves an unsightly purple-gray chalky film, causing users to skip daily sunscreen.
-                            </p>
-                            <div style="margin-top: 20px; padding: 14px 18px; background: var(--bg-peach-light); border-radius: 12px; font-size: 14px;" id="castRule">
-                                <strong>AAINA Rule:</strong> Automatically penalizes pure mineral zinc formulations on Monk 6–10 and recommends invisible hybrid or photostable chemical UV filters.
-                            </div>
-                        </div>
-                    </div>
-
-                    <footer class="reveal" style="font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between;">
-                        <span>FITZPATRICK PHOTOTYPES I TO VI</span>
-                        <span>CLINICAL DERMATOLOGICAL GUARDRAILS</span>
-                    </footer>
-                </div>
-            </section>
-
-            <!-- ==========================================
-                 SLIDE 5: THE 3-STEP ROUTINE ENGINE (Interactive Protocol)
-                 ========================================== -->
-            <section class="slide" data-slide="4">
-                <div class="slide-inner">
-                    <header class="reveal" style="display: flex; justify-content: space-between; align-items: flex-end;">
-                        <div>
-                            <span class="eyebrow">✦ The Minimalist Protocol</span>
-                            <h2 class="display-title" style="font-size: 74px;">The Anti-Routine: <em>Three Steps, Exactly</em></h2>
-                        </div>
-                        <!-- Interactive AM/PM Switcher for Judges -->
-                        <div class="reveal" style="display: flex; gap: 8px; background: rgba(0,0,0,0.06); padding: 4px; border-radius: 30px;">
-                            <button type="button" class="chip-btn selected" id="tabAmBtn">☀️ Morning Protocol</button>
-                            <button type="button" class="chip-btn" id="tabPmBtn">🌙 Evening Protocol</button>
-                        </div>
-                    </header>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                        <p class="subtitle reveal" style="margin-top: 0; font-size: 17px; max-width: 820px;">
-                            AAINA rejects bloated regimens in favor of the clinical gold standard: Cleanse, Treat, and Shield. Every product is cross-checked to ensure zero molecular conflicts.
-                        </p>
-                        <!-- Dynamic Concern Selector for Judges -->
-                        <div class="reveal" style="display: flex; align-items: center; gap: 6px; background: #ffffff; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--line-card);">
-                            <span style="font-size: 11px; font-weight: 600; color: var(--accent-gold);">CONCERN:</span>
-                            <button type="button" class="chip-btn selected" id="concernRepairBtn" style="font-size: 11px; padding: 3px 10px;">✨ Barrier Glow</button>
-                            <button type="button" class="chip-btn" id="concernAcneBtn" style="font-size: 11px; padding: 3px 10px;">🌿 Acne &amp; Sebum</button>
-                            <button type="button" class="chip-btn" id="concernPihBtn" style="font-size: 11px; padding: 3px 10px;">☀️ Melasma / PIH</button>
-                        </div>
-                    </div>
-
-                    <div class="grid-3col" id="routineCardsContainer" style="margin-top: 16px;">
-                        <!-- Step 1 Card -->
-                        <div class="luxury-card reveal" style="border-top: 6px solid var(--accent-gold);">
-                            <div>
-                                <span class="eyebrow" id="step1Tag">GESTURE 01 · PURIFY</span>
-                                <h3 class="card-title" id="step1Title">Barrier Cleanser</h3>
-                                <p class="card-body" id="step1Desc">
-                                    Low-surfactant, physiological pH 5.5. Cleans gently without stripping natural skin lipids or microflora.
-                                </p>
-                            </div>
-                            <div style="margin-top: 24px; background: var(--bg-peach-light); padding: 12px 16px; border-radius: 10px; font-size: 13px; font-family: var(--font-mono);" id="step1Meta">
-                                Amino Acid Base · Non-Stripping
-                            </div>
-                        </div>
-
-                        <!-- Step 2 Card -->
-                        <div class="luxury-card reveal" style="border-top: 6px solid var(--accent-terracotta);">
-                            <div>
-                                <span class="eyebrow" id="step2Tag">GESTURE 02 · REPAIR</span>
-                                <h3 class="card-title" id="step2Title">5% Niacinamide + HA</h3>
-                                <p class="card-body" id="step2Desc">
-                                    Calibrated active serum targeting hyperpigmentation and barrier hydration without irritating reactive melanocytes.
-                                </p>
-                            </div>
-                            <div style="margin-top: 24px; background: var(--bg-peach-light); padding: 12px 16px; border-radius: 10px; font-size: 13px; font-family: var(--font-mono);" id="step2Meta">
-                                PIH-Safe · Anti-Inflammatory
-                            </div>
-                        </div>
-
-                        <!-- Step 3 Card -->
-                        <div class="luxury-card reveal" style="border-top: 6px solid var(--accent-emerald);">
-                            <div>
-                                <span class="eyebrow" id="step3Tag">GESTURE 03 · SHIELD</span>
-                                <h3 class="card-title" id="step3Title">Invisible Hybrid SPF 50</h3>
-                                <p class="card-body" id="step3Desc">
-                                    Ultra-light broad-spectrum photoprotection that blends invisibly on deeper skin with zero white cast.
-                                </p>
-                            </div>
-                            <div style="margin-top: 24px; background: var(--bg-peach-light); padding: 12px 16px; border-radius: 10px; font-size: 13px; font-family: var(--font-mono);" id="step3Meta">
-                                PA++++ · Zero White Cast
-                            </div>
-                        </div>
-                    </div>
-
-                    <footer class="reveal" style="font-size: 14px; color: var(--ink-secondary); background: #ffffff; border: 1px solid var(--line-card); padding: 12px 20px; border-radius: 12px; display: flex; justify-content: space-between;">
-                        <span><strong>Interactive Demo:</strong> Tap Morning/Evening or switch concerns above to inspect formulation re-tuning.</span>
-                        <span style="font-weight: 600; color: var(--accent-gold);">Cleanse · Treat · Shield</span>
-                    </footer>
-                </div>
-            </section>
-
-            <!-- ==========================================
-                 SLIDE 6: INTERACTIVE INGREDIENT COLLISION SIMULATOR (HOOK FOR JUDGES!)
-                 ========================================== -->
-            <section class="slide" data-slide="5">
-                <div class="slide-inner">
-                    <header class="reveal" style="display: flex; justify-content: space-between; align-items: flex-end;">
-                        <div>
-                            <span class="eyebrow">✦ Interactive Algorithmic Guardrails</span>
-                            <h2 class="display-title" style="font-size: 74px;">The Ingredient <em>Collision Engine</em></h2>
-                        </div>
-                        <div class="interactive-tag">
-                            <span>✦ TRY IT: CLICK ANY 2 ACTIVES OR STRESS-TEST</span>
-                        </div>
-                    </header>
-
-                    <p class="subtitle reveal" style="margin-top: 4px;">
-                        Skincare ingredients follow strict biochemical rules. Test our engine live by selecting any two actives below, or run the Influencer Disaster Stress-Test:
-                    </p>
-
-                    <!-- Interactive Active Selection Matrix + Stress Test Controls -->
-                    <div class="reveal" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; align-items: center;" id="collisionChips">
-                        <button type="button" class="chip-btn selected" data-act="retinol">Retinol (0.3%)</button>
-                        <button type="button" class="chip-btn selected" data-act="glycolic">Glycolic Acid (10% AHA)</button>
-                        <button type="button" class="chip-btn" data-act="vitc">Pure Vitamin C (L-Ascorbic)</button>
-                        <button type="button" class="chip-btn" data-act="niacinamide">Niacinamide (5%)</button>
-                        <button type="button" class="chip-btn" data-act="ceramides">Ceramide NP Complex</button>
-                        <button type="button" class="chip-btn" data-act="salicylic">Salicylic Acid (2% BHA)</button>
+                    <!-- The 3 Prescribed Gestures -->
+                    <div class="grid-3col" style="margin-top: 16px;">
                         
-                        <div style="margin-left: auto; display: flex; gap: 8px;">
-                            <button type="button" class="chip-btn" id="btnStressTest" style="background: rgba(184, 93, 56, 0.12); color: #b85d38; border-color: #b85d38; font-weight: 700;">🚨 JUDGE STRESS-TEST</button>
-                            <button type="button" class="chip-btn" id="btnAutoResolve" style="background: rgba(42, 122, 75, 0.12); color: #2a7a4b; border-color: #2a7a4b; font-weight: 700; display: none;">✨ EXECUTE AAINA CLEANSE</button>
-                        </div>
-                    </div>
-
-                    <!-- Live Collision Diagnostic Display -->
-                    <div class="luxury-card reveal" id="collisionResultCard" style="background: #ffffff; border-left: 6px solid #b85d38; padding: 28px 32px; box-shadow: var(--shadow-luxury);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span id="collisionIcon" style="font-size: 28px;">⚡</span>
-                                <span id="collisionBadge" class="badge-pill" style="background: #b85d38; font-size: 13px; margin: 0; padding: 6px 16px;">
-                                    SEVERE COLLISION DETECTED
-                                </span>
-                            </div>
-                            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted);" id="collisionRule">
-                                RULE ID: SEC-AHA-RET-01
-                            </span>
-                        </div>
-                        <h4 id="collisionTitle" style="font-family: var(--font-display); font-size: 30px; color: var(--ink-primary); margin-bottom: 8px;">
-                            Retinol + Glycolic Acid Clash: pH &amp; Barrier Breakdown
-                        </h4>
-                        <p id="collisionDesc" style="font-size: 16px; color: var(--ink-secondary); line-height: 1.6;">
-                            Simultaneous layering causes a severe pH crash (3.2 vs. 5.8), stripping intercellular lipid bilayers and causing acute contact dermatitis.
-                        </p>
-                        <div id="collisionAction" style="margin-top: 18px; padding: 12px 18px; background: rgba(184, 93, 56, 0.08); border-radius: 10px; font-size: 14px; font-weight: 600; color: #b85d38;">
-                            <strong>AAINA Auto-Resolution:</strong> Engine enforces temporal separation—Retinol is routed to Monday/Thursday nights, while AHA is sequenced to Saturday only.
-                        </div>
-                    </div>
-
-                    <footer class="reveal" style="font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between;">
-                        <span>INCI INGREDIENT GRAPH ANALYSIS · 420+ CHEMICAL CONTRAINDICATIONS</span>
-                        <span>CLINICAL SAFETY ENGINE</span>
-                    </footer>
-                </div>
-            </section>
-
-            <!-- ==========================================
-                 SLIDE 7: INTERACTIVE CLIMATE ENGINE (HOOK FOR JUDGES!)
-                 ========================================== -->
-            <section class="slide" data-slide="6">
-                <div class="slide-inner">
-                    <header class="reveal" style="display: flex; justify-content: space-between; align-items: flex-end;">
-                        <div>
-                            <span class="eyebrow">✦ Real-Time Environmental Adaptation</span>
-                            <h2 class="display-title" style="font-size: 74px;">Live Micro-Climate <em>Auto-Tuning</em></h2>
-                        </div>
-                        <!-- Live City Switcher for Judges -->
-                        <div class="reveal" style="display: flex; gap: 8px; background: rgba(0,0,0,0.06); padding: 4px; border-radius: 30px;">
-                            <button type="button" class="chip-btn selected" id="cityMumbaiBtn">🌊 Mumbai (84% Humidity)</button>
-                            <button type="button" class="chip-btn" id="cityDelhiBtn">❄️ Delhi (Winter · AQI 310)</button>
-                            <button type="button" class="chip-btn" id="cityBlrBtn">🌿 Bengaluru (Temperate)</button>
-                        </div>
-                    </header>
-
-                    <p class="subtitle reveal" style="margin-top: 4px;">
-                        Skincare fails when formulas fight the local weather. Watch how AAINA dynamically changes product textures in real time:
-                    </p>
-
-                    <div class="grid-2col" style="margin-top: 16px;">
-                        <!-- Telemetry Display Card -->
-                        <div class="luxury-card accent-peach reveal" style="padding: 34px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                                <span class="eyebrow" style="color: var(--accent-terracotta);" id="climCityEyebrow">COASTAL MICRO-CLIMATE</span>
-                                <span class="arch-pill" style="font-size: 11px;">LIVE TELEMETRY</span>
-                            </div>
-
-                            <h3 style="font-family: var(--font-display); font-size: 38px; color: var(--ink-primary); margin-bottom: 20px;" id="climCityTitle">
-                                Mumbai, Maharashtra
-                            </h3>
-
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-                                <div style="background: rgba(255,255,255,0.85); padding: 14px 18px; border-radius: 12px;">
-                                    <div style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-gold);">HUMIDITY</div>
-                                    <div style="font-size: 28px; font-family: var(--font-display); font-weight: 600;" id="climHumVal">84%</div>
-                                    <div style="font-size: 12px; color: var(--ink-secondary);">High Pore Occlusion Risk</div>
-                                </div>
-                                <div style="background: rgba(255,255,255,0.85); padding: 14px 18px; border-radius: 12px;">
-                                    <div style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-gold);">UV INDEX</div>
-                                    <div style="font-size: 28px; font-family: var(--font-display); font-weight: 600;" id="climUvVal">7.5</div>
-                                    <div style="font-size: 12px; color: var(--ink-secondary);">Very High UV-A/UV-B</div>
-                                </div>
-                                <div style="background: rgba(255,255,255,0.85); padding: 14px 18px; border-radius: 12px;">
-                                    <div style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-gold);">AIR QUALITY</div>
-                                    <div style="font-size: 28px; font-family: var(--font-display); font-weight: 600;" id="climAqiVal">AQI 85</div>
-                                    <div style="font-size: 12px; color: var(--ink-secondary);">Moderate Marine Air</div>
-                                </div>
-                                <div style="background: rgba(255,255,255,0.85); padding: 14px 18px; border-radius: 12px;">
-                                    <div style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-gold);">WATER HARDNESS</div>
-                                    <div style="font-size: 28px; font-family: var(--font-display); font-weight: 600;">Soft</div>
-                                    <div style="font-size: 12px; color: var(--ink-secondary);">Gentle Surfactant Safe</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Auto-Tuned Prescription Card -->
-                        <div class="luxury-card reveal" style="background: #ffffff; padding: 34px;">
-                            <span class="eyebrow">DYNAMIC FORMULATION OUTCOME</span>
-                            <h3 style="font-family: var(--font-display); font-size: 32px; color: var(--ink-primary); margin: 8px 0 16px;" id="climActionTitle">
-                                Auto-Tuned for High Humidity
-                            </h3>
-
-                            <div style="display: flex; flex-direction: column; gap: 14px;">
-                                <div style="background: var(--bg-peach-light); padding: 14px 18px; border-radius: 10px; border-left: 3px solid var(--accent-gold);">
-                                    <b style="font-size: 14px; color: var(--ink-primary);" id="climP1">Gesture 01: Low-Foam Gel Cleanser</b>
-                                    <p style="font-size: 13px; color: var(--ink-secondary); margin-top: 2px;" id="climP1Desc">Dissolves sweat without stripping acid mantle.</p>
-                                </div>
-                                <div style="background: var(--bg-peach-light); padding: 14px 18px; border-radius: 10px; border-left: 3px solid var(--accent-terracotta);">
-                                    <b style="font-size: 14px; color: var(--ink-primary);" id="climP2">Gesture 02: Oil-Free Niacinamide Water-Gel</b>
-                                    <p style="font-size: 13px; color: var(--ink-secondary); margin-top: 2px;" id="climP2Desc">Swapped from heavy cream to prevent clogged pores in 84% humidity.</p>
-                                </div>
-                                <div style="background: var(--bg-peach-light); padding: 14px 18px; border-radius: 10px; border-left: 3px solid var(--accent-emerald);">
-                                    <b style="font-size: 14px; color: var(--ink-primary);" id="climP3">Gesture 03: Ultra-Fluid Matte SPF 50</b>
-                                    <p style="font-size: 13px; color: var(--ink-secondary); margin-top: 2px;" id="climP3Desc">Non-comedogenic, sweat-resistant invisible photoprotect.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <footer class="reveal" style="font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between;">
-                        <span>ENVIRONMENTAL DERMATOLOGY · CONNECTED WEATHER TELEMETRY</span>
-                        <span>ZERO FORMULATION GUESSWORK</span>
-                    </footer>
-                </div>
-            </section>
-
-            <!-- ==========================================
-                 SLIDE 8: BUSINESS MODEL & MARKET OPPORTUNITY
-                 ========================================== -->
-            <section class="slide" data-slide="7">
-                <div class="slide-inner">
-                    <header class="reveal" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span class="eyebrow">✦ Market Opportunity &amp; Vision</span>
-                        <span class="arch-pill">INVESTMENT HIGHLIGHTS</span>
-                    </header>
-
-                    <div class="grid-2col" style="margin: auto 0;">
-                        <div>
-                            <h2 class="display-title reveal" style="font-size: 68px;">
-                                The Market for <em>Guaranteed Skincare</em>
-                            </h2>
-                            <p class="subtitle reveal" style="font-size: 19px; line-height: 1.55;">
-                                India's beauty and personal care market is expanding to <strong>$30 Billion by 2030</strong> (Bain &amp; Co. / Nykaa 2024 Report). AAINA sits at the intersection of medical dermatology and digital commerce.
+                        <!-- Gesture 01 -->
+                        <div class="tech-card reveal" style="border-top: 4px solid var(--blue-accent);">
+                            <span class="card-num" id="g1Num">GESTURE 01 · PURIFY</span>
+                            <h3 class="card-head" id="g1Title">Low-Foam Gel Cleanser</h3>
+                            <p class="card-p" id="g1Desc">
+                                Physiological pH 5.5 surfactant complex that dissolves sweat and sebum without stripping intercellular lipid bilayers.
                             </p>
-
-                            <div class="reveal" style="margin-top: 28px; display: flex; flex-direction: column; gap: 14px;">
-                                <div style="display: flex; gap: 12px; align-items: center; font-size: 15px;">
-                                    <span style="color: var(--accent-gold); font-size: 18px;">✦</span>
-                                    <span><strong>High-Retention Subscription:</strong> Recurring seasonal routine auto-replenishment.</span>
-                                </div>
-                                <div style="display: flex; gap: 12px; align-items: center; font-size: 15px;">
-                                    <span style="color: var(--accent-gold); font-size: 18px;">✦</span>
-                                    <span><strong>Affiliate Commerce:</strong> Direct shade-matched checkout via Nykaa and brand flagships.</span>
-                                </div>
-                                <div style="display: flex; gap: 12px; align-items: center; font-size: 15px;">
-                                    <span style="color: var(--accent-gold); font-size: 18px;">✦</span>
-                                    <span><strong>Enterprise Licensing:</strong> White-labeling the Monk Skin Tone API to beauty retail giants.</span>
-                                </div>
+                            <div style="margin-top: 20px; font-family: var(--font-mono); font-size: 12px; color: var(--blue-accent);" id="g1Tag">
+                                Non-Stripping · Acid Mantle Safe
                             </div>
                         </div>
 
-                        <!-- Key Takeaway Box -->
-                        <div class="luxury-card accent-peach reveal" style="padding: 40px; display: flex; flex-direction: column; justify-content: space-between;">
-                            <div>
-                                <span class="badge-pill" style="background: var(--ink-primary); color: #fff;">THE AAINA MOAT</span>
-                                <h3 style="font-family: var(--font-display); font-size: 32px; color: var(--ink-primary); margin: 12px 0 16px;">
-                                    Dermatological Safety First
-                                </h3>
-                                <p style="font-size: 15px; color: var(--ink-secondary); line-height: 1.6;">
-                                    Unlike influencer apps that recommend whatever has the highest sponsor commission, AAINA is strictly constraint-bound: we never recommend a routine that conflicts with skin barrier health or active safety.
-                                </p>
-                            </div>
-
-                            <div style="background: rgba(255,255,255,0.7); border-radius: 14px; padding: 18px; margin-top: 24px; text-align: center;">
-                                <div style="font-family: var(--font-display); font-size: 28px; font-weight: 600; color: var(--accent-gold);">Zero Biometric Storage</div>
-                                <p style="font-size: 13px; color: var(--ink-secondary); margin-top: 4px;">100% Ephemeral · Fully Compliant with India's DPDP Act 2023</p>
+                        <!-- Gesture 02 -->
+                        <div class="tech-card reveal" style="border-top: 4px solid var(--emerald-calib);">
+                            <span class="card-num" id="g2Num">GESTURE 02 · TREAT</span>
+                            <h3 class="card-head" id="g2Title">5% Niacinamide Water-Gel</h3>
+                            <p class="card-p" id="g2Desc">
+                                Calibrated active targeting sebum oxidation and dark spots without triggering melanocyte excitation.
+                            </p>
+                            <div style="margin-top: 20px; font-family: var(--font-mono); font-size: 12px; color: var(--emerald-calib);" id="g2Tag">
+                                Zero-Clash · Lightweight Fluid
                             </div>
                         </div>
+
+                        <!-- Gesture 03 -->
+                        <div class="tech-card reveal" style="border-top: 4px solid var(--amber-warn);">
+                            <span class="card-num" id="g3Num">GESTURE 03 · SHIELD</span>
+                            <h3 class="card-head" id="g3Title">Invisible Hybrid SPF 50</h3>
+                            <p class="card-p" id="g3Desc">
+                                Broad-spectrum PA++++ photoprotection with transparent organic UV filters guaranteeing 100% zero white chalk residue.
+                            </p>
+                            <div style="margin-top: 20px; font-family: var(--font-mono); font-size: 12px; color: var(--amber-warn);" id="g3Tag">
+                                Non-Comedogenic · Zero White-Cast
+                            </div>
+                        </div>
+
                     </div>
 
-                    <footer class="reveal" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line-subtle); padding-top: 16px;">
+                    <footer class="reveal" style="font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
                         <div>
-                            <b style="font-family: var(--font-display); font-size: 20px; color: var(--ink-primary);">AAINA Intelligent Skincare</b>
-                            <span style="font-size: 13px; color: var(--ink-muted); margin-left: 12px;">founder@aaina.ai · www.aaina.ai</span>
+                            <strong style="color: #ffffff;">AAINA AI ENGINE</strong> · 0 Chemical Collisions · 0 Biometric Storage (DPDP Act 2023 Compliant)
                         </div>
-                        <div class="arch-pill" style="background: var(--ink-primary); color: #fff;">
-                            Request Investor Deck &rarr;
-                        </div>
+                        <span class="pill pill-blue">READY FOR PRODUCT CHECKOUT</span>
                     </footer>
                 </div>
             </section>
@@ -1123,25 +716,20 @@
     <!-- Presentation Chrome & Navigation Dock -->
     <div class="deck-controls">
         <button type="button" class="deck-btn" id="prevBtn" aria-label="Previous Slide">&larr; Prev</button>
-        <div class="deck-pill-counter" id="slideCounter">01 / 08</div>
+        <div class="deck-pill-counter" id="slideCounter">01 / 04</div>
         <div class="deck-dots" id="deckDots">
             <span class="deck-dot active" data-index="0"></span>
             <span class="deck-dot" data-index="1"></span>
             <span class="deck-dot" data-index="2"></span>
             <span class="deck-dot" data-index="3"></span>
-            <span class="deck-dot" data-index="4"></span>
-            <span class="deck-dot" data-index="5"></span>
-            <span class="deck-dot" data-index="6"></span>
-            <span class="deck-dot" data-index="7"></span>
         </div>
         <button type="button" class="deck-btn" id="nextBtn" aria-label="Next Slide">Next &rarr;</button>
-        <button type="button" class="deck-btn" id="soundToggleBtn" aria-label="Toggle Sound" style="font-size: 11px; padding: 4px 10px;">🔊 Audio On</button>
+        <button type="button" class="deck-btn" id="soundToggleBtn" aria-label="Toggle Sound" style="font-size: 11px; padding: 4px 10px;">🔊 Sound On</button>
         <button type="button" class="deck-btn" id="fsBtn" aria-label="Fullscreen" style="font-size: 11px; padding: 4px 8px; opacity: 0.8;">[⛶]</button>
     </div>
 
-    <!-- Interactive Script & Live Widgets for Judges -->
+    <!-- Zero-Dependency Presentation Engine & Audio Feedback -->
     <script>
-        // Client-side Zero-dependency Web Audio Sound Synthesizer
         class SoundEngine {
             constructor() {
                 this.enabled = true;
@@ -1165,14 +753,14 @@
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(820, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.035);
+                    osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(320, this.ctx.currentTime + 0.03);
                     gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.035);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.03);
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
                     osc.start();
-                    osc.stop(this.ctx.currentTime + 0.036);
+                    osc.stop(this.ctx.currentTime + 0.032);
                 } catch(e) {}
             }
 
@@ -1184,14 +772,14 @@
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(420, t);
-                    osc.frequency.setValueAtTime(320, t + 0.09);
-                    gain.gain.setValueAtTime(0.12, t);
-                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+                    osc.frequency.setValueAtTime(400, t);
+                    osc.frequency.setValueAtTime(280, t + 0.08);
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
                     osc.start(t);
-                    osc.stop(t + 0.23);
+                    osc.stop(t + 0.22);
                 } catch(e) {}
             }
 
@@ -1199,19 +787,18 @@
                 if (!this.enabled) return;
                 try {
                     this.init();
-                    const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-                    freqs.forEach((f, idx) => {
-                        const t = this.ctx.currentTime + (idx * 0.06);
+                    [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+                        const t = this.ctx.currentTime + (i * 0.05);
                         const osc = this.ctx.createOscillator();
                         const gain = this.ctx.createGain();
                         osc.type = 'sine';
                         osc.frequency.setValueAtTime(f, t);
-                        gain.gain.setValueAtTime(0.07, t);
-                        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+                        gain.gain.setValueAtTime(0.06, t);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
                         osc.connect(gain);
                         gain.connect(this.ctx.destination);
                         osc.start(t);
-                        osc.stop(t + 0.42);
+                        osc.stop(t + 0.38);
                     });
                 } catch(e) {}
             }
@@ -1222,7 +809,7 @@
             }
         }
 
-        class SlidePresentation {
+        class SlideDeck {
             constructor() {
                 this.stage = document.getElementById('deckStage');
                 this.slides = Array.from(document.querySelectorAll('.slide'));
@@ -1237,8 +824,7 @@
 
                 this.initScale();
                 this.initNavigation();
-                this.initJudgeHooks();
-                this.initScreenshotsDropzone();
+                this.initInteractiveWidgets();
                 this.showSlide(0);
             }
 
@@ -1254,19 +840,19 @@
             }
 
             initNavigation() {
-                this.prevBtn.addEventListener('click', () => { this.sound.click(); this.prev(); });
-                this.nextBtn.addEventListener('click', () => { this.sound.click(); this.next(); });
-                
+                this.prevBtn.onclick = () => { this.sound.click(); this.prev(); };
+                this.nextBtn.onclick = () => { this.sound.click(); this.next(); };
+
                 this.dots.forEach((dot, idx) => {
-                    dot.addEventListener('click', () => { this.sound.click(); this.showSlide(idx); });
+                    dot.onclick = () => { this.sound.click(); this.showSlide(idx); };
                 });
 
                 if (this.soundBtn) {
-                    this.soundBtn.addEventListener('click', () => {
+                    this.soundBtn.onclick = () => {
                         const on = this.sound.toggle();
-                        this.soundBtn.textContent = on ? '🔊 Audio On' : '🔇 Muted';
+                        this.soundBtn.textContent = on ? '🔊 Sound On' : '🔇 Muted';
                         if (on) this.sound.click();
-                    });
+                    };
                 }
 
                 window.addEventListener('keydown', (e) => {
@@ -1289,7 +875,7 @@
                     }
                 });
 
-                this.fsBtn.addEventListener('click', () => this.toggleFullscreen());
+                this.fsBtn.onclick = () => this.toggleFullscreen();
             }
 
             showSlide(index) {
@@ -1330,482 +916,93 @@
                 }
             }
 
-            /* ==========================================================
-               SCREENSHOT DROPZONE & FILE UPLOAD FOR SLIDE 3
-               ========================================================== */
-            initScreenshotsDropzone() {
-                const setupBox = (boxId, inputId, imgId, placeholderId, removeId) => {
-                    const box = document.getElementById(boxId);
-                    const input = document.getElementById(inputId);
-                    const img = document.getElementById(imgId);
-                    const placeholder = document.getElementById(placeholderId);
-                    const removeBtn = document.getElementById(removeId);
+            initInteractiveWidgets() {
+                // Slide 3: Chemical Collision Toggle
+                const btnClashRetinol = document.getElementById('btnClashRetinol');
+                const btnClashSafe = document.getElementById('btnClashSafe');
+                const clashCard = document.getElementById('clashCard');
+                const clashEyebrow = document.getElementById('clashEyebrow');
+                const clashBadge = document.getElementById('clashBadge');
+                const clashTitle = document.getElementById('clashTitle');
+                const clashDesc = document.getElementById('clashDesc');
+                const clashActionBox = document.getElementById('clashActionBox');
 
-                    if (!box || !input) return;
-
-                    const showImage = (src) => {
-                        img.src = src;
-                        img.style.display = 'block';
-                        placeholder.style.display = 'none';
-                        box.classList.add('has-image');
-                        this.sound.chime();
-                    };
-
-                    const clearImage = () => {
-                        img.src = '';
-                        img.style.display = 'none';
-                        placeholder.style.display = 'block';
-                        box.classList.remove('has-image');
-                        input.value = '';
-                        this.sound.click();
-                    };
-
-                    box.addEventListener('click', (e) => {
-                        if (e.target === removeBtn) return;
-                        input.click();
-                    });
-
-                    removeBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        clearImage();
-                    });
-
-                    input.addEventListener('change', (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (re) => showImage(re.target.result);
-                            reader.readAsDataURL(file);
-                        }
-                    });
-
-                    // Drag & drop handlers
-                    box.addEventListener('dragover', (e) => {
-                        e.preventDefault();
-                        box.classList.add('drag-over');
-                    });
-                    box.addEventListener('dragleave', () => {
-                        box.classList.remove('drag-over');
-                    });
-                    box.addEventListener('drop', (e) => {
-                        e.preventDefault();
-                        box.classList.remove('drag-over');
-                        const file = e.dataTransfer.files[0];
-                        if (file && file.type.startsWith('image/')) {
-                            const reader = new FileReader();
-                            reader.onload = (re) => showImage(re.target.result);
-                            reader.readAsDataURL(file);
-                        }
-                    });
-                };
-
-                setupBox('boxBefore', 'inputBefore', 'imgBefore', 'placeholderBefore', 'removeBefore');
-                setupBox('boxAfter', 'inputAfter', 'imgAfter', 'placeholderAfter', 'removeAfter');
-
-                // Load benchmark demo button
-                const demoBtn = document.getElementById('loadDemoScreenshotsBtn');
-                if (demoBtn) {
-                    demoBtn.addEventListener('click', () => {
-                        this.sound.chime();
-                        const imgBefore = document.getElementById('imgBefore');
-                        const phBefore = document.getElementById('placeholderBefore');
-                        const boxBefore = document.getElementById('boxBefore');
-                        
-                        const imgAfter = document.getElementById('imgAfter');
-                        const phAfter = document.getElementById('placeholderAfter');
-                        const boxAfter = document.getElementById('boxAfter');
-
-                        // Use our verified benchmark studio image
-                        if (imgAfter && phAfter && boxAfter) {
-                            imgAfter.src = '/studio_whitecard_demo.png';
-                            imgAfter.style.display = 'block';
-                            phAfter.style.display = 'none';
-                            boxAfter.classList.add('has-image');
-                        }
-                        if (imgBefore && phBefore && boxBefore) {
-                            imgBefore.src = '/demo_monk_diagnosis.png';
-                            imgBefore.style.display = 'block';
-                            phBefore.style.display = 'none';
-                            boxBefore.classList.add('has-image');
-                        }
-                    });
-                }
-            }
-
-            /* ==========================================================
-               LIVE INTERACTIVE HOOKS FOR JUDGES (Simulators & Widgets)
-               ========================================================== */
-            initJudgeHooks() {
-                // Hook 1: Slide 3 - Simulated Lighting vs D65 White Paper
-                const btnUncalib = document.getElementById('simUncalibBtn');
-                const btnCalib = document.getElementById('simCalibBtn');
-                const boxBefore = document.getElementById('boxBefore');
-                const boxAfter = document.getElementById('boxAfter');
-
-                if (btnUncalib && btnCalib) {
-                    btnUncalib.onclick = () => {
-                        this.sound.click();
-                        btnUncalib.classList.add('selected');
-                        btnCalib.classList.remove('selected');
-                        boxBefore.style.transform = 'scale(1.03)';
-                        boxBefore.style.boxShadow = '0 0 0 4px #b85d38';
-                        boxAfter.style.transform = 'scale(1)';
-                        boxAfter.style.boxShadow = 'var(--shadow-luxury)';
-                    };
-                    btnCalib.onclick = () => {
-                        this.sound.chime();
-                        btnCalib.classList.add('selected');
-                        btnUncalib.classList.remove('selected');
-                        boxAfter.style.transform = 'scale(1.03)';
-                        boxAfter.style.boxShadow = '0 0 0 4px #2a7a4b';
-                        boxBefore.style.transform = 'scale(1)';
-                        boxBefore.style.boxShadow = 'var(--shadow-luxury)';
-                    };
-                }
-
-                // Hook 2: Slide 4 - Interactive Monk Scale Swatches Bar (MST 01 - 10)
-                const monkSwatches = document.querySelectorAll('#monkScaleBar .monk-swatch');
-                const monkBadge = document.getElementById('monkLiveBadge');
-                const pihTitle = document.getElementById('pihTitle');
-                const pihDesc = document.getElementById('pihDesc');
-                const pihRule = document.getElementById('pihRule');
-                const castTitle = document.getElementById('castTitle');
-                const castDesc = document.getElementById('castDesc');
-                const castRule = document.getElementById('castRule');
-
-                const monkDatabase = {
-                    '01': { type: 'Fitzpatrick Type I', pihRisk: 'Low PIH / High Rosacea', pihAction: 'Low risk of melanin dark spots. High vascular reactivity: Cap pure retinol to 0.2%, add Centella Asiatica & Azelaic buffer.', castAction: '100% Mineral Zinc Oxide approved. Zero white cast risk on fair skin.' },
-                    '02': { type: 'Fitzpatrick Type I-II', pihRisk: 'Low PIH / Fair Sensitive', pihAction: 'Prioritize redness calm and barrier lipid synthesis. Cap Glycolic Acid to 8%.', castAction: 'Mineral Zinc and Titanium Dioxide completely transparent.' },
-                    '03': { type: 'Fitzpatrick Type II', pihRisk: 'Mild PIH Risk', pihAction: 'Standard acid peeling tolerated. Niacinamide recommended at 5% for daily collagen synthesis.', castAction: 'Broad-spectrum mineral or chemical sunscreen approved.' },
-                    '04': { type: 'Fitzpatrick Type III', pihRisk: 'Moderate PIH Risk', pihAction: 'Moderate melanocyte reactivity. Prevent post-acne erythema with 2% Salicylic Acid + Ceramide buffering.', castAction: 'Lightweight fluid sunscreen recommended; minimal visible white haze.' },
-                    '05': { type: 'Fitzpatrick Type IV', pihRisk: 'Elevated Melanocompetent', pihAction: 'Melanocytes respond aggressively to acid trauma. Cap unbuffered Glycolic Acid to 7%. Favor Tranexamic Acid.', castAction: 'Mineral sunscreen shows slight purple cast. Hybrid Tinosorb filters enforced.' },
-                    '06': { type: 'Fitzpatrick Type IV-V', pihRisk: 'High PIH Susceptibility', pihAction: 'High hyperpigmentation risk. Hard restriction on mechanical scrubs and harsh peels. Enforce 5% Niacinamide + Azelaic.', castAction: 'Pure zinc leaves chalky residue. AAINA penalizes mineral filters (-60pts), selects transparent fluid.' },
-                    '07': { type: 'Fitzpatrick Type V (Melanocompetent)', pihRisk: 'Severe PIH Risk', pihAction: 'Basal melanocyte excitation threshold is LOW. Unbuffered Glycolic Acid capped to <=5%. Promotes Tranexamic + Niacinamide.', castAction: 'Pure Zinc Oxide rejected (-100 White Cast Penalty). Formula shifted to organic broad-spectrum (Tinosorb S/M) with zero chalkiness.' },
-                    '08': { type: 'Fitzpatrick Type V-VI', pihRisk: 'Severe PIH / High Melanin', pihAction: 'Trauma triggers stubborn melanin deposition lasting 6-12 months. Zero unbuffered high-pH peeling acids allowed.', castAction: 'Strict invisible-shield constraint: Only clear chemical/hybrid matrices permitted.' },
-                    '09': { type: 'Fitzpatrick Type VI (Deep)', pihRisk: 'Extreme PIH Sensitivity', pihAction: 'Deep complexions require non-inflammatory tyrosinase inhibitors: Alpha-Arbutin + Niacinamide. No harsh acids.', castAction: 'Zero white cast mandate: Any formula with >2% particulate Zinc is automatically disqualified.' },
-                    '10': { type: 'Fitzpatrick Type VI (Deep Rich)', pihRisk: 'Maximal Melanin Competency', pihAction: 'Dermatological safety gate enforces ultra-gentle enzymatic exfoliation. Complete barrier preservation.', castAction: 'Invisible Photostable Matrix only: Broad-spectrum PA++++ with radiant invisible dry-down.' }
-                };
-
-                monkSwatches.forEach(swatch => {
-                    swatch.addEventListener('click', () => {
-                        this.sound.click();
-                        monkSwatches.forEach(s => s.classList.remove('active'));
-                        swatch.classList.add('active');
-
-                        const mst = swatch.getAttribute('data-mst');
-                        const hex = swatch.getAttribute('data-hex');
-                        const data = monkDatabase[mst];
-
-                        if (data && monkBadge) {
-                            monkBadge.textContent = `MST ${mst} · ${data.type}`;
-                            monkBadge.style.background = hex;
-                            monkBadge.style.color = parseInt(mst) >= 7 ? '#ffffff' : '#181411';
-
-                            pihDesc.textContent = `Monk shade ${mst} biological classification: ${data.pihRisk}. Melanocytes require precise pH and molecular buffering to prevent trauma-induced dark spots.`;
-                            pihRule.innerHTML = `<strong>AAINA Rule:</strong> ${data.pihAction}`;
-
-                            castDesc.textContent = `Optical scatter profile for Monk ${mst}: ${data.castAction}`;
-                            castRule.innerHTML = `<strong>Sunscreen Constraint:</strong> Formulations violating zero white-cast rule are eliminated from recommendation.`;
-                        }
-                    });
-                });
-
-                // Hook 3: Slide 5 - AM/PM Switcher & Concern Switcher
-                const tabAm = document.getElementById('tabAmBtn');
-                const tabPm = document.getElementById('tabPmBtn');
-                const concernRepair = document.getElementById('concernRepairBtn');
-                const concernAcne = document.getElementById('concernAcneBtn');
-                const concernPih = document.getElementById('concernPihBtn');
-
-                const s1Tag = document.getElementById('step1Tag'), s1Title = document.getElementById('step1Title'), s1Desc = document.getElementById('step1Desc'), s1Meta = document.getElementById('step1Meta');
-                const s2Tag = document.getElementById('step2Tag'), s2Title = document.getElementById('step2Title'), s2Desc = document.getElementById('step2Desc'), s2Meta = document.getElementById('step2Meta');
-                const s3Tag = document.getElementById('step3Tag'), s3Title = document.getElementById('step3Title'), s3Desc = document.getElementById('step3Desc'), s3Meta = document.getElementById('step3Meta');
-
-                let isAm = true;
-                let activeConcern = 'repair';
-
-                const updateRoutineDisplay = () => {
-                    if (isAm) {
-                        s1Tag.textContent = "GESTURE 01 · PURIFY";
-                        if (activeConcern === 'repair') {
-                            s1Title.textContent = "Barrier Cleanser"; s1Desc.textContent = "Low-surfactant, physiological pH 5.5. Cleans gently without stripping natural lipids."; s1Meta.textContent = "Amino Acid Base · Non-Stripping";
-                            s2Title.textContent = "5% Niacinamide + HA"; s2Desc.textContent = "Calibrated active serum targeting hyperpigmentation and barrier hydration without irritating reactive melanocytes."; s2Meta.textContent = "PIH-Safe · Anti-Inflammatory";
-                            s3Title.textContent = "Invisible Hybrid SPF 50"; s3Desc.textContent = "Ultra-light broad-spectrum photoprotection that blends invisibly on deeper skin with zero white cast."; s3Meta.textContent = "PA++++ · Zero White Cast";
-                        } else if (activeConcern === 'acne') {
-                            s1Title.textContent = "Clarifying Zinc Cleanser"; s1Desc.textContent = "Sulfate-free foaming gel dissolving excess morning sebum without barrier rebound."; s1Meta.textContent = "Zinc PCA · Pore Decongesting";
-                            s2Title.textContent = "2% BHA Salicylic Buffered"; s2Desc.textContent = "Lipophilic beta-hydroxy acid clearing follicular pores at pH 4.8 to avoid irritation."; s2Meta.textContent = "Follicular Penetration · Anti-Acne";
-                            s3Title.textContent = "Ultra-Matte Invisible SPF 50"; s3Desc.textContent = "Silica-infused oil-control UV shield that prevents midday shine and clogged pores."; s3Meta.textContent = "Non-Comedogenic · Zero Shine";
-                        } else {
-                            s1Title.textContent = "Balancing Milky Wash"; s1Desc.textContent = "Hydrating milk cleanser dissolving overnight cellular debris without lipid depletion."; s1Meta.textContent = "Gentle Surfactants · Calming";
-                            s2Title.textContent = "Tranexamic 3% + Alpha-Arbutin"; s2Desc.textContent = "Clinically proven tyrosinase inhibitor duo fading melasma without skin peeling."; s2Meta.textContent = "Pigment Inhibitor · Melanin Safe";
-                            s3Title.textContent = "Antioxidant Radiance SPF 50"; s3Desc.textContent = "UV shield reinforced with stabilized Vitamin E to block free-radical hyperpigmentation."; s3Meta.textContent = "PA++++ · Broad-Spectrum Shield";
-                        }
-                    } else {
-                        s1Tag.textContent = "GESTURE 01 · DISSOLVE";
-                        s1Title.textContent = "Micellar Cleansing Emulsion"; s1Desc.textContent = "Breaks down outdoor particulate matter, stubborn sunscreen, and sebum without barrier micro-abrasion."; s1Meta.textContent = "Lipid Respecting · Double Cleanse Safe";
-                        s2Tag.textContent = "GESTURE 02 · RESTORE";
-                        if (activeConcern === 'repair') {
-                            s2Title.textContent = "Triple Ceramide Complex"; s2Desc.textContent = "Bio-identical Ceramide NP, AP, and EOP in a 3:1:1 physiological ratio to repair nocturnal trans-epidermal water loss."; s2Meta.textContent = "Barrier Synthesis · Calibrated Buffer";
-                        } else if (activeConcern === 'acne') {
-                            s2Title.textContent = "Retinol 0.3% Encapsulated"; s2Desc.textContent = "Time-released retinoid stimulating cellular turnover at night while minimizing surface redness."; s2Meta.textContent = "Encapsulated · Zero Acid Stacking";
-                        } else {
-                            s2Title.textContent = "Azelaic Acid 10% Suspension"; s2Desc.textContent = "Nocturnal dicarboxylic active targeting localized melasma patches and calming erythema."; s2Meta.textContent = "Tyrosinase Regulator · Anti-Redness";
-                        }
-                        s3Tag.textContent = "GESTURE 03 · LOCK";
-                        s3Title.textContent = "Nocturnal Lipid Recovery Seal"; s3Desc.textContent = "Weightless squalane emollient seal locking in actives during the body's peak cellular regeneration window."; s3Meta.textContent = "Non-Comedogenic · Zero Pore Occlusion";
-                    }
-                };
-
-                if (tabAm && tabPm) {
-                    tabAm.onclick = () => {
-                        this.sound.click();
-                        isAm = true; tabAm.classList.add('selected'); tabPm.classList.remove('selected');
-                        updateRoutineDisplay();
-                    };
-                    tabPm.onclick = () => {
-                        this.sound.click();
-                        isAm = false; tabPm.classList.add('selected'); tabAm.classList.remove('selected');
-                        updateRoutineDisplay();
-                    };
-                }
-
-                if (concernRepair && concernAcne && concernPih) {
-                    const setConcern = (c, btn) => {
-                        this.sound.click();
-                        activeConcern = c;
-                        [concernRepair, concernAcne, concernPih].forEach(b => b.classList.remove('selected'));
-                        btn.classList.add('selected');
-                        updateRoutineDisplay();
-                    };
-                    concernRepair.onclick = () => setConcern('repair', concernRepair);
-                    concernAcne.onclick = () => setConcern('acne', concernAcne);
-                    concernPih.onclick = () => setConcern('pih', concernPih);
-                }
-
-                // Hook 4: Slide 6 - Live Ingredient Collision Simulator & Stress-Test
-                const collisionChips = document.querySelectorAll('#collisionChips .chip-btn[data-act]');
-                const cIcon = document.getElementById('collisionIcon');
-                const cBadge = document.getElementById('collisionBadge');
-                const cRule = document.getElementById('collisionRule');
-                const cTitle = document.getElementById('collisionTitle');
-                const cDesc = document.getElementById('collisionDesc');
-                const cAction = document.getElementById('collisionAction');
-                const cCard = document.getElementById('collisionResultCard');
-                const btnStress = document.getElementById('btnStressTest');
-                const btnResolve = document.getElementById('btnAutoResolve');
-
-                let selectedActives = ['retinol', 'glycolic'];
-
-                const collisionDatabase = {
-                    'retinol+glycolic': {
-                        type: 'danger', icon: '⚡', badge: 'SEVERE COLLISION DETECTED', rule: 'RULE ID: SEC-AHA-RET-01',
-                        title: 'Retinol + Glycolic Acid Clash: pH Crash & Barrier Breakdown',
-                        desc: 'Simultaneous application causes an acidic pH collapse (3.2 vs. 5.8), stripping intercellular lipid bilayers and causing acute contact dermatitis.',
-                        action: 'AAINA Auto-Resolution: Engine enforces temporal separation—Retinol is routed to Monday/Thursday nights, while AHA is sequenced to Saturday only.'
-                    },
-                    'glycolic+salicylic': {
-                        type: 'danger', icon: '⚡', badge: 'HIGH EXFOLIATION OVERLOAD', rule: 'RULE ID: SEC-AHA-BHA-04',
-                        title: 'AHA + BHA Simultaneous Over-Exfoliation',
-                        desc: 'Double chemical peel forces cellular desquamation beyond the skin\'s natural recovery rate, spiking transepidermal water loss and causing redness.',
-                        action: 'AAINA Auto-Resolution: Down-regulates to a single buffered Salicylic Acid serum (2%) and caps application to alternate evenings.'
-                    },
-                    'vitc+retinol': {
-                        type: 'warning', icon: '⚠️', badge: 'CHRONO-BIOLOGICAL MISMATCH', rule: 'RULE ID: SEC-VITC-RET-02',
-                        title: 'Vitamin C + Retinol: Direct Oxidation Collision',
-                        desc: 'Pure L-Ascorbic Acid requires an acidic pH (<3.5), whereas Retinol requires pH 5.5–6.0. Mixing them deactivates both molecules.',
-                        action: 'AAINA Auto-Resolution: Vitamin C is allocated strictly to Morning Photoprotection; Retinol is strictly isolated to Nocturnal Protocol.'
-                    },
-                    'ceramides+niacinamide': {
-                        type: 'synergy', icon: '✦', badge: 'PERFECT CLINICAL SYNERGY', rule: 'RULE ID: SYN-CER-NIA-01',
-                        title: 'Ceramide NP + Niacinamide: Barrier Fortification',
-                        desc: 'Clinically proven pairing. Niacinamide stimulates endogenous ceramide synthesis by +34%, while topical ceramides immediately replenish surface lipids.',
-                        action: 'AAINA Auto-Resolution: Approved and amplified. Zero clash risk on sensitive and deep skin tones.'
-                    },
-                    'salicylic+niacinamide': {
-                        type: 'synergy', icon: '✦', badge: 'HARMONIOUS OIL & PORE REGULATION', rule: 'RULE ID: SYN-BHA-NIA-03',
-                        title: 'BHA + Niacinamide: Sebum & Clarity Protocol',
-                        desc: 'Salicylic Acid clears follicular keratin plugs inside pores, while Niacinamide calms surrounding tissue redness and balances sebum output.',
-                        action: 'AAINA Auto-Resolution: Safe and approved. Formulated at physiological pH 5.2 for daily comfort.'
-                    }
-                };
-
-                const updateCollisionDisplay = () => {
-                    const key1 = `${selectedActives[0]}+${selectedActives[1]}`;
-                    const key2 = `${selectedActives[1]}+${selectedActives[0]}`;
-                    const match = collisionDatabase[key1] || collisionDatabase[key2];
-
-                    cCard.classList.remove('stress-active');
-                    if (btnResolve) btnResolve.style.display = 'none';
-
-                    if (match) {
-                        cIcon.textContent = match.icon;
-                        cBadge.textContent = match.badge;
-                        cRule.textContent = match.rule;
-                        cTitle.textContent = match.title;
-                        cDesc.textContent = match.desc;
-                        cAction.innerHTML = `<strong>AAINA Auto-Resolution:</strong> ${match.action}`;
-                        
-                        if (match.type === 'danger') {
-                            this.sound.alert();
-                            cBadge.style.background = '#b85d38';
-                            cCard.style.borderLeftColor = '#b85d38';
-                            cAction.style.background = 'rgba(184, 93, 56, 0.08)';
-                            cAction.style.color = '#b85d38';
-                        } else if (match.type === 'warning') {
-                            this.sound.click();
-                            cBadge.style.background = '#d97706';
-                            cCard.style.borderLeftColor = '#d97706';
-                            cAction.style.background = 'rgba(217, 119, 6, 0.08)';
-                            cAction.style.color = '#b45309';
-                        } else {
-                            this.sound.chime();
-                            cBadge.style.background = '#2a7a4b';
-                            cCard.style.borderLeftColor = '#2a7a4b';
-                            cAction.style.background = 'rgba(42, 122, 75, 0.08)';
-                            cAction.style.color = '#2a7a4b';
-                        }
-                    } else {
-                        this.sound.click();
-                        cIcon.textContent = '✦';
-                        cBadge.textContent = 'COMPATIBLE PAIRING';
-                        cBadge.style.background = '#181411';
-                        cCard.style.borderLeftColor = '#8c5e28';
-                        cRule.textContent = 'STATUS: SAFE';
-                        cTitle.textContent = `${selectedActives[0].toUpperCase()} + ${selectedActives[1].toUpperCase()}`;
-                        cDesc.textContent = 'These active ingredients operate along non-conflicting biochemical pathways with compatible pH windows.';
-                        cAction.innerHTML = '<strong>AAINA Auto-Resolution:</strong> Safe for concurrent layering without molecular neutralization.';
-                        cAction.style.background = 'rgba(140, 94, 40, 0.08)';
-                        cAction.style.color = '#8c5e28';
-                    }
-                };
-
-                collisionChips.forEach(chip => {
-                    chip.addEventListener('click', () => {
-                        const act = chip.getAttribute('data-act');
-                        if (selectedActives.includes(act)) {
-                            if (selectedActives.length > 1) {
-                                selectedActives = selectedActives.filter(x => x !== act);
-                                chip.classList.remove('selected');
-                            }
-                        } else {
-                            if (selectedActives.length >= 2) {
-                                const removed = selectedActives.shift();
-                                const oldChip = document.querySelector(`[data-act="${removed}"]`);
-                                if (oldChip) oldChip.classList.remove('selected');
-                            }
-                            selectedActives.push(act);
-                            chip.classList.add('selected');
-                        }
-                        updateCollisionDisplay();
-                    });
-                });
-
-                // Judge Stress-Test Button Handler
-                if (btnStress) {
-                    btnStress.addEventListener('click', () => {
+                if (btnClashRetinol && btnClashSafe) {
+                    btnClashRetinol.onclick = () => {
                         this.sound.alert();
-                        // Select multiple hazardous actives
-                        selectedActives = ['retinol', 'glycolic', 'vitc', 'salicylic'];
-                        collisionChips.forEach(c => {
-                            const act = c.getAttribute('data-act');
-                            if (selectedActives.includes(act)) c.classList.add('selected');
-                            else c.classList.remove('selected');
-                        });
+                        btnClashRetinol.classList.add('selected');
+                        btnClashSafe.classList.remove('selected');
+                        clashCard.style.borderLeftColor = 'var(--red-alert)';
+                        clashEyebrow.textContent = "CRITICAL INCI COLLISION FIRED";
+                        clashEyebrow.style.color = "var(--red-alert)";
+                        clashBadge.textContent = "SEVERE CLASH DETECTED";
+                        clashBadge.className = "pill pill-red";
+                        clashTitle.textContent = "Retinol 0.3% + Glycolic Acid 10% (pH Crash)";
+                        clashDesc.textContent = "Simultaneous application triggers an acidic pH crash (3.2 vs. 5.8). Causes acute stratum corneum thinning, lipid bilayer rupture, and severe post-inflammatory hyperpigmentation on Indian skin.";
+                        clashActionBox.style.background = "rgba(239, 68, 68, 0.12)";
+                        clashActionBox.style.color = "#fca5a5";
+                        clashActionBox.innerHTML = "<strong>AAINA Auto-Resolution:</strong> Engine enforces chronological separation—Retinol allocated to Monday/Thursday night; Glycolic Acid isolated to Saturday night only.";
+                    };
 
-                        cCard.classList.add('stress-active');
-                        cIcon.textContent = '🔥';
-                        cBadge.textContent = 'CRITICAL MULTI-ACID COLLISION (3 RULES TRIGGERED)';
-                        cBadge.style.background = '#b85d38';
-                        cCard.style.borderLeftColor = '#b85d38';
-                        cRule.textContent = 'CLINICAL THREAT: STRATUM CORNEUM RUPTURE';
-                        cTitle.textContent = 'The Influencer 4-Acid Stacking Disaster';
-                        cDesc.textContent = 'Layering 10% Glycolic (pH 3.2) + 2% Salicylic + 15% Vitamin C + 0.3% Retinol causes an acid shockwave. Melanin hyper-reactivity explodes into severe dark spot scarring (PIH), lipid barrier depletion drops to 12%, and trans-epidermal water loss spikes +310%.';
-                        cAction.innerHTML = '<strong>AAINA Safety Guardrail:</strong> Complete formulation lock! Click the Cleanse button below to resolve with algorithmic chrono-scheduling.';
-                        cAction.style.background = 'rgba(184, 93, 56, 0.12)';
-                        cAction.style.color = '#b85d38';
-
-                        if (btnResolve) {
-                            btnResolve.style.display = 'inline-flex';
-                        }
-                    });
-                }
-
-                if (btnResolve) {
-                    btnResolve.addEventListener('click', () => {
+                    btnClashSafe.onclick = () => {
                         this.sound.chime();
-                        selectedActives = ['ceramides', 'niacinamide'];
-                        collisionChips.forEach(c => {
-                            const act = c.getAttribute('data-act');
-                            if (selectedActives.includes(act)) c.classList.add('selected');
-                            else c.classList.remove('selected');
-                        });
-
-                        cCard.classList.remove('stress-active');
-                        cIcon.textContent = '✦';
-                        cBadge.textContent = '✦ CHRONO-ALIGNED HARMONY RESTORED';
-                        cBadge.style.background = '#2a7a4b';
-                        cCard.style.borderLeftColor = '#2a7a4b';
-                        cRule.textContent = 'SAFETY STATUS: 100% BARRIER PROTECTED';
-                        cTitle.textContent = 'Harmonious 3-Gesture Prescription Generated';
-                        cDesc.textContent = 'AAINA temporally separated the conflicting actives: Pure Vitamin C is routed strictly to Morning Photoprotection; Retinol is sequenced to alternate nights; Ceramide NP and Niacinamide provide 24/7 barrier recovery.';
-                        cAction.innerHTML = '<strong>AAINA Clinical Verification:</strong> 0 molecular collisions detected. Safe for melanocompetent Indian skin tones.';
-                        cAction.style.background = 'rgba(42, 122, 75, 0.08)';
-                        cAction.style.color = '#2a7a4b';
-                        btnResolve.style.display = 'none';
-                    });
+                        btnClashSafe.classList.add('selected');
+                        btnClashRetinol.classList.remove('selected');
+                        clashCard.style.borderLeftColor = 'var(--emerald-calib)';
+                        clashEyebrow.textContent = "SAFETY PILLAR 02 · INCI CHECK";
+                        clashEyebrow.style.color = "var(--emerald-calib)";
+                        clashBadge.textContent = "0 COLLISIONS DETECTED";
+                        clashBadge.className = "pill pill-emerald";
+                        clashTitle.textContent = "Ceramide NP + 5% Niacinamide: Synergy";
+                        clashDesc.textContent = "Safe, harmonized pairing. Niacinamide stimulates endogenous ceramide synthesis by +34%, while topical Ceramides replenish intercellular surface lipids without pH disruption.";
+                        clashActionBox.style.background = "rgba(16, 185, 129, 0.1)";
+                        clashActionBox.style.color = "#a7f3d0";
+                        clashActionBox.innerHTML = "<strong>Clinical Result:</strong> 100% Barrier Integrity Preserved. Safe for daily concurrent morning & evening application.";
+                    };
                 }
 
-                // Hook 5: Slide 7 - Live City Telemetry & Formulation Auto-Tuner
-                const cMumbaiBtn = document.getElementById('cityMumbaiBtn');
-                const cDelhiBtn = document.getElementById('cityDelhiBtn');
-                const cBlrBtn = document.getElementById('cityBlrBtn');
-                const cEyebrow = document.getElementById('climCityEyebrow');
-                const cTitleClim = document.getElementById('climCityTitle');
-                const cHum = document.getElementById('climHumVal');
-                const cUv = document.getElementById('climUvVal');
-                const cAqi = document.getElementById('climAqiVal');
-                const cActionTitle = document.getElementById('climActionTitle');
-                const cP1 = document.getElementById('climP1'), cP1Desc = document.getElementById('climP1Desc');
-                const cP2 = document.getElementById('climP2'), cP2Desc = document.getElementById('climP2Desc');
-                const cP3 = document.getElementById('climP3'), cP3Desc = document.getElementById('climP3Desc');
+                // Slide 4: City Climate Switcher
+                const cityMum = document.getElementById('cityMum');
+                const cityDel = document.getElementById('cityDel');
+                const cityBlr = document.getElementById('cityBlr');
 
-                if (cMumbaiBtn && cDelhiBtn && cBlrBtn) {
-                    cMumbaiBtn.onclick = () => {
+                const g1Title = document.getElementById('g1Title'), g1Desc = document.getElementById('g1Desc'), g1Tag = document.getElementById('g1Tag');
+                const g2Title = document.getElementById('g2Title'), g2Desc = document.getElementById('g2Desc'), g2Tag = document.getElementById('g2Tag');
+                const g3Title = document.getElementById('g3Title'), g3Desc = document.getElementById('g3Desc'), g3Tag = document.getElementById('g3Tag');
+
+                if (cityMum && cityDel && cityBlr) {
+                    cityMum.onclick = () => {
                         this.sound.click();
-                        cMumbaiBtn.classList.add('selected'); cDelhiBtn.classList.remove('selected'); cBlrBtn.classList.remove('selected');
-                        cEyebrow.textContent = "COASTAL MICRO-CLIMATE"; cTitleClim.textContent = "Mumbai, Maharashtra";
-                        cHum.textContent = "84%"; cUv.textContent = "7.5"; cAqi.textContent = "AQI 85";
-                        cActionTitle.textContent = "Auto-Tuned for High Humidity";
-                        cP1.textContent = "Gesture 01: Low-Foam Gel Cleanser"; cP1Desc.textContent = "Dissolves sweat without stripping acid mantle.";
-                        cP2.textContent = "Gesture 02: Oil-Free Niacinamide Water-Gel"; cP2Desc.textContent = "Swapped from heavy cream to prevent clogged pores in 84% humidity.";
-                        cP3.textContent = "Gesture 03: Ultra-Fluid Matte SPF 50"; cP3Desc.textContent = "Non-comedogenic, sweat-resistant invisible photoprotect.";
+                        [cityMum, cityDel, cityBlr].forEach(b => b.classList.remove('selected'));
+                        cityMum.classList.add('selected');
+                        g1Title.textContent = "Low-Foam Gel Cleanser"; g1Desc.textContent = "Dissolves humidity-induced sweat and sebum without stripping the acid mantle."; g1Tag.textContent = "Non-Stripping · Coastal Safe";
+                        g2Title.textContent = "5% Niacinamide Water-Gel"; g2Desc.textContent = "Ultra-lightweight fluid replacing heavy creams to prevent pore occlusion in 84% humidity."; g2Tag.textContent = "Oil-Free · Zero Pore Clogging";
+                        g3Title.textContent = "Matte Fluid Invisible SPF 50"; g3Desc.textContent = "Sweat-resistant, non-greasy hybrid photoprotect with zero white cast or shiny film."; g3Tag.textContent = "Sweat Resistant · PA++++";
                     };
-                    cDelhiBtn.onclick = () => {
+
+                    cityDel.onclick = () => {
                         this.sound.click();
-                        cDelhiBtn.classList.add('selected'); cMumbaiBtn.classList.remove('selected'); cBlrBtn.classList.remove('selected');
-                        cEyebrow.textContent = "WINTER CONTINENTAL ARIDITY"; cTitleClim.textContent = "New Delhi, NCR";
-                        cHum.textContent = "28%"; cUv.textContent = "4.2"; cAqi.textContent = "AQI 310 (Hazardous)";
-                        cActionTitle.textContent = "Auto-Tuned for Pollution & Aridity";
-                        cP1.textContent = "Gesture 01: Ultra-Gentle Nourishing Cream Wash"; cP1Desc.textContent = "Preserves depleted intercellular lipids in dry cold air.";
-                        cP2.textContent = "Gesture 02: Ceramide Barrier Cream + Ectoin Shield"; cP2Desc.textContent = "Heavy occlusive barrier seal neutralising PM2.5 inflammatory oxidation.";
-                        cP3.textContent = "Gesture 03: Antioxidant Barrier SPF 50"; cP3Desc.textContent = "Photostable protection with Vitamin E free-radical scavengers.";
+                        [cityMum, cityDel, cityBlr].forEach(b => b.classList.remove('selected'));
+                        cityDel.classList.add('selected');
+                        g1Title.textContent = "Nourishing Cream Cleanser"; g1Desc.textContent = "Preserves depleted intercellular surface lipids in cold, dry winter air."; g1Tag.textContent = "Lipid Respecting · Winter Formulation";
+                        g2Title.textContent = "Triple Ceramide + Ectoin Shield"; g2Desc.textContent = "Heavy occlusive barrier balm protecting skin cells from PM2.5 particulate pollution (AQI 310)."; g2Tag.textContent = "Pollution Defense · Barrier Lock";
+                        g3Title.textContent = "Antioxidant Barrier SPF 50"; g3Desc.textContent = "Photostable UV shield enriched with Vitamin E to neutralize particulate oxidative stress."; g3Tag.textContent = "Anti-Pollution · Broad Spectrum";
                     };
-                    cBlrBtn.onclick = () => {
+
+                    cityBlr.onclick = () => {
                         this.sound.click();
-                        cBlrBtn.classList.add('selected'); cMumbaiBtn.classList.remove('selected'); cDelhiBtn.classList.remove('selected');
-                        cEyebrow.textContent = "TEMPERATE PLATEAU CLIMATE"; cTitleClim.textContent = "Bengaluru, Karnataka";
-                        cHum.textContent = "52%"; cUv.textContent = "6.0"; cAqi.textContent = "AQI 62 (Good)";
-                        cActionTitle.textContent = "Auto-Tuned for Moderate Balance";
-                        cP1.textContent = "Gesture 01: Balancing Amino Cleanser"; cP1Desc.textContent = "Physiological pH 5.5 daily equilibrium cleanse.";
-                        cP2.textContent = "Gesture 02: Hyaluronic + Peptide Emulsion"; cP2Desc.textContent = "Optimal moisture retention suited to 22°C temperate conditions.";
-                        cP3.textContent = "Gesture 03: Invisible Broad-Spectrum Gel SPF"; cP3Desc.textContent = "Featherlight hybrid daily UV protection.";
+                        [cityMum, cityDel, cityBlr].forEach(b => b.classList.remove('selected'));
+                        cityBlr.classList.add('selected');
+                        g1Title.textContent = "Balancing Amino Cleanser"; g1Desc.textContent = "Physiological pH 5.5 daily equilibrium wash ideal for mild temperate weather."; g1Tag.textContent = "Equilibrium · Physiological pH";
+                        g2Title.textContent = "Hyaluronic + Peptide Emulsion"; g2Desc.textContent = "Optimal moisture retention and elastic collagen repair suited to 22°C ambient temperatures."; g2Tag.textContent = "Cellular Hydration · Peptide Matrix";
+                        g3Title.textContent = "Invisible Daily Gel SPF 50"; g3Desc.textContent = "Weightless invisible UV shield with radiant non-greasy finish."; g3Tag.textContent = "Featherlight · Zero White Cast";
                     };
                 }
             }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            new SlidePresentation();
+            new SlideDeck();
         });
     </script>
 </body>
