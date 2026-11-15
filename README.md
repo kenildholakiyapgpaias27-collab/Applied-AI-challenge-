@@ -53,6 +53,14 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
 - **Honest empty steps:** if nothing in the range is safe for a step, the card says how many products were checked, the top reasons they were ruled out, and what to do next, including a one-tap button to raise the budget when that would unlock safe options.
 - **The plan:** three products that work together, a total price, two clearly labelled sponsored suggestions with relevance reasons, and a detailed "Why I recommended these" section.
 - **Quick experience feedback:** at the end of the plan, a short, sweet 1-tap rating (Loved it, Helpful, Good, Just okay, Needs work) with contextual tags and an optional note lets users share how the advisor worked for them, saved to their session and account.
+- **Virtual try-on (`#try-on`):** see shades on a face before buying. Start from the **live camera** (front camera, mirrored, with a consent screen first and a **Stop camera** button), an **uploaded photo**, or one of four **illustrated model faces** (Monk tones 2, 5, 7 and 9).
+  - **Real complexion data:** every Foundation, BB / CC cream, Concealer and Compact powder shade in the catalogue (597 shades) is tried on in its own colour. Coverage sets opacity (sheer < medium < full) and the product finish sets sheen (matte, natural, dewy). Base products cover the face but not the eyes, brows, lips or nostrils; concealer goes under the eyes and on the centre of the face.
+  - **Lips, cheeks and eyes use demo colours:** the catalogue has no colours for Lipstick, Blush or Kajal / eyeliner, so `data/demo_colours.json` holds 4–8 generated shades per product (`tools/tryon/make_demo_colours.py`, deterministic). Every one is marked `"demo": true` and labelled **Demo colour, not real product data** on screen. They never go into the catalogue, `seed.sql` or the database.
+  - **Looks like makeup, not paint:** the shade replaces the skin's low-frequency colour in OKLab and the photo's own texture and shading are put back. A shade that is too light for deep skin looks grey and ashy, as it would in real life ([examples](docs/tryon_screens.png)).
+  - **Controls:** Face, Lips, Cheeks and Eyes tabs; a before/after slider; **Compare shades** side by side in a 2×2 grid; a full look across categories; **Save snapshot** (downloads to the device only); and **Add to my plan**.
+  - **Tied to the advisor:** your tone and undertone pre-select your best shade (the same `bestShade()` as the plan), marked **Your match**. Every product goes through the same `check()` filter: products that fail your checks can be previewed but show **Not suitable for you** with the reason and are never offered for your plan.
+  - **Where it lives:** **Try it on** on complexion product cards, on the base-makeup plan and in **Your shade in base makeup**, plus the `#try-on` link.
+  - **On the device, offline-friendly:** face tracking is Google's MediaPipe Face Landmarker (`@mediapipe/tasks-vision@0.10.35`, pinned), loaded from jsDelivr only when the camera or a photo is used. The model faces ship with their landmarks, so they work fully offline. With no WebGL, no face found, a slow device or no network, it says so and shows the shades as swatches on your skin tone instead.
 
 ## Guardrails enforced in code
 
@@ -89,16 +97,21 @@ aaina-skin-advisor/
 │   ├── app.js          # journey, questions, selfie and filter check, plan and explanation
 │   ├── engine.js       # guardrail filter, scoring, face reader, input safety checks
 │   ├── db.js           # optional Supabase layer: catalogue, accounts, check-ins, analytics
+│   ├── tryon.js        # virtual try-on: camera/photo/model, face tracking, WebGL makeup, controls
 │   └── india.js        # states, cities and climates
 ├── data/
 │   ├── catalogue.json  # 806-product demo catalogue (bundled; also the database seed)
-│   └── supabase.json   # database URL + public anon key (empty = offline mode)
+│   ├── supabase.json   # database URL + public anon key (empty = offline mode)
+│   ├── demo_colours.json   # DEMO lipstick/blush/kajal colours for the try-on (not real product data)
+│   ├── tryon_models.json   # illustrated model faces: tone, undertone and 478 face landmarks each
+│   └── tryon_models/       # the model face images
 ├── supabase/
 │   ├── migrations/     # schema, row-level security, erasure function, report views
 │   ├── seed.sql        # generated catalogue upsert (tools/seed_catalogue.py)
 │   └── tests/          # RLS tests + end-to-end browser test against a mocked API
 └── tools/
-    └── seed_catalogue.py
+    ├── seed_catalogue.py
+    └── tryon/          # make_models.py (model faces), make_demo_colours.py, MediaPipe canonical mesh + licence
 ```
 
 ## Run locally
@@ -164,8 +177,13 @@ Supabase's built-in email sender is limited to a few emails an hour, which is fi
 ### Tests
 
 ```bash
+python3 tests/tryon_unit_test.py     # try-on data + colour/blend maths (Node for the JS part)
+python3 tests/tryon_test.py          # try-on in Chrome: model, upload, fake camera, compare, safety, plan
+python3 tests/quiz_flow_test.py      # the adaptive quiz
 supabase/tests/run_db_tests.sh
 ```
+
+The try-on browser test needs `pip install playwright pillow`, Chrome, and internet for the face-tracking checks (`--shots DIR` also saves the light/medium/deep screenshots).
 
 Starts a throwaway local Postgres, loads the schema and seed, then runs:
 - **36 row-level security tests** (`rls_test.sql`), under Supabase's default grants. For example: one user can't read or change another's data, nothing is accepted before consent, analytics are write-only, and `TRUNCATE` is blocked. Supabase's defaults would otherwise allow `TRUNCATE`, and row-level security doesn't apply to it.
@@ -179,6 +197,10 @@ Needs PostgreSQL server binaries, `pip install psycopg playwright`, and Chrome.
 ## Privacy note
 
 The selfie consent screen tells users their photo is stored for **18 months**. This demo does **not** store photos: they are analysed in the browser and discarded, and the database layer never uploads them. Answers are stored in an account only with explicit consent (recorded with a version and timestamp) and can be erased in one step. A production version would still need a full review against India's Digital Personal Data Protection Act, 2023.
+
+**Virtual try-on:** camera frames and uploaded photos are processed in the browser and never uploaded or stored. Snapshots are saved only as a download on the user's device. The face tracker's code and model file are downloaded from public CDNs (jsDelivr and Google's model storage); no image goes with those requests.
+
+**Model faces:** the four try-on models are illustrations rendered by `tools/tryon/make_models.py` from MediaPipe's canonical face mesh (Apache-2.0, `tools/tryon/MEDIAPIPE_LICENSE`). They are not photographs of real people, so no model release is needed.
 
 ## Disclaimer
 

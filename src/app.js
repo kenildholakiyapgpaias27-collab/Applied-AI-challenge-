@@ -845,7 +845,7 @@ function baseShadesHTML(){
     let best=null;for(const p of cands){const m=bestShade(p,P.tone,ut);if(m&&(!best||m.score<best.m.score))best={p,m}}
     out.push({cat,best:best&&best.m.good?best:null})}
   if(!out.some(x=>x.best))return"";
-  return`<div class="baseshades"><h4>Your shade in base makeup</h4><p class="small muted">Matched to skin tone ${P.tone} (${esc(TONE_NAME[P.tone])})${P.toneRead&&P.toneRead.lab&&P.toneRead.tone===P.tone?" using the colour measured from your selfie":""}. Not part of your three-step routine.</p>
+  return`<div class="baseshades"><h4>Your shade in base makeup</h4><p class="small muted">Matched to skin tone ${P.tone} (${esc(TONE_NAME[P.tone])})${P.toneRead&&P.toneRead.lab&&P.toneRead.tone===P.tone?" using the colour measured from your selfie":""}. Not part of your three-step routine. <button type="button" class="tryon-btn" data-tryon="base">Try these on</button></p>
     <ul>${out.map(({cat,best})=>best?`<li><span class="bsw" style="background:${best.m.hex}"></span><div><b>${esc(best.m.name)}</b><small>${esc(best.p.n)} · ${esc(cat)} · ${rupee(best.p.p)}</small></div></li>`:`<li class="none"><span class="bsw"></span><div><b>No close shade in this range</b><small>${esc(cat)} · I'd rather tell you than suggest the wrong one</small></div></li>`).join("")}</ul></div>`}
 
 /* ---------- user experience feedback ---------- */
@@ -1037,6 +1037,7 @@ function cardHTML(i,s){
     <p class="why1">${lineHTML(p,s.slot)}</p>
     <div class="pfoot">
       <span class="price">${rupee(p.p)}</span>
+      ${p.s&&p.s.length?`<button type="button" class="tryon-btn" data-tryon="${p.id}">Try it on</button>`:""}
       ${s.list.length>1?`<button type="button" class="swap" data-i="${i}">Substitute</button>`:""}
     </div>
   </article>`;
@@ -1092,6 +1093,7 @@ function renderPlan(){
     <div class="eyebrow">✦ Prescription № ${PL.slots.length} · ${NAME?esc(NAME):"Personalized"}</div>
     <h3>L'Ordonnance de Soin</h3>
     <p class="lead">${SUB?`Calibrated for ${esc(SUB.toLowerCase())}. `:""}${PL.slots.length===1?"Checked against every diagnostic parameter, with bespoke alternatives one tap away.":P.goal==="makeup"?"Each shade is matched to your skin tone and undertone, and every formula passed your safety checks.":planLead()}</p>
+    ${P.goal==="makeup"?`<p><button type="button" class="tryon-btn" data-tryon="${esc((PL.slots.find(x=>x.p&&x.p.s&&x.p.s.length)||{}).p?.id||"base")}">Try your shades on</button></p>`:""}
     <div class="vanity-tray" role="tablist" aria-label="Protocol timing">
       <button type="button" class="vanity-btn active" data-vanity="am">☀️ Morning Protocol</button>
       <button type="button" class="vanity-btn" data-vanity="pm">🌙 Evening Protocol</button>
