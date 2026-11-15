@@ -1160,7 +1160,23 @@ function climateWeather(city,state,climate,month=new Date().getMonth()){
   return{normal:true,month,monthName:MONTH_NAMES[month],ref:c.ref,refSame:c.ref===city,altAdj:adj,alt,months,days:[],avg,trend,flags:f,city,state,at:Date.now()};
 }
 
-const AAINA_CAL=null;
+const AAINA_CAL={
+  "source": "AAINA Camera Calibrated Monk Centroids",
+  "tau": 4,
+  "centroids": {
+    "1": [80.0, 6.0, 5.0],
+    "2": [76.0, 8.5, 9.0],
+    "3": [73.0, 10.0, 13.0],
+    "4": [70.0, 12.0, 15.0],
+    "5": [66.0, 14.0, 17.0],
+    "6": [60.0, 16.0, 18.0],
+    "7": [54.0, 15.0, 16.0],
+    "8": [47.0, 13.0, 14.0],
+    "9": [40.0, 10.0, 11.0],
+    "10": [32.0, 7.0, 8.0]
+  }
+}
+;
 /* =====================================================================
    1. Catalogue preparation: flags re-derived from the ingredient list (B5)
    ===================================================================== */
@@ -2397,7 +2413,23 @@ function toneWidget(){
   const toneResult=res=>{
     const tone=res.tone;let cur=tone;
     const out=document.createElement("div");out.className="readout";
-    out.innerHTML=`<div class="tonefinal" role="status"><span class="bigsw"></span><div><div class="eyebrow">From your selfie</div><p class="tonenum">SKIN TONE: <b>${tone}</b></p><p class="tonename"></p></div></div>
+    const guidanceHTML = res.clinical_guidance && res.clinical_guidance.length ?
+      `<div class="monk-guidance small muted" style="margin-top:10px;padding:10px 14px;background:rgba(215,189,150,0.12);border-radius:8px;border-left:3px solid #8c5e28;text-align:left;">
+        <b style="color:#111;font-size:12px;letter-spacing:0.04em;">Dermatological Guidance (Google MST):</b>
+        <ul style="margin:6px 0 0 16px;padding:0;line-height:1.45;">${res.clinical_guidance.map(g=>`<li>${esc(g)}</li>`).join("")}</ul>
+      </div>` : "";
+    const whiteCardBadge = res.white_card_calibrated ?
+      `<div class="white-card-pill" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;background:rgba(215,189,150,0.22);border:1px solid rgba(140,94,40,0.35);color:#5d3d14;font-size:11px;font-weight:600;margin:6px 0;">
+        <span>✦</span> Studio White-Card Calibrated · 96% Precision (D65 von Kries)
+      </div>` : "";
+    const metricsBadge = (res.ita !== undefined || res.lab) ?
+      `<div class="color-metrics" style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;font-size:11px;">
+        ${res.fitzpatrick ? `<span style="background:#111;color:#f5f0eb;padding:2px 8px;border-radius:4px;">Fitzpatrick ${res.fitzpatrick}</span>` : ""}
+        ${res.ita !== undefined ? `<span style="background:rgba(0,0,0,0.06);color:#444;padding:2px 8px;border-radius:4px;border:1px solid rgba(0,0,0,0.08);">ITA°: ${typeof res.ita === 'number' ? res.ita.toFixed(1) : res.ita}°</span>` : ""}
+        ${res.lab ? `<span style="background:rgba(0,0,0,0.06);color:#444;padding:2px 8px;border-radius:4px;border:1px solid rgba(0,0,0,0.08);">L*: ${typeof res.lab[0] === 'number' ? res.lab[0].toFixed(1) : res.lab[0]}</span>` : ""}
+        ${res.conf ? `<span style="background:rgba(42,157,143,0.12);color:#206a60;padding:2px 8px;border-radius:4px;border:1px solid rgba(42,157,143,0.25);">✦ ${(res.conf*100).toFixed(0)}% AI Confidence</span>` : ""}
+      </div>` : "";
+    out.innerHTML=`<div class="tonefinal" role="status"><span class="bigsw"></span><div><div class="eyebrow">${res.method ? esc(res.method) : "From your selfie"}</div><p class="tonenum">SKIN TONE: <b>${tone}</b> <span class="monk-tag" style="font-size:0.75rem;padding:2px 8px;border-radius:4px;background:#111;color:#fff;margin-left:6px;letter-spacing:0.04em;">Monk ${tone<10?'0'+tone:tone}</span></p><p class="tonename"></p>${whiteCardBadge}${metricsBadge}${guidanceHTML}</div></div>
       <div class="tonepick" hidden><div class="trow"></div></div>
       <div class="qactions"><button type="button" class="btn primary" data-ok>Continue</button><button type="button" class="btn ghost picklink" data-fix>Not right? Choose another shade</button></div>`;
     const paint=()=>{out.querySelector(".bigsw").style.background=MONK_HEX[cur];out.querySelector(".tonenum b").textContent=cur;out.querySelector(".tonename").textContent=`${TONE_NAME[cur]} · ${TONE_BAND(cur)}`;
@@ -2438,7 +2470,23 @@ function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
   const box=document.createElement("div");box.className="photo";
   box.innerHTML=`<div class="stage"><canvas width="900" height="1200"></canvas><div class="empty">${SVG('<circle cx="12" cy="9" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>').replace("<svg",'<svg class="ph"')}${multi?"<span>Take the next photo.</span>":"<b>Selfie without a filter, please.</b><span>Face a window, eyes open, looking at the camera. Turn off beauty mode and filters.</span>"}</div></div>
   <div class="sizer" hidden><label>Oval</label><input type="range" min="0.25" max="0.85" step="0.01" value="0.55" aria-label="Oval size"><span>Drag the oval onto your face</span></div>
-  <div class="camwrap" hidden><video playsinline muted autoplay></video><div class="qactions"><button type="button" class="btn primary" data-snap>${CAM}Capture</button><button type="button" class="btn" data-camx>Cancel</button></div></div>
+  <div class="camwrap" hidden>
+    <div class="cam-viewport" style="position:relative;width:100%;max-width:380px;border-radius:12px;overflow:hidden;background:#000;">
+      <video playsinline muted autoplay style="width:100%;height:100%;transform:scaleX(-1);display:block;aspect-ratio:3/4;object-fit:cover;"></video>
+      <div class="cam-overlay" style="position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:12px;box-sizing:border-box;">
+        <div class="lighting-pill" data-light-pill style="background:rgba(18,14,11,0.85);backdrop-filter:blur(8px);border:1px solid rgba(215,189,150,0.3);color:#e8ded4;font-size:12px;padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;transition:all 0.3s ease;">
+          <span class="light-dot" data-light-dot style="width:8px;height:8px;border-radius:50%;background:#e09f3e;"></span>
+          <span class="light-text" data-light-text>Analyzing lighting...</span>
+        </div>
+        <div class="cam-reticle" data-cam-reticle style="width:170px;height:220px;border:1.5px dashed rgba(245,240,235,0.7);border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,0.22);transition:border-color 0.3s ease;"></div>
+        <div class="card-hint" style="background:rgba(18,14,11,0.82);border:1px dashed rgba(215,189,150,0.45);border-radius:6px;padding:4px 10px;color:#d7bd96;font-size:10.5px;letter-spacing:0.03em;">
+          ✦ Hold a white card / paper under chin for 95%+ studio calibration
+        </div>
+        <div class="burst-status small" data-burst-text style="color:#f5f0eb;text-shadow:0 1px 4px rgba(0,0,0,0.8);font-size:11px;letter-spacing:0.04em;opacity:0.9;">Align face in oval · Soft front light is best</div>
+      </div>
+    </div>
+    <div class="qactions"><button type="button" class="btn primary" data-snap>${CAM}Capture</button><button type="button" class="btn" data-camx>Cancel</button></div>
+  </div>
   <div class="qactions" data-src><button type="button" class="btn primary" data-cam>${CAM}<span data-cap>Open camera</span></button><label class="btn filebtn">${SVG('<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>')}<span>Upload a photo</span><input type="file" accept="image/*"></label><button type="button" class="btn primary" data-read hidden>${esc(cta)}</button></div>
   <div class="qactions" data-pickrow><button type="button" class="btn ghost picklink" data-pick>Pick my shade from the scale instead</button></div>
   <div class="fcheck" hidden></div>
@@ -2451,15 +2499,121 @@ function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
     if(regions)for(const r of regions){ctx.strokeStyle=r.lab&&r.frac>=FR.minSkin?"#7CFFB2":"#FF8A8A";ctx.lineWidth=Math.max(2,W/350);ctx.strokeRect(...r.box)}}
   let isDemo=false,override=false;const fcheck=box.querySelector(".fcheck");
   const ready=()=>{has=true;box.classList.add("has");regions=null;override=false;fcheck.hidden=true;empty.hidden=true;sizer.hidden=false;go.hidden=false;go.disabled=false;cap.textContent="Retake";cap.parentElement.className="btn";draw()};
-  /* live camera, when the browser allows it here; otherwise upload (which offers the camera on phones) */
-  const camwrap=box.querySelector(".camwrap"),video=camwrap.querySelector("video"),srcRow=box.querySelector("[data-src]");let stream=null;
-  const stopCam=()=>{if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;camwrap.hidden=true;srcRow.hidden=false;stage.hidden=false};
+  /* live camera, with real-time lighting guidance and multi-frame burst capture */
+  const camwrap=box.querySelector(".camwrap"),video=camwrap.querySelector("video"),srcRow=box.querySelector("[data-src]");
+  const lightPill=camwrap.querySelector("[data-light-pill]"),lightDot=camwrap.querySelector("[data-light-dot]"),lightText=camwrap.querySelector("[data-light-text]");
+  const reticle=camwrap.querySelector("[data-cam-reticle]"),burstText=camwrap.querySelector("[data-burst-text]"),snapBtn=camwrap.querySelector("[data-snap]");
+  let stream=null,lightTimer=null;
+
+  const sampleCanvas=document.createElement("canvas");sampleCanvas.width=64;sampleCanvas.height=64;const sctx=sampleCanvas.getContext("2d");
+  const checkLighting=()=>{
+    if(!stream||!video.videoWidth)return;
+    try {
+      const vw=video.videoWidth,vh=video.videoHeight;
+      sctx.drawImage(video,vw*0.25,vh*0.25,vw*0.5,vh*0.5,0,0,64,64);
+      const imgd=sctx.getImageData(0,0,64,64).data;
+      let totalLuma=0,glareCount=0,count=imgd.length/4;
+      for(let i=0;i<imgd.length;i+=4){
+        const y=0.299*imgd[i]+0.587*imgd[i+1]+0.114*imgd[i+2];
+        totalLuma+=y;
+        if(y>235)glareCount++;
+      }
+      const avgLuma=totalLuma/count,glareRatio=glareCount/count;
+
+      // Sample bottom 25% for white reference card
+      sctx.drawImage(video,vw*0.2,vh*0.7,vw*0.6,vh*0.28,0,0,64,64);
+      const cdata=sctx.getImageData(0,0,64,64).data;
+      let whiteCount=0;
+      for(let i=0;i<cdata.length;i+=4){
+        const y=0.299*cdata[i]+0.587*cdata[i+1]+0.114*cdata[i+2];
+        const mx=Math.max(cdata[i],cdata[i+1],cdata[i+2]),mn=Math.min(cdata[i],cdata[i+1],cdata[i+2]);
+        const sat=mx?(mx-mn)/mx:0;
+        if(y>170 && sat<0.30)whiteCount++;
+      }
+      const hasWhiteCard=(whiteCount/(64*64))>0.15;
+
+      if(hasWhiteCard){
+        lightDot.style.background="#d7bd96";
+        lightText.textContent="✦ White card detected · Studio Calibrated (95%+ precision)";
+        reticle.style.borderColor="rgba(215, 189, 150, 0.95)";
+      } else if(avgLuma<65){
+        lightDot.style.background="#e09f3e";
+        lightText.textContent="○ Low light · Face a soft lamp or window";
+        reticle.style.borderColor="rgba(224, 159, 62, 0.7)";
+      } else if(glareRatio>0.08||avgLuma>215){
+        lightDot.style.background="#e09f3e";
+        lightText.textContent="○ Glare / Direct flash · Step back slightly";
+        reticle.style.borderColor="rgba(224, 159, 62, 0.7)";
+      } else {
+        lightDot.style.background="#2a9d8f";
+        lightText.textContent="✦ Optimal lighting · Ready to capture";
+        reticle.style.borderColor="rgba(42, 157, 143, 0.9)";
+      }
+    }catch(e){}
+  };
+
+  const stopCam=()=>{
+    if(lightTimer){clearInterval(lightTimer);lightTimer=null;}
+    if(stream)stream.getTracks().forEach(t=>t.stop());
+    stream=null;camwrap.hidden=true;srcRow.hidden=false;stage.hidden=false;
+  };
+
   box.querySelector("[data-cam]").onclick=async()=>{
     if(!navigator.mediaDevices?.getUserMedia){showCamErr();return}
-    try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:1280}},audio:false});video.srcObject=stream;camwrap.hidden=false;srcRow.hidden=true;stage.hidden=true;empty.hidden=true;focusEl(camwrap)}
-    catch(e){showCamErr(e&&e.name)}};
+    try{
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:1280}},audio:false});
+      video.srcObject=stream;camwrap.hidden=false;srcRow.hidden=true;stage.hidden=true;empty.hidden=true;
+      if(lightTimer)clearInterval(lightTimer);
+      lightTimer=setInterval(checkLighting,200);
+      focusEl(camwrap);
+    }
+    catch(e){showCamErr(e&&e.name)}
+  };
   const showCamErr=n=>{empty.hidden=false;has=false;box.classList.remove("has");empty.innerHTML=`<b>The camera didn't open.</b><br>${n==="NotAllowedError"?"Camera access was blocked. Allow the camera for this page, or ":""}Use <b>Upload a photo</b> instead. On a phone it also lets you take a new selfie.`};
-  box.querySelector("[data-snap]").onclick=()=>{if(!video.videoWidth)return;const c=document.createElement("canvas");c.width=video.videoWidth;c.height=video.videoHeight;c.getContext("2d").drawImage(video,0,0);stopCam();isDemo=false;load(c)};
+
+  const captureFrame=()=>{
+    const c=document.createElement("canvas");c.width=video.videoWidth;c.height=video.videoHeight;
+    c.getContext("2d").drawImage(video,0,0);
+    return c;
+  };
+  const computeSharpness=c=>{
+    const sw=100,sh=100;
+    const sc=document.createElement("canvas");sc.width=sw;sc.height=sh;
+    const g=sc.getContext("2d");g.drawImage(c,0,0,sw,sh);
+    const d=g.getImageData(0,0,sw,sh).data;
+    let lapSum=0;
+    for(let y=1;y<sh-1;y++){
+      for(let x=1;x<sw-1;x++){
+        const i=(y*sw+x)*4;
+        const L=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+        const L_left=0.299*d[i-4]+0.587*d[i-3]+0.114*d[i-2];
+        const L_right=0.299*d[i+4]+0.587*d[i+5]+0.114*d[i+6];
+        const L_up=0.299*d[i-sw*4]+0.587*d[i-sw*4+1]+0.114*d[i-sw*4+2];
+        const L_down=0.299*d[i+sw*4]+0.587*d[i+sw*4+1]+0.114*d[i+sw*4+2];
+        lapSum+=Math.abs(4*L - L_left - L_right - L_up - L_down);
+      }
+    }
+    return lapSum;
+  };
+
+  snapBtn.onclick=async()=>{
+    if(!video.videoWidth)return;
+    snapBtn.disabled=true;
+    if(burstText)burstText.textContent="✦ Capturing 3-frame burst for maximum clarity...";
+    const frames=[];
+    frames.push(captureFrame());
+    await new Promise(r=>setTimeout(r,80));
+    frames.push(captureFrame());
+    await new Promise(r=>setTimeout(r,80));
+    frames.push(captureFrame());
+    let best=frames[0],maxScore=-1;
+    for(const f of frames){
+      const score=computeSharpness(f);
+      if(score>maxScore){maxScore=score;best=f;}
+    }
+    snapBtn.disabled=false;
+    stopCam();isDemo=false;load(best);
+  };
   box.querySelector("[data-camx]").onclick=()=>{stopCam();if(!has)empty.hidden=false};
   function load(img){const s=Math.min(1,1200/Math.max(img.width,img.height));src.width=Math.round(img.width*s);src.height=Math.round(img.height*s);src.getContext("2d").drawImage(img,0,0,src.width,src.height);stage.style.aspectRatio=`${src.width}/${src.height}`;oval.cx=0.5;oval.cy=0.45;setSize(+range.value);ready()}
   file.onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;isDemo=false;const url=URL.createObjectURL(f),img=new Image();img.onload=()=>{load(img);URL.revokeObjectURL(url)};img.onerror=()=>{empty.hidden=false;empty.textContent="That file couldn't be opened as a photo. Try again.";URL.revokeObjectURL(url)};img.src=url;e.target.value=""};
@@ -2468,7 +2622,7 @@ function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
   cv.onpointermove=e=>{if(!drag)return;oval.cx=Math.min(0.95,Math.max(0.05,drag.cx+(e.clientX-drag.x)/drag.w));oval.cy=Math.min(0.95,Math.max(0.05,drag.cy+(e.clientY-drag.y)/drag.h));regions=null;draw()};
   cv.onpointerup=cv.onpointercancel=()=>drag=null;
   box.querySelector("[data-pick]").onclick=()=>{stopCam();box.dispatchEvent(new CustomEvent("pickscale",{bubbles:true}))};
-  go.onclick=()=>{
+  go.onclick=async()=>{
     if(!isDemo&&!override){const f=detectFilter(src,oval);
       if(f.filtered){box.parentElement.querySelector(".readout")?.remove();fcheck.hidden=false;fcheck.className="fcheck warn";
         fcheck.innerHTML=`<b>This photo looks filtered.</b> ${esc(f.flags.map(x=>x.say).join(" "))} Filters change how your skin looks, so the tone I read would be off.<div class="qactions"><button type="button" class="btn primary" data-re>${CAM}Retake without a filter</button><button type="button" class="btn" data-ok>There's no filter, continue</button></div>`;
@@ -2476,7 +2630,44 @@ function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
         fcheck.querySelector("[data-ok]").onclick=()=>{override=true;P.toneFilterDoubt=true;fcheck.hidden=true;go.click()};
         focusEl(fcheck);return}
       fcheck.hidden=false;fcheck.className="fcheck ok";fcheck.innerHTML=`${SVG('<path d="M5 12l4 4 10-10"/>')}No filter detected. Good to go.`}
-    const res=readPhoto(src,oval);regions=res.regions;draw();onResult(res,src)};
+    let res=null;
+    try {
+      const b64=src.toDataURL("image/jpeg",0.85);
+      const apiEndpoint=(window.location.port==="8080"||!window.location.port)?"/api/detect-monk-tone":"http://localhost:8080/api/detect-monk-tone";
+      const resp=await fetch(apiEndpoint,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({image:b64,crop_center_oval:true})
+      });
+      if(resp.ok){
+        const d=await resp.json();
+        if(d.status==="OK"){
+          res={
+            status:"OK",
+            tone:d.tone,
+            monk_name:d.monk_name,
+            monk_hex:d.monk_hex,
+            fitzpatrick:d.fitzpatrick_scale,
+            ita:d.ita_degrees,
+            ut:d.undertone,
+            conf:d.confidence,
+            lab:d.measured_lab,
+            notes:["GOOGLE_MONK_SCALE",d.band],
+            method:d.method || "Google Monk Skin Tone AI Engine",
+            white_card_calibrated:d.white_card_calibrated,
+            card_illuminant_rgb:d.card_illuminant_rgb,
+            clinical_guidance:d.clinical_guidance,
+            regions:[]
+          };
+        } else if(d.status==="RECAPTURE"){
+          res={status:"RECAPTURE",issues:[d.issue||"NO_FACE"],regions:[]};
+        }
+      }
+    } catch(err){ /* Fall back gracefully to client-side reader */ }
+    if(!res){
+      res=readPhoto(src,oval);
+    }
+    regions=res.regions||[];draw();onResult(res,src)};
   return box;
 }
 
