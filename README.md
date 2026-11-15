@@ -3,6 +3,8 @@
 > **Reflect. Reveal. Radiate.**
 > A guided skincare advisor that asks a few short questions, adapted to who the user is and what they want, and builds a **3-product plan** (treat → hydrate → protect), a single sunscreen pick, or base makeup in their shade, then explains exactly why each product was chosen.
 
+Live demo: https://kenildholakiyapgpaias27-collab.github.io/Applied-AI-challenge-/
+
 Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products in the catalogue are fictional (demo data).
 
 ## What it does
