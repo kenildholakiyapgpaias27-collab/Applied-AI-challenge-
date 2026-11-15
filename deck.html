@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AAINA — Pitch Deck: AI Skin & Complexion Intelligence</title>
+    <title>AAINA — Pitch Deck: The Constraint-Checked Skincare Engine</title>
     
-    <!-- Google Fonts: Cormorant Garamond (Editorial Display Serif) & Plus Jakarta Sans (Modern Clean Sans) -->
+    <!-- Google Fonts: Cormorant Garamond & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -112,22 +112,21 @@
             z-index: 0;
         }
 
-        /* Slide layout helper container */
         .slide-inner {
             position: relative;
             width: 100%;
             height: 100%;
-            padding: 80px 100px;
+            padding: 72px 90px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             z-index: 1;
         }
 
-        /* Reveal animations triggered on active slide */
+        /* Reveal animations */
         .reveal {
             opacity: 0;
-            transform: translateY(24px);
+            transform: translateY(20px);
             transition: opacity 0.6s var(--ease-luxury),
                         transform 0.6s var(--ease-luxury);
         }
@@ -141,12 +140,11 @@
         .slide.active .reveal:nth-child(2) { transition-delay: 0.18s; }
         .slide.active .reveal:nth-child(3) { transition-delay: 0.26s; }
         .slide.active .reveal:nth-child(4) { transition-delay: 0.34s; }
-        .slide.active .reveal:nth-child(5) { transition-delay: 0.42s; }
 
         /* Typography */
         .eyebrow {
             font-family: var(--font-sans);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             letter-spacing: 0.18em;
             text-transform: uppercase;
@@ -154,12 +152,12 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .display-title {
             font-family: var(--font-display);
-            font-size: 88px;
+            font-size: 82px;
             line-height: 1.02;
             font-weight: 500;
             letter-spacing: -0.02em;
@@ -174,17 +172,17 @@
 
         .subtitle {
             font-family: var(--font-sans);
-            font-size: 22px;
+            font-size: 21px;
             line-height: 1.5;
             color: var(--ink-secondary);
-            max-width: 680px;
-            margin-top: 20px;
+            max-width: 820px;
+            margin-top: 14px;
             font-weight: 400;
         }
 
-        /* Editorial Arched Framing (Girlified Beauty Template Theme) */
+        /* Editorial Arched Framing */
         .arch-frame {
-            border-radius: 240px 240px 24px 24px;
+            border-radius: 200px 200px 20px 20px;
             overflow: hidden;
             position: relative;
             background: var(--bg-peach);
@@ -206,11 +204,10 @@
             color: var(--ink-primary);
         }
 
-        /* Grid architectures */
         .grid-2col {
             display: grid;
-            grid-template-columns: 1.15fr 0.85fr;
-            gap: 60px;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
             align-items: center;
             height: 100%;
         }
@@ -218,29 +215,21 @@
         .grid-3col {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 36px;
-            margin-top: 40px;
-        }
-
-        .grid-4col {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 28px;
-            margin-top: 40px;
+            gap: 32px;
+            margin-top: 30px;
         }
 
         /* Luxury Cards */
         .luxury-card {
             background: var(--bg-card);
-            border-radius: 20px;
-            padding: 40px 36px;
+            border-radius: 18px;
+            padding: 36px 32px;
             border: 1px solid var(--line-card);
             box-shadow: var(--shadow-luxury);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             position: relative;
-            transition: transform 0.3s ease;
         }
 
         .luxury-card.accent-peach {
@@ -250,94 +239,65 @@
 
         .card-number {
             font-family: var(--font-display);
-            font-size: 48px;
+            font-size: 42px;
             font-weight: 600;
             color: var(--accent-gold);
             line-height: 1;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .card-title {
             font-family: var(--font-display);
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 600;
             color: var(--ink-primary);
             line-height: 1.2;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .card-body {
-            font-size: 16px;
-            line-height: 1.6;
+            font-size: 15px;
+            line-height: 1.55;
             color: var(--ink-secondary);
         }
 
-        /* Metric Hero Stat */
-        .stat-huge {
-            font-family: var(--font-display);
-            font-size: 120px;
-            font-weight: 600;
-            line-height: 0.95;
-            color: var(--ink-primary);
-            letter-spacing: -0.03em;
-        }
-
-        .stat-huge sup {
-            font-size: 48px;
-            color: var(--accent-terracotta);
-            top: -0.6em;
-        }
-
-        .stat-label {
-            font-family: var(--font-sans);
-            font-size: 16px;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--accent-gold);
-            margin-top: 10px;
-        }
-
-        /* Monk Scale Swatches */
-        .monk-bar {
+        /* Screenshot placeholder boxes */
+        .screenshot-box {
+            border: 2px dashed rgba(140, 94, 40, 0.35);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.7);
+            height: 400px;
             display: flex;
-            gap: 12px;
-            align-items: center;
-            margin: 24px 0;
-            padding: 16px 20px;
-            background: #ffffff;
-            border-radius: 16px;
-            border: 1px solid var(--line-card);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-        }
-
-        .monk-dot {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            border: 2px solid #ffffff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
-            font-family: var(--font-mono);
-            font-weight: 600;
-            color: #ffffff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+            text-align: center;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-luxury);
+            transition: all 0.3s ease;
+        }
+
+        .screenshot-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0;
         }
 
         /* Presentation Navigation Floating Dock */
         .deck-controls {
             position: fixed;
-            bottom: 30px;
+            bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 9999;
-            background: rgba(20, 16, 14, 0.88);
+            background: rgba(20, 16, 14, 0.90);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(215, 189, 150, 0.25);
-            padding: 8px 16px;
+            padding: 8px 18px;
             border-radius: 40px;
             display: flex;
             align-items: center;
@@ -372,7 +332,7 @@
             font-weight: 500;
             color: #d7bd96;
             letter-spacing: 0.1em;
-            padding: 0 8px;
+            padding: 0 10px;
             border-left: 1px solid rgba(215, 189, 150, 0.2);
             border-right: 1px solid rgba(215, 189, 150, 0.2);
         }
@@ -397,7 +357,6 @@
             border-radius: 10px;
         }
 
-        /* Slide specific styling */
         .badge-pill {
             background: #181411;
             color: #ffffff;
@@ -407,7 +366,7 @@
             padding: 4px 12px;
             border-radius: 30px;
             display: inline-block;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -416,19 +375,19 @@
         <main class="deck-stage" id="deckStage">
 
             <!-- ==========================================
-                 SLIDE 1: COVER (Vision & Brand Identity)
+                 SLIDE 1: COVER (Vision & Purpose)
                  ========================================== -->
             <section class="slide title-slide active" data-slide="0">
                 <div class="slide-inner">
                     <header class="reveal" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span class="eyebrow">✦ Investor Presentation · Series Seed</span>
+                        <span class="eyebrow">✦ Investor Presentation · Seed Stage</span>
                         <span class="arch-pill">PARIS · MUMBAI · BENGALURU</span>
                     </header>
 
                     <div class="grid-2col" style="margin: auto 0;">
                         <div>
                             <div class="reveal">
-                                <span class="badge-pill">COMPLEXION INTELLIGENCE</span>
+                                <span class="badge-pill">PRECISION DERMATOLOGY</span>
                             </div>
                             <h1 class="display-title reveal">
                                 AAINA<br>
@@ -436,499 +395,465 @@
                                 de Soin
                             </h1>
                             <p class="subtitle reveal">
-                                The AI Skin Advisor engineering an antidote to cosmetic mismatch and routine fatigue through medical-grade computer vision and quiet luxury.
+                                An intelligent skincare engine that replaces 10-step influencer guesswork with a clinically constrained, 3-product routine built for your exact skin barrier, tone, and climate.
                             </p>
-                            <div class="reveal" style="margin-top: 36px; display: flex; gap: 16px; align-items: center;">
+                            <div class="reveal" style="margin-top: 32px; display: flex; gap: 14px; align-items: center;">
                                 <div class="arch-pill" style="background: var(--ink-primary); color: #ffffff;">
-                                    Google Monk Scale (MST 1–10)
+                                    Clinical Constraint Engine
                                 </div>
                                 <div class="arch-pill">
-                                    96%+ Optical Accuracy
+                                    3-Product Minimalist Protocol
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Arched Visual Feature (matching Girlified Beauty aesthetic) -->
-                        <div class="reveal" style="position: relative; height: 600px; display: flex; justify-content: center;">
-                            <div class="arch-frame" style="width: 380px; height: 560px; display: flex; flex-direction: column; justify-content: space-between; padding: 40px 30px; box-shadow: var(--shadow-luxury);">
+                        <!-- Arched Aesthetic Motif -->
+                        <div class="reveal" style="display: flex; justify-content: center;">
+                            <div class="arch-frame" style="width: 360px; height: 500px; display: flex; flex-direction: column; justify-content: space-between; padding: 40px 32px; box-shadow: var(--shadow-luxury);">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--accent-gold);">EDITION 2026</span>
-                                    <span style="font-size: 18px; color: var(--accent-gold);">✦</span>
+                                    <span style="font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--accent-gold);">PRESCRIPTION NO. 1</span>
+                                    <span style="font-size: 16px; color: var(--accent-gold);">✦</span>
                                 </div>
                                 
                                 <div style="text-align: center;">
-                                    <div style="width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 24px; border: 2px dashed rgba(140, 94, 40, 0.4); display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.6);">
-                                        <div style="width: 110px; height: 110px; border-radius: 50%; background: #3a312a; box-shadow: 0 8px 24px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; color: #fff; font-family: var(--font-mono); font-size: 13px; font-weight: 600;">
-                                            Monk 09
+                                    <div style="width: 110px; height: 110px; border-radius: 50%; margin: 0 auto 20px; border: 2px dashed rgba(140, 94, 40, 0.4); display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.7);">
+                                        <div style="width: 86px; height: 86px; border-radius: 50%; background: #8c5e28; color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 28px;">
+                                            3
                                         </div>
                                     </div>
-                                    <h3 style="font-family: var(--font-display); font-size: 32px; font-weight: 600; color: var(--ink-primary);">Precision Tone Match</h3>
-                                    <p style="font-size: 14px; color: var(--ink-secondary); margin-top: 6px;">Zero white-cast. Zero PIH rebound.</p>
+                                    <h3 style="font-family: var(--font-display); font-size: 30px; font-weight: 600; color: var(--ink-primary);">Cleanse. Treat. Shield.</h3>
+                                    <p style="font-size: 14px; color: var(--ink-secondary); margin-top: 6px;">Zero product collisions. Zero barrier damage.</p>
                                 </div>
 
-                                <div style="background: rgba(255,255,255,0.7); border-radius: 14px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-size: 12px; font-weight: 600; color: var(--ink-primary);">D65 Studio Normalized</span>
-                                    <span style="font-family: var(--font-mono); font-size: 12px; color: var(--accent-emerald); font-weight: 600;">✦ 98% Conf.</span>
+                                <div style="background: rgba(255,255,255,0.8); border-radius: 12px; padding: 12px 16px; text-align: center; font-size: 12px; font-weight: 600; color: var(--accent-gold);">
+                                    Calibrated to Indian Climate &amp; Skin Types
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <footer class="reveal" style="display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-muted); border-top: 1px solid var(--line-subtle); padding-top: 16px;">
+                    <footer class="reveal" style="display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-muted); border-top: 1px solid var(--line-subtle); padding-top: 14px;">
                         <span>CONFIDENTIAL · FOR INVESTMENT EVALUATION ONLY</span>
-                        <span>AAINA INTELLIGENCE INC.</span>
+                        <span>AAINA AI INTELLIGENCE</span>
                     </footer>
                 </div>
             </section>
 
             <!-- ==========================================
-                 SLIDE 2: THE PROBLEM (42% Return Crisis)
+                 SLIDE 2: THE PROBLEM (Skincare Shopping is Broken)
                  ========================================== -->
             <section class="slide" data-slide="1">
                 <div class="slide-inner">
                     <header class="reveal">
-                        <span class="eyebrow">✦ The Market Pain Point</span>
-                        <h2 class="display-title">The Multi-Billion Dollar <em>Mismatch Crisis</em></h2>
+                        <span class="eyebrow">✦ The Consumer Dilemma</span>
+                        <h2 class="display-title">Skincare Shopping is <em>Completely Broken</em></h2>
                     </header>
+
+                    <p class="subtitle reveal">
+                        The average consumer owns 7 to 10 half-empty bottles at home. They are overwhelmed by social media trends, conflicting active ingredients, and zero guidance on what actually works together.
+                    </p>
 
                     <div class="grid-3col">
                         <div class="luxury-card reveal">
                             <div>
                                 <span class="card-number">01</span>
-                                <h3 class="card-title">Smartphone Camera Drift</h3>
+                                <h3 class="card-title">Influencer Routine Fatigue</h3>
                                 <p class="card-body">
-                                    Ambient bedroom lighting (2700K incandescent bulbs) alters digital skin reflection by <strong>&plusmn;8.4 &Delta;E</strong>, causing standard beauty apps to misclassify skin tones by 2 to 3 shades.
+                                    Promoting 10-step viral routines strips the natural stratum corneum barrier. Dermatologists report that over-exfoliation and barrier breakdown have become the #1 skin complaint.
                                 </p>
                             </div>
-                            <div style="margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line-card); display: flex; justify-content: space-between; align-items: baseline;">
-                                <span class="stat-huge" style="font-size: 54px;">42<sup>%</sup></span>
-                                <span style="font-size: 12px; font-weight: 600; color: var(--accent-terracotta);">INDUSTRY RETURN RATE</span>
+                            <div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--line-card); font-size: 13px; font-weight: 600; color: var(--accent-terracotta);">
+                                &rarr; Result: Chronic irritation &amp; barrier damage
                             </div>
                         </div>
 
                         <div class="luxury-card reveal">
                             <div>
                                 <span class="card-number">02</span>
-                                <h3 class="card-title">Post-Inflammatory Hyperpigmentation</h3>
+                                <h3 class="card-title">Dangerous Active Clashes</h3>
                                 <p class="card-body">
-                                    Deep and melanocompetent complexions (Fitzpatrick IV–VI, Monk 6–10) face hyper-reactive melanocytes. Generic advice routinely prescribes unbuffered 10% Glycolic Acid, triggering severe rebound darkening.
+                                    Consumers unknowingly layer acidic Glycolic Acid with Retinol, or Copper Peptides with low-pH Vitamin C. These chemical pH collisions cause burning, sensitivity, and contact dermatitis.
                                 </p>
                             </div>
-                            <div style="margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line-card); display: flex; justify-content: space-between; align-items: baseline;">
-                                <span class="stat-huge" style="font-size: 54px;">68<sup>%</sup></span>
-                                <span style="font-size: 12px; font-weight: 600; color: var(--accent-terracotta);">MELANIN COMPLICATION RISK</span>
+                            <div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--line-card); font-size: 13px; font-weight: 600; color: var(--accent-terracotta);">
+                                &rarr; Result: Wasted spend &amp; worsening breakouts
                             </div>
                         </div>
 
                         <div class="luxury-card reveal">
                             <div>
                                 <span class="card-number">03</span>
-                                <h3 class="card-title">The Ashy Sunscreen Trap</h3>
+                                <h3 class="card-title">Mismatched Shades &amp; White-Cast</h3>
                                 <p class="card-body">
-                                    Physical mineral filters (ZnO &amp; TiO<sub>2</sub>) scatter light violently on deeper complexions, creating an embarrassing chalky white cast that discourages daily compliance and accelerates UV damage.
+                                    Online shade matching fails in beauty e-commerce, driving high return rates, while physical sunscreens leave an ashy white cast that leads people to abandon UV protection entirely.
                                 </p>
                             </div>
-                            <div style="margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line-card); display: flex; justify-content: space-between; align-items: baseline;">
-                                <span class="stat-huge" style="font-size: 54px;">&gt;80<sup>%</sup></span>
-                                <span style="font-size: 12px; font-weight: 600; color: var(--accent-terracotta);">USER ABANDONMENT RATE</span>
+                            <div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--line-card); font-size: 13px; font-weight: 600; color: var(--accent-terracotta);">
+                                &rarr; Result: High e-commerce return rates
                             </div>
                         </div>
                     </div>
 
-                    <footer class="reveal" style="display: flex; justify-content: space-between; font-size: 14px; color: var(--ink-secondary); background: var(--bg-peach); padding: 18px 24px; border-radius: 12px;">
-                        <span><strong>The Core Defect:</strong> Legacy algorithms treat human skin as flat RGB pixels under daylight, ignoring camera physics and biological reality.</span>
-                        <span style="font-weight: 600; color: var(--accent-terracotta);">Reverse Logistics Cost: $4.2B Annually</span>
+                    <footer class="reveal" style="font-size: 14px; color: var(--ink-secondary); background: var(--bg-peach); padding: 14px 22px; border-radius: 12px; display: flex; justify-content: space-between;">
+                        <span><strong>The Reality:</strong> People don't need another 10 products. They need <em>exactly three</em> that are proven safe to use together.</span>
+                        <span style="font-weight: 600; color: var(--accent-gold);">The Antidote: Medical Guardrails</span>
                     </footer>
                 </div>
             </section>
 
             <!-- ==========================================
-                 SLIDE 3: THE MONK AI ENGINE BREAKTHROUGH
+                 SLIDE 3: TRUE TONE & THE 2 SCREENSHOT BLOCKS (Skin Tone 1/3)
                  ========================================== -->
             <section class="slide" data-slide="2">
                 <div class="slide-inner">
                     <header class="reveal">
-                        <span class="eyebrow">✦ Technological Superiority</span>
-                        <h2 class="display-title">Google Monk Scale <em>(MST 1–10)</em> AI Engine</h2>
+                        <span class="eyebrow">✦ Precision Optical Innovation</span>
+                        <h2 class="display-title">True Tone: <em>The White Paper</em> Breakthrough</h2>
                     </header>
 
+                    <p class="subtitle reveal" style="margin-top: 4px;">
+                        Yellow bedroom lamps trick phone cameras into misreading skin tones. By simply holding a white paper or card under the chin, AAINA samples the room's light and restores true daylight skin color.
+                    </p>
+
+                    <!-- The 2 Requested Screenshot Blocks -->
                     <div class="grid-2col" style="margin-top: 20px;">
-                        <div>
-                            <p class="subtitle reveal" style="margin-top: 0; font-size: 24px; line-height: 1.45;">
-                                Moving beyond the flawed 6-tier Fitzpatrick scale. AAINA harnesses Google's 10-shade Monk Skin Tone standard, combined with MediaPipe 478 anatomical landmarks.
+                        
+                        <!-- BLOCK 1: BEFORE WHITE PAPER -->
+                        <div class="screenshot-box reveal" style="border-color: rgba(184, 93, 56, 0.45); background: #ffffff;">
+                            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(184, 93, 56, 0.1); color: var(--accent-terracotta); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 12px;">
+                                📷
+                            </div>
+                            <h4 style="font-family: var(--font-display); font-size: 26px; color: var(--ink-primary); margin-bottom: 6px;">
+                                [ Paste Screenshot: Before White Paper ]
+                            </h4>
+                            <p style="font-size: 14px; color: var(--ink-secondary); max-width: 380px; margin-bottom: 14px;">
+                                Raw selfie under warm indoor lighting. Notice how yellow lamp light skews the skin reading.
                             </p>
-
-                            <div class="monk-bar reveal">
-                                <div class="monk-dot" style="background:#f6ede4; color:#111;">01</div>
-                                <div class="monk-dot" style="background:#f3e7db; color:#111;">02</div>
-                                <div class="monk-dot" style="background:#f7ead0; color:#111;">03</div>
-                                <div class="monk-dot" style="background:#eadaba; color:#111;">04</div>
-                                <div class="monk-dot" style="background:#d7bd96; color:#111;">05</div>
-                                <div class="monk-dot" style="background:#a07e56;">06</div>
-                                <div class="monk-dot" style="background:#825c43;">07</div>
-                                <div class="monk-dot" style="background:#604134;">08</div>
-                                <div class="monk-dot" style="background:#3a312a;">09</div>
-                                <div class="monk-dot" style="background:#292420;">10</div>
-                            </div>
-
-                            <div class="grid-2col reveal" style="gap: 24px; margin-top: 30px;">
-                                <div style="background: #ffffff; padding: 24px; border-radius: 14px; border: 1px solid var(--line-card);">
-                                    <h4 style="font-family: var(--font-display); font-size: 22px; color: var(--ink-primary); margin-bottom: 6px;">Bilateral Shadow Dropping</h4>
-                                    <p style="font-size: 14px; color: var(--ink-secondary); line-height: 1.5;">Compares left cheek vs right cheek in real time, automatically discarding the shaded hemisphere.</p>
-                                </div>
-                                <div style="background: #ffffff; padding: 24px; border-radius: 14px; border: 1px solid var(--line-card);">
-                                    <h4 style="font-family: var(--font-display); font-size: 22px; color: var(--ink-primary); margin-bottom: 6px;">Shafer DRM Specular Filter</h4>
-                                    <p style="font-size: 14px; color: var(--ink-secondary); line-height: 1.5;">Filters out oily reflections and glare (V &gt; 0.92, S &lt; 0.15) to isolate pure diffuse chromophores.</p>
-                                </div>
-                            </div>
+                            <span class="badge-pill" style="background: rgba(184, 93, 56, 0.15); color: var(--accent-terracotta); border: 1px solid rgba(184, 93, 56, 0.3);">
+                                Uncalibrated Camera Drift
+                            </span>
                         </div>
 
-                        <!-- Technical Pipeline Callout -->
-                        <div class="luxury-card accent-peach reveal" style="padding: 44px 36px;">
-                            <span class="eyebrow" style="color: var(--accent-terracotta);">END-TO-END CV ARCHITECTURE</span>
-                            <h3 style="font-family: var(--font-display); font-size: 34px; margin: 12px 0 20px;">Precision at the Edge</h3>
-                            
-                            <ul style="list-style: none; display: flex; flex-direction: column; gap: 16px;">
-                                <li style="display: flex; gap: 14px; align-items: center; font-size: 15px;">
-                                    <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--ink-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</span>
-                                    <span><strong>478 Face Mesh Landmarks</strong> tracking malar cheeks &amp; forehead</span>
-                                </li>
-                                <li style="display: flex; gap: 14px; align-items: center; font-size: 15px;">
-                                    <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--ink-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</span>
-                                    <span><strong>sRGB &rarr; Linear &rarr; CIE XYZ &rarr; CIE L*a*b*</strong> piecewise mapping</span>
-                                </li>
-                                <li style="display: flex; gap: 14px; align-items: center; font-size: 15px;">
-                                    <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--ink-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</span>
-                                    <span><strong>Individual Typology Angle (ITA&deg;)</strong> clinical phototype classification</span>
-                                </li>
-                                <li style="display: flex; gap: 14px; align-items: center; font-size: 15px;">
-                                    <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--ink-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</span>
-                                    <span><strong>K-Means Clustering (k=3)</strong> dominant pigment isolation</span>
-                                </li>
-                            </ul>
-
-                            <div style="margin-top: 30px; padding: 14px 18px; background: rgba(255,255,255,0.7); border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--accent-gold);">
-                                Tested across 238 official Google MST-E benchmark images
+                        <!-- BLOCK 2: AFTER WHITE PAPER -->
+                        <div class="screenshot-box reveal" style="border-color: rgba(42, 122, 75, 0.5); background: #ffffff;">
+                            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(42, 122, 75, 0.1); color: var(--accent-emerald); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 12px;">
+                                ✦
                             </div>
+                            <h4 style="font-family: var(--font-display); font-size: 26px; color: var(--ink-primary); margin-bottom: 6px;">
+                                [ Paste Screenshot: After White Paper ]
+                            </h4>
+                            <p style="font-size: 14px; color: var(--ink-secondary); max-width: 380px; margin-bottom: 14px;">
+                                With white reference paper under chin. Room tint is neutralized, revealing the exact Monk tone.
+                            </p>
+                            <span class="badge-pill" style="background: rgba(42, 122, 75, 0.15); color: var(--accent-emerald); border: 1px solid rgba(42, 122, 75, 0.3);">
+                                ✦ Studio Calibrated · D65 Normalized
+                            </span>
                         </div>
+
                     </div>
 
                     <footer class="reveal" style="font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between;">
-                        <span>ALGORITHMIC FAIRNESS · MONK SKIN TONE SCALE 1–10</span>
-                        <span>CERTIFIED AGAINST CLINICAL CENTROIDS</span>
+                        <span>ONE-SHOT CHROMATIC ADAPTATION · ZERO HARDWARE COST</span>
+                        <span>OFFICIAL GOOGLE MONK SCALE (MST 1–10)</span>
                     </footer>
                 </div>
             </section>
 
             <!-- ==========================================
-                 SLIDE 4: THE STUDIO WHITE-CARD BREAKTHROUGH
+                 SLIDE 4: TONE AS A SAFETY CONSTRAINT (Skin Tone 2/3)
                  ========================================== -->
             <section class="slide" data-slide="3">
                 <div class="slide-inner">
                     <header class="reveal">
-                        <span class="eyebrow">✦ Patent-Grade Optical Innovation</span>
-                        <h2 class="display-title">Studio Calibration <em>Without Hardware</em></h2>
+                        <span class="eyebrow">✦ Melanin-Aware Safety Rules</span>
+                        <h2 class="display-title">Why Skin Tone Dictates <em>Product Safety</em></h2>
                     </header>
 
-                    <div class="grid-2col" style="margin-top: 20px;">
-                        <div class="luxury-card reveal" style="background: var(--ink-primary); color: #ffffff; padding: 48px 40px;">
-                            <span class="badge-pill" style="background: var(--accent-gold); color: #ffffff;">ONE-SHOT CHROMATIC ADAPTATION</span>
-                            <h3 style="font-family: var(--font-display); font-size: 38px; color: #fbf7f4; margin: 16px 0;">
-                                The White-Card Protocol
-                            </h3>
-                            <p style="color: #c9c1b9; font-size: 17px; line-height: 1.6; margin-bottom: 24px;">
-                                By having the user hold any standard white card, envelope, or paper beneath their chin, AAINA transforms a consumer smartphone into a lab-grade spectrophotometer.
-                            </p>
+                    <p class="subtitle reveal">
+                        In dermatological science, skin tone isn't just cosmetic—it is a critical safety constraint. Darker skin complexions have hyper-reactive melanocytes that require fundamentally different active ingredient rules.
+                    </p>
 
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 24px;">
-                                <div>
-                                    <div style="font-size: 12px; font-family: var(--font-mono); color: #d7bd96;">BEFORE (RAW SELFIE)</div>
-                                    <div style="font-size: 40px; font-family: var(--font-display); color: #ff8a8a; font-weight: 600;">33%</div>
-                                    <div style="font-size: 13px; color: #a9a19a;">Exact Tone Match</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 12px; font-family: var(--font-mono); color: #d7bd96;">WITH WHITE-CARD D65</div>
-                                    <div style="font-size: 40px; font-family: var(--font-display); color: #7cffb2; font-weight: 600;">96%+</div>
-                                    <div style="font-size: 13px; color: #a9a19a;">Studio Calibrated Precision</div>
-                                </div>
+                    <div class="grid-2col" style="margin-top: 24px;">
+                        <div class="luxury-card reveal" style="border-left: 5px solid var(--accent-terracotta);">
+                            <span class="eyebrow" style="color: var(--accent-terracotta);">SAFETY CONSTRAINT 01</span>
+                            <h3 class="card-title">Post-Inflammatory Hyperpigmentation (PIH)</h3>
+                            <p class="card-body">
+                                On melanocompetent skin (Monk 5–10), aggressive chemical peels or unbuffered high-strength acids trigger trauma in the basal melanocytes, causing long-lasting dark spots that take up to a year to fade.
+                            </p>
+                            <div style="margin-top: 24px; padding: 14px 18px; background: var(--bg-peach-light); border-radius: 12px; font-size: 14px;">
+                                <strong>AAINA Rule:</strong> Hard ceiling on unbuffered Glycolic Acid (&le;7%) and Salicylic Acid (&le;2%). Automatically favors gentle Niacinamide and Azelaic Acid.
                             </div>
                         </div>
 
-                        <div>
-                            <div class="luxury-card reveal" style="margin-bottom: 24px; border-left: 4px solid var(--accent-gold);">
-                                <h4 style="font-family: var(--font-display); font-size: 26px; color: var(--ink-primary); margin-bottom: 8px;">
-                                    von Kries Illuminant Normalization
-                                </h4>
-                                <p style="font-size: 15px; color: var(--ink-secondary); line-height: 1.55;">
-                                    The software samples the card’s reflected RGB, calculates per-channel gain ratios relative to standard D65 daylight, and mathematically wipes clean the yellow or fluorescent room tint.
-                                </p>
-                            </div>
-
-                            <div class="luxury-card reveal" style="margin-bottom: 24px; border-left: 4px solid var(--accent-terracotta);">
-                                <h4 style="font-family: var(--font-display); font-size: 26px; color: var(--ink-primary); margin-bottom: 8px;">
-                                    Zero Additional Hardware Cost
-                                </h4>
-                                <p style="font-size: 15px; color: var(--ink-secondary); line-height: 1.55;">
-                                    While Sephora requires a $1,500 X-Rite device in retail stores, AAINA delivers comparable chromatic constancy directly inside any mobile browser using household paper.
-                                </p>
-                            </div>
-
-                            <div class="luxury-card reveal" style="border-left: 4px solid var(--accent-emerald);">
-                                <h4 style="font-family: var(--font-display); font-size: 26px; color: var(--ink-primary); margin-bottom: 8px;">
-                                    Real-Time 5Hz Live Guidance HUD
-                                </h4>
-                                <p style="font-size: 15px; color: var(--ink-secondary); line-height: 1.55;">
-                                    Live reticle samples ambient illuminance and glint: instantly signaling <code>✦ Optimal lighting · Ready</code> vs. <code>○ Low light</code> before the shutter even clicks.
-                                </p>
+                        <div class="luxury-card reveal" style="border-left: 5px solid var(--accent-gold);">
+                            <span class="eyebrow" style="color: var(--accent-gold);">SAFETY CONSTRAINT 02</span>
+                            <h3 class="card-title">Sunscreen White-Cast Penalty</h3>
+                            <p class="card-body">
+                                Pure physical sunscreens (Zinc Oxide and Titanium Dioxide) scatter visible light. On deeper complexions, this leaves an unsightly purple-gray chalky film, causing users to skip daily sunscreen.
+                            </p>
+                            <div style="margin-top: 24px; padding: 14px 18px; background: var(--bg-peach-light); border-radius: 12px; font-size: 14px;">
+                                <strong>AAINA Rule:</strong> Automatically penalizes pure mineral zinc formulations on Monk 6–10 and recommends invisible hybrid or photostable chemical UV filters.
                             </div>
                         </div>
                     </div>
 
                     <footer class="reveal" style="font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between;">
-                        <span>SPECTRAL RECOVERY · CIE ILLUMINANT D65</span>
-                        <span>PROPRIETARY EDGE COMPUTATION</span>
+                        <span>FITZPATRICK PHOTOTYPES I TO VI</span>
+                        <span>CLINICAL DERMATOLOGICAL GUARDRAILS</span>
                     </footer>
                 </div>
             </section>
 
             <!-- ==========================================
-                 SLIDE 5: THE 3-STEP LUXURY PRESCRIPTION
+                 SLIDE 5: THE 3-STEP ROUTINE ENGINE (Core Product!)
                  ========================================== -->
             <section class="slide" data-slide="4">
                 <div class="slide-inner">
                     <header class="reveal">
-                        <span class="eyebrow">✦ The Product Experience</span>
-                        <h2 class="display-title">The Anti-Routine: <em>Three Gestures</em></h2>
+                        <span class="eyebrow">✦ The Core Engine</span>
+                        <h2 class="display-title">The Anti-Routine: <em>Three Steps, Exactly</em></h2>
                     </header>
 
-                    <p class="subtitle reveal" style="margin-top: 10px;">
-                        Consumers are burned out by predatory 10-step influencer regimens. AAINA enforces dermatological restraint: exactly three synergistic formulas calibrated to the user’s measured Monk tone.
+                    <p class="subtitle reveal">
+                        AAINA rejects bloated regimens in favor of the clinical gold standard: Cleanse, Treat, and Shield. Every product in the three-step routine is cross-checked to ensure zero molecular conflicts.
                     </p>
 
                     <div class="grid-3col">
                         <div class="luxury-card reveal" style="border-top: 6px solid var(--accent-gold);">
-                            <span class="eyebrow">GESTURE 01 · PURIFY</span>
+                            <span class="eyebrow">STEP 01 · GESTURE</span>
                             <h3 class="card-title">Barrier Cleanser</h3>
                             <p class="card-body">
-                                Low-surfactant, physiological pH (5.5) cleansers that dissolve debris without stripping stratum corneum intercellular lipids.
+                                Low-foam, amino-acid based cleansers with a skin-identical pH of 5.5. Cleans thoroughly without stripping essential skin lipids or disrupting natural microflora.
                             </p>
-                            <div style="margin-top: 30px; background: var(--bg-peach-light); padding: 12px 16px; border-radius: 10px; font-size: 13px; font-family: var(--font-mono);">
-                                Non-stripping · Amino Acid base
+                            <div style="margin-top: 24px; background: var(--bg-peach-light); padding: 12px 16px; border-radius: 10px; font-size: 13px; font-family: var(--font-mono);">
+                                Sulfate-Free · Non-Stripping
                             </div>
                         </div>
 
                         <div class="luxury-card reveal" style="border-top: 6px solid var(--accent-terracotta);">
-                            <span class="eyebrow">GESTURE 02 · REPAIR</span>
-                            <h3 class="card-title">Active Treatment</h3>
+                            <span class="eyebrow">STEP 02 · GESTURE</span>
+                            <h3 class="card-title">Targeted Treatment</h3>
                             <p class="card-body">
-                                Dose-controlled actives matched to Fitzpatrick phototype. Enforces hard safety ceilings: 5% Niacinamide &amp; Azelaic over burning peels for Monk 6–10.
+                                One hero active calibrated to the user's primary skin goal (acne, pigmentation, or barrier recovery). Dose-controlled and buffered to protect sensitive skin.
                             </p>
-                            <div style="margin-top: 30px; background: var(--bg-peach-light); padding: 12px 16px; border-radius: 10px; font-size: 13px; font-family: var(--font-mono);">
-                                PIH-Safe · Melanocyte Calibrated
+                            <div style="margin-top: 24px; background: var(--bg-peach-light); padding: 12px 16px; border-radius: 10px; font-size: 13px; font-family: var(--font-mono);">
+                                PIH-Safe · Buffered Actives
                             </div>
                         </div>
 
                         <div class="luxury-card reveal" style="border-top: 6px solid var(--accent-emerald);">
-                            <span class="eyebrow">GESTURE 03 · SHIELD</span>
-                            <h3 class="card-title">Invisible UV Photoprotect</h3>
+                            <span class="eyebrow">STEP 03 · GESTURE</span>
+                            <h3 class="card-title">Invisible Sun Protection</h3>
                             <p class="card-body">
-                                Dynamic formulation routing: transparent photostable chemical and hybrid UV filters selected specifically to eliminate the dreaded chalky white cast.
+                                High-photostability broad-spectrum UV protection with zero white cast. Formulated to stay comfortable in humid heat without causing pore congestion.
                             </p>
-                            <div style="margin-top: 30px; background: var(--bg-peach-light); padding: 12px 16px; border-radius: 10px; font-size: 13px; font-family: var(--font-mono);">
-                                Zero White-Cast · Broad Spectrum
+                            <div style="margin-top: 24px; background: var(--bg-peach-light); padding: 12px 16px; border-radius: 10px; font-size: 13px; font-family: var(--font-mono);">
+                                PA++++ · Zero White Cast
                             </div>
                         </div>
                     </div>
 
-                    <div class="reveal" style="background: #ffffff; border: 1px solid var(--line-card); border-radius: 16px; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; margin-top: 24px;">
-                        <span style="font-size: 15px; font-weight: 600; color: var(--ink-primary);">Plus: Exact Base Makeup Shade Mapping</span>
-                        <span style="font-size: 14px; color: var(--ink-secondary);">Instant match across MAC, Fenty, Estée Lauder, and L'Oréal foundations using measured CIE L*a*b* coordinates.</span>
-                    </div>
+                    <footer class="reveal" style="font-size: 14px; color: var(--ink-secondary); background: #ffffff; border: 1px solid var(--line-card); padding: 14px 22px; border-radius: 12px; display: flex; justify-content: space-between;">
+                        <span><strong>Plus Base Makeup:</strong> When users want coverage, AAINA matches exact foundation shades using measured skin coordinates.</span>
+                        <span style="font-weight: 600; color: var(--accent-gold);">No Redundant Steps</span>
+                    </footer>
                 </div>
             </section>
 
             <!-- ==========================================
-                 SLIDE 6: HYPER-LOCAL CLIMATE INTELLIGENCE
+                 SLIDE 6: INGREDIENT COLLISION & CONSTRAINTS (Core Product!)
                  ========================================== -->
             <section class="slide" data-slide="5">
                 <div class="slide-inner">
                     <header class="reveal">
-                        <span class="eyebrow">✦ Environmental Intelligence</span>
-                        <h2 class="display-title">Real-Time <em>Micro-Climate</em> Sync</h2>
+                        <span class="eyebrow">✦ Algorithmic Safety</span>
+                        <h2 class="display-title">The Ingredient <em>Collision Blocker</em></h2>
                     </header>
 
-                    <div class="grid-2col" style="margin-top: 20px;">
-                        <div>
-                            <p class="subtitle reveal" style="margin-top: 0; font-size: 24px; line-height: 1.45;">
-                                Skincare does not exist in a vacuum. A formula that soothes skin in temperate Bengaluru can cause severe breakouts in humid Mumbai or trans-epidermal dehydration in winter Delhi.
+                    <p class="subtitle reveal">
+                        Skincare ingredients have strict chemical rules regarding pH, molecular penetration, and reactivity. AAINA’s engine enforces hard safety checks before any product is recommended.
+                    </p>
+
+                    <div class="grid-3col">
+                        <div class="luxury-card reveal">
+                            <span class="eyebrow" style="color: var(--accent-terracotta);">CONSTRAINT CHECK 01</span>
+                            <h3 class="card-title">Active Clash Blocker</h3>
+                            <p class="card-body">
+                                Automatically prevents dangerous simultaneous pairings, such as Retinoids + direct chemical acids, or low-pH pure Vitamin C with peptide complexes.
                             </p>
-
-                            <div class="reveal" style="display: flex; flex-direction: column; gap: 16px; margin-top: 32px;">
-                                <div style="background: #ffffff; padding: 20px 24px; border-radius: 14px; border-left: 4px solid #3b82f6; display: flex; justify-content: space-between; align-items: center;">
-                                    <div>
-                                        <b style="font-size: 16px; color: var(--ink-primary);">Mumbai (Coastal Warmth · 84% Humidity)</b>
-                                        <p style="font-size: 13px; color: var(--ink-secondary); margin-top: 4px;">Lightweight ceramide water-gel to prevent pore occlusion while maintaining barrier hydration.</p>
-                                    </div>
-                                    <span class="arch-pill" style="font-size: 11px;">AUTO-TUNED</span>
-                                </div>
-
-                                <div style="background: #ffffff; padding: 20px 24px; border-radius: 14px; border-left: 4px solid #f59e0b; display: flex; justify-content: space-between; align-items: center;">
-                                    <div>
-                                        <b style="font-size: 16px; color: var(--ink-primary);">Delhi (Winter Aridity · AQI 280 Pollution)</b>
-                                        <p style="font-size: 13px; color: var(--ink-secondary); margin-top: 4px;">Lipid barrier replenishing cream fortified with antioxidant shields to combat PM<sub>2.5</sub> oxidation.</p>
-                                    </div>
-                                    <span class="arch-pill" style="font-size: 11px;">AUTO-TUNED</span>
-                                </div>
+                            <div style="margin-top: 24px; font-size: 13px; color: var(--ink-secondary);">
+                                <strong>Safety Rule:</strong> Separates conflicting actives into morning vs. evening protocols.
                             </div>
                         </div>
 
-                        <!-- Climate Telemetry Card -->
-                        <div class="luxury-card accent-peach reveal" style="padding: 40px;">
-                            <span class="eyebrow" style="color: var(--accent-terracotta);">DYNAMIC BIO-ATMOSPHERIC LAYER</span>
-                            <h3 style="font-family: var(--font-display); font-size: 34px; margin: 12px 0 20px;">Live Sensor Ingestion</h3>
+                        <div class="luxury-card reveal">
+                            <span class="eyebrow" style="color: var(--accent-gold);">CONSTRAINT CHECK 02</span>
+                            <h3 class="card-title">Pore Clog &amp; Irritant Filter</h3>
+                            <p class="card-body">
+                                Checks every product against known comedogenic indices and common fragrance allergens, ensuring oily and acne-prone users never receive pore-clogging heavy oils.
+                            </p>
+                            <div style="margin-top: 24px; font-size: 13px; color: var(--ink-secondary);">
+                                <strong>Safety Rule:</strong> Non-comedogenic screening on all moisturizers and sunscreens.
+                            </div>
+                        </div>
 
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                                <div style="background: rgba(255,255,255,0.7); padding: 18px; border-radius: 12px;">
-                                    <div style="font-size: 12px; font-family: var(--font-mono); color: var(--accent-gold);">UV INDEX TELEMETRY</div>
-                                    <div style="font-size: 32px; font-family: var(--font-display); font-weight: 600; margin: 4px 0;">0 to 12+</div>
-                                    <div style="font-size: 12px; color: var(--ink-secondary);">Controls SPF photostability rating</div>
-                                </div>
-                                <div style="background: rgba(255,255,255,0.7); padding: 18px; border-radius: 12px;">
-                                    <div style="font-size: 12px; font-family: var(--font-mono); color: var(--accent-gold);">RELATIVE HUMIDITY</div>
-                                    <div style="font-size: 32px; font-family: var(--font-display); font-weight: 600; margin: 4px 0;">15% to 95%</div>
-                                    <div style="font-size: 12px; color: var(--ink-secondary);">Modulates emollient vs. humectant ratio</div>
-                                </div>
-                                <div style="background: rgba(255,255,255,0.7); padding: 18px; border-radius: 12px;">
-                                    <div style="font-size: 12px; font-family: var(--font-mono); color: var(--accent-gold);">AIR QUALITY INDEX</div>
-                                    <div style="font-size: 32px; font-family: var(--font-display); font-weight: 600; margin: 4px 0;">PM 2.5</div>
-                                    <div style="font-size: 12px; color: var(--ink-secondary);">Enforces free-radical scavenger triggers</div>
-                                </div>
-                                <div style="background: rgba(255,255,255,0.7); padding: 18px; border-radius: 12px;">
-                                    <div style="font-size: 12px; font-family: var(--font-mono); color: var(--accent-gold);">WATER HARDNESS</div>
-                                    <div style="font-size: 32px; font-family: var(--font-display); font-weight: 600; margin: 4px 0;">CaCO3</div>
-                                    <div style="font-size: 12px; color: var(--ink-secondary);">Surfactant chelating agent selection</div>
-                                </div>
+                        <div class="luxury-card reveal">
+                            <span class="eyebrow" style="color: var(--accent-emerald);">CONSTRAINT CHECK 03</span>
+                            <h3 class="card-title">Budget &amp; Accessibility</h3>
+                            <p class="card-body">
+                                Respects user budget constraints while prioritizing widely available Indian pharmacy and dermatological staples (Minimalist, Derma Co, Cetaphil, Bioderma).
+                            </p>
+                            <div style="margin-top: 24px; font-size: 13px; color: var(--ink-secondary);">
+                                <strong>Safety Rule:</strong> Effective evidence-based science without luxury price gouging.
                             </div>
                         </div>
                     </div>
 
                     <footer class="reveal" style="font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between;">
-                        <span>HYPER-LOCAL REASONING · REAL-TIME WEATHER API INTEGRATION</span>
-                        <span>CLIMATE RESILIENT FORMULATIONS</span>
+                        <span>INCI INGREDIENT GRAPH ANALYSIS</span>
+                        <span>PH-AWARE MEDICAL REASONING</span>
                     </footer>
                 </div>
             </section>
 
             <!-- ==========================================
-                 SLIDE 7: BUSINESS MODEL & TRACTION
+                 SLIDE 7: CLIMATE & ENVIRONMENTAL ADAPTATION
                  ========================================== -->
             <section class="slide" data-slide="6">
                 <div class="slide-inner">
                     <header class="reveal">
-                        <span class="eyebrow">✦ Commercial Defensibility</span>
-                        <h2 class="display-title">Market Opportunity &amp; <em>Unit Economics</em></h2>
+                        <span class="eyebrow">✦ Context-Aware Personalization</span>
+                        <h2 class="display-title">Real-Time <em>Climate &amp; City</em> Tuning</h2>
                     </header>
 
-                    <div class="grid-4col">
-                        <div class="luxury-card reveal">
-                            <span class="stat-huge">$18<sup>B</sup></span>
-                            <span class="stat-label">India BPC Market 2028</span>
-                            <p class="card-body" style="margin-top: 12px;">
-                                Fastest growing premium beauty sector globally, expanding at 18.2% CAGR.
-                            </p>
-                        </div>
+                    <p class="subtitle reveal">
+                        Your skin behaves differently in humid Mumbai than in dry winter Delhi. AAINA adapts product textures and UV filters based on real-time climate telemetry.
+                    </p>
 
-                        <div class="luxury-card reveal">
-                            <span class="stat-huge">&lt;6<sup>%</sup></span>
-                            <span class="stat-label">Projected Return Rate</span>
-                            <p class="card-body" style="margin-top: 12px;">
-                                Plummeting from the industry standard 42% via optical studio calibration.
-                            </p>
-                        </div>
-
-                        <div class="luxury-card reveal">
-                            <span class="stat-huge">3.8<sup>x</sup></span>
-                            <span class="stat-label">Customer LTV Lift</span>
-                            <p class="card-body" style="margin-top: 12px;">
-                                Driven by higher subscription retention when formulations avoid PIH irritation.
-                            </p>
-                        </div>
-
-                        <div class="luxury-card reveal accent-peach">
-                            <span class="stat-huge">100<sup>%</sup></span>
-                            <span class="stat-label">Privacy Compliant</span>
-                            <p class="card-body" style="margin-top: 12px;">
-                                Ephemeral zero-biometric storage compliant with India DPDP Act 2023 &amp; GDPR.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="reveal" style="background: #ffffff; border-radius: 18px; border: 1px solid var(--line-card); padding: 28px 36px; margin-top: 32px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px;">
+                    <div class="grid-2col" style="margin-top: 20px;">
                         <div>
-                            <div style="font-family: var(--font-display); font-size: 24px; color: var(--ink-primary); font-weight: 600;">D2C Premium Routine</div>
-                            <p style="font-size: 14px; color: var(--ink-secondary); margin-top: 6px;">3-step curated subscription with recurring seasonal climate auto-replenishment.</p>
+                            <div class="luxury-card reveal" style="margin-bottom: 20px; border-left: 4px solid #3b82f6;">
+                                <h4 style="font-family: var(--font-display); font-size: 24px; color: var(--ink-primary); margin-bottom: 6px;">
+                                    High Humidity (Coastal Cities: Mumbai, Chennai)
+                                </h4>
+                                <p style="font-size: 14px; color: var(--ink-secondary); line-height: 1.5;">
+                                    Sweat and sebum mix in high humidity. AAINA automatically switches heavy creams to lightweight, non-sticky water-gels and oil-free sunscreen fluids.
+                                </p>
+                            </div>
+
+                            <div class="luxury-card reveal" style="margin-bottom: 20px; border-left: 4px solid #f59e0b;">
+                                <h4 style="font-family: var(--font-display); font-size: 24px; color: var(--ink-primary); margin-bottom: 6px;">
+                                    Dry Aridity &amp; Winter (Delhi, North India)
+                                </h4>
+                                <p style="font-size: 14px; color: var(--ink-secondary); line-height: 1.5;">
+                                    Cold, dry winds cause trans-epidermal water loss. The engine upgrades the moisturizer to a ceramide-rich barrier cream to lock in moisture.
+                                </p>
+                            </div>
+
+                            <div class="luxury-card reveal" style="border-left: 4px solid #ef4444;">
+                                <h4 style="font-family: var(--font-display); font-size: 24px; color: var(--ink-primary); margin-bottom: 6px;">
+                                    High Pollution &amp; UV Index Spikes
+                                </h4>
+                                <p style="font-size: 14px; color: var(--ink-secondary); line-height: 1.5;">
+                                    When UV index or PM<sub>2.5</sub> pollution spikes, the routine enforces photostable PA++++ filters and antioxidant barrier support.
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <div style="font-family: var(--font-display); font-size: 24px; color: var(--ink-primary); font-weight: 600;">Enterprise SaaS API</div>
-                            <p style="font-size: 14px; color: var(--ink-secondary); margin-top: 6px;">Licensing the Monk Skin Tone &amp; Studio White-Card API to global beauty e-commerce giants.</p>
-                        </div>
-                        <div>
-                            <div style="font-family: var(--font-display); font-size: 24px; color: var(--ink-primary); font-weight: 600;">Brand Affiliate Commerce</div>
-                            <p style="font-size: 14px; color: var(--ink-secondary); margin-top: 6px;">Seamless base makeup shade referrals to Sephora, Nykaa, and brand flagships.</p>
+
+                        <!-- Atmospheric Engine Display -->
+                        <div class="luxury-card accent-peach reveal" style="padding: 40px; text-align: center;">
+                            <span class="eyebrow" style="color: var(--accent-terracotta);">LIVE TELEMETRY INGESTION</span>
+                            <h3 style="font-family: var(--font-display); font-size: 34px; margin: 12px 0 24px;">Dynamic Adaptation</h3>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 14px;">
+                                <div style="background: rgba(255,255,255,0.85); padding: 14px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 600;">UV Index Tracking</span>
+                                    <span style="font-family: var(--font-mono); color: var(--accent-gold); font-size: 13px;">Scales SPF Protection</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.85); padding: 14px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 600;">Relative Humidity</span>
+                                    <span style="font-family: var(--font-mono); color: var(--accent-gold); font-size: 13px;">Modulates Texture Weight</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.85); padding: 14px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 600;">Pollution Index (PM 2.5)</span>
+                                    <span style="font-family: var(--font-mono); color: var(--accent-gold); font-size: 13px;">Antioxidant Fortification</span>
+                                </div>
+                            </div>
+
+                            <p style="font-size: 13px; color: var(--ink-secondary); margin-top: 24px;">
+                                Integrates live city weather so recommendations stay accurate year-round.
+                            </p>
                         </div>
                     </div>
 
                     <footer class="reveal" style="font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between;">
-                        <span>DISRUPTIVE ECONOMICS · LOW CAC VIA CLINICAL REASONING</span>
-                        <span>HIGH RETENTION COSMETIC AI</span>
+                        <span>ENVIRONMENTAL DERMATOLOGY</span>
+                        <span>WEATHER-AWARE FORMULATION SELECTION</span>
                     </footer>
                 </div>
             </section>
 
             <!-- ==========================================
-                 SLIDE 8: THE ASK & CLOSING (Call to Action)
+                 SLIDE 8: BUSINESS MODEL & MARKET OPPORTUNITY
                  ========================================== -->
             <section class="slide" data-slide="7">
                 <div class="slide-inner">
                     <header class="reveal" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span class="eyebrow">✦ Join The Revolution</span>
-                        <span class="arch-pill">SEED ROUND OPEN</span>
+                        <span class="eyebrow">✦ Market Opportunity &amp; Vision</span>
+                        <span class="arch-pill">INVESTMENT HIGHLIGHTS</span>
                     </header>
 
-                    <div style="margin: auto 0; text-align: center; max-width: 960px; margin-left: auto; margin-right: auto;">
-                        <div class="reveal">
-                            <span class="badge-pill" style="font-size: 13px; padding: 6px 18px;">THE FUTURE OF BEAUTY TECH</span>
-                        </div>
-                        <h2 class="display-title reveal" style="font-size: 96px; margin: 20px 0;">
-                            Defining the Next Century of <em>Intelligent Skincare</em>
-                        </h2>
-                        <p class="subtitle reveal" style="margin: 0 auto 40px; font-size: 24px; max-width: 780px;">
-                            AAINA is replacing guesswork with clinical computer vision and quiet luxury. We invite visionary partners to scale the world’s most accurate complexion intelligence platform.
-                        </p>
+                    <div class="grid-2col" style="margin: auto 0;">
+                        <div>
+                            <h2 class="display-title reveal" style="font-size: 68px;">
+                                The Market for <em>Guaranteed Skincare</em>
+                            </h2>
+                            <p class="subtitle reveal" style="font-size: 19px; line-height: 1.55;">
+                                India's beauty and personal care market is projected to reach <strong>$30 Billion by 2030</strong> (Bain &amp; Co. / Nykaa 2024 Report). AAINA sits at the intersection of medical dermatology and digital commerce.
+                            </p>
 
-                        <div class="reveal" style="display: inline-flex; gap: 24px; align-items: center;">
-                            <div class="arch-frame" style="width: 260px; height: 140px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--bg-card); box-shadow: var(--shadow-luxury);">
-                                <span style="font-family: var(--font-display); font-size: 42px; font-weight: 600; color: var(--ink-primary);">$1.5M</span>
-                                <span style="font-size: 12px; font-weight: 600; color: var(--accent-gold); letter-spacing: 0.1em;">SEED CAPITAL ASK</span>
+                            <div class="reveal" style="margin-top: 28px; display: flex; flex-direction: column; gap: 14px;">
+                                <div style="display: flex; gap: 12px; align-items: center; font-size: 15px;">
+                                    <span style="color: var(--accent-gold); font-size: 18px;">✦</span>
+                                    <span><strong>High-Retention Subscription:</strong> Recurring seasonal routine auto-replenishment.</span>
+                                </div>
+                                <div style="display: flex; gap: 12px; align-items: center; font-size: 15px;">
+                                    <span style="color: var(--accent-gold); font-size: 18px;">✦</span>
+                                    <span><strong>Affiliate Commerce:</strong> Direct shade-matched checkout via Nykaa and brand flagships.</span>
+                                </div>
+                                <div style="display: flex; gap: 12px; align-items: center; font-size: 15px;">
+                                    <span style="color: var(--accent-gold); font-size: 18px;">✦</span>
+                                    <span><strong>Enterprise Licensing:</strong> White-labeling the Monk Skin Tone API to beauty retail giants.</span>
+                                </div>
                             </div>
-                            <div class="arch-frame" style="width: 260px; height: 140px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--bg-card); box-shadow: var(--shadow-luxury);">
-                                <span style="font-family: var(--font-display); font-size: 42px; font-weight: 600; color: var(--ink-primary);">18 Months</span>
-                                <span style="font-size: 12px; font-weight: 600; color: var(--accent-gold); letter-spacing: 0.1em;">TO SERIES A ROADMAP</span>
+                        </div>
+
+                        <!-- Key Takeaway Box -->
+                        <div class="luxury-card accent-peach reveal" style="padding: 40px; display: flex; flex-direction: column; justify-content: space-between;">
+                            <div>
+                                <span class="badge-pill" style="background: var(--ink-primary); color: #fff;">THE AAINA MOAT</span>
+                                <h3 style="font-family: var(--font-display); font-size: 32px; color: var(--ink-primary); margin: 12px 0 16px;">
+                                    Dermatological Safety First
+                                </h3>
+                                <p style="font-size: 15px; color: var(--ink-secondary); line-height: 1.6;">
+                                    Unlike influencer apps that recommend whatever has the highest sponsor commission, AAINA is strictly constraint-bound: we never recommend a routine that conflicts with skin barrier health or active safety.
+                                </p>
                             </div>
-                            <div class="arch-frame" style="width: 260px; height: 140px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--bg-card); box-shadow: var(--shadow-luxury);">
-                                <span style="font-family: var(--font-display); font-size: 42px; font-weight: 600; color: var(--accent-primary);">100K+</span>
-                                <span style="font-size: 12px; font-weight: 600; color: var(--accent-gold); letter-spacing: 0.1em;">DIAGNOSTIC TARGET</span>
+
+                            <div style="background: rgba(255,255,255,0.7); border-radius: 14px; padding: 18px; margin-top: 24px; text-align: center;">
+                                <div style="font-family: var(--font-display); font-size: 28px; font-weight: 600; color: var(--accent-gold);">Zero Biometric Storage</div>
+                                <p style="font-size: 13px; color: var(--ink-secondary); margin-top: 4px;">100% Ephemeral · Fully Compliant with India's DPDP Act 2023</p>
                             </div>
                         </div>
                     </div>
 
-                    <footer class="reveal" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line-subtle); padding-top: 20px;">
+                    <footer class="reveal" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line-subtle); padding-top: 16px;">
                         <div>
-                            <b style="font-family: var(--font-display); font-size: 22px; color: var(--ink-primary);">AAINA Intelligent Skincare</b>
-                            <p style="font-size: 13px; color: var(--ink-muted); margin-top: 2px;">founder@aaina.ai · www.aaina.ai</p>
+                            <b style="font-family: var(--font-display); font-size: 20px; color: var(--ink-primary);">AAINA Intelligent Skincare</b>
+                            <span style="font-size: 13px; color: var(--ink-muted); margin-left: 12px;">founder@aaina.ai · www.aaina.ai</span>
                         </div>
                         <div class="arch-pill" style="background: var(--ink-primary); color: #fff;">
-                            Request Investor Data Room &rarr;
+                            Request Investor Deck &rarr;
                         </div>
                     </footer>
                 </div>
@@ -985,16 +910,13 @@
             }
 
             initNavigation() {
-                // Button clicks
                 this.prevBtn.addEventListener('click', () => this.prev());
                 this.nextBtn.addEventListener('click', () => this.next());
                 
-                // Dot clicks
                 this.dots.forEach((dot, idx) => {
                     dot.addEventListener('click', () => this.showSlide(idx));
                 });
 
-                // Keyboard controls
                 window.addEventListener('keydown', (e) => {
                     if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
                         e.preventDefault();
@@ -1013,10 +935,8 @@
                     }
                 });
 
-                // Fullscreen button
                 this.fsBtn.addEventListener('click', () => this.toggleFullscreen());
 
-                // Touch / Swipe
                 let touchStartX = 0;
                 window.addEventListener('touchstart', (e) => {
                     touchStartX = e.changedTouches[0].clientX;
@@ -1040,12 +960,10 @@
                     slide.classList.toggle('visible', isActive);
                 });
 
-                // Update counter
                 const num = String(this.currentIndex + 1).padStart(2, '0');
                 const total = String(this.slides.length).padStart(2, '0');
                 this.counter.textContent = `${num} / ${total}`;
 
-                // Update dots
                 this.dots.forEach((dot, i) => {
                     dot.classList.toggle('active', i === this.currentIndex);
                 });
@@ -1072,7 +990,6 @@
             }
         }
 
-        // Initialize presentation
         window.addEventListener('DOMContentLoaded', () => {
             new SlidePresentation();
         });
