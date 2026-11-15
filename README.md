@@ -55,7 +55,7 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
 - **Honest empty steps:** if nothing in the range is safe for a step, the card says how many products were checked, the top reasons they were ruled out, and what to do next, including a one-tap button to raise the budget when that would unlock safe options.
 - **The plan:** three products that work together, a total price, two clearly labelled sponsored suggestions with relevance reasons, and a detailed "Why I recommended these" section.
 - **Quick experience feedback:** at the end of the plan, a short, sweet 1-tap rating (Loved it, Helpful, Good, Just okay, Needs work) with contextual tags and an optional note lets users share how the advisor worked for them, saved to their session and account.
-- **Virtual try-on (`#try-on`):** see shades on a face before buying. Start from the **live camera** (front camera, mirrored, with a consent screen first and a **Stop camera** button), an **uploaded photo**, or one of four **illustrated model faces** (Monk tones 2, 5, 7 and 9).
+- **Virtual try-on (`#try-on`):** see shades on a face before buying. Start from the **live camera** (front camera, mirrored, with a consent screen first and a **Stop camera** button), an **uploaded photo**, or one of six **model faces** (fair to very deep, about Monk 3 to 9; the one closest to your tone is marked).
   - **Real complexion data:** every Foundation, BB / CC cream, Concealer and Compact powder shade in the catalogue (597 shades) is tried on in its own colour. Coverage sets opacity (sheer < medium < full) and the product finish sets sheen (matte, natural, dewy). Base products cover the face but not the eyes, brows, lips or nostrils; concealer goes under the eyes and on the centre of the face.
   - **Lips, cheeks and eyes use demo colours:** the catalogue has no colours for Lipstick, Blush or Kajal / eyeliner, so `data/demo_colours.json` holds 4–8 generated shades per product (`tools/tryon/make_demo_colours.py`, deterministic). Every one is marked `"demo": true` and labelled **Demo colour, not real product data** on screen. They never go into the catalogue, `seed.sql` or the database.
   - **Looks like makeup, not paint:** the shade replaces the skin's low-frequency colour in OKLab and the photo's own texture and shading are put back. A shade that is too light for deep skin looks grey and ashy, as it would in real life ([examples](docs/tryon_screens.png)).
@@ -105,15 +105,16 @@ aaina-skin-advisor/
 │   ├── catalogue.json  # 806-product demo catalogue (bundled; also the database seed)
 │   ├── supabase.json   # database URL + public anon key (empty = offline mode)
 │   ├── demo_colours.json   # DEMO lipstick/blush/kajal colours for the try-on (not real product data)
-│   ├── tryon_models.json   # illustrated model faces: tone, undertone and 478 face landmarks each
-│   └── tryon_models/       # the model face images
+│   ├── model_faces.json    # six try-on model faces: label, base hex, Monk tone, undertone, image
+│   ├── model_faces_landmarks.json   # their 478 face landmarks each
+│   └── model_faces/        # the model face images
 ├── supabase/
 │   ├── migrations/     # schema, row-level security, erasure function, report views
 │   ├── seed.sql        # generated catalogue upsert (tools/seed_catalogue.py)
 │   └── tests/          # RLS tests + end-to-end browser test against a mocked API
 └── tools/
     ├── seed_catalogue.py
-    └── tryon/          # make_models.py (model faces), make_demo_colours.py, MediaPipe canonical mesh + licence
+    └── tryon/          # make_faces.py (model faces), make_demo_colours.py, MediaPipe canonical mesh + licence
 ```
 
 ## Run locally
@@ -202,7 +203,7 @@ The selfie consent screen tells users their photo is stored for **18 months**. T
 
 **Virtual try-on:** camera frames and uploaded photos are processed in the browser and never uploaded or stored. Snapshots are saved only as a download on the user's device. The face tracker's code and model file are downloaded from public CDNs (jsDelivr and Google's model storage); no image goes with those requests.
 
-**Model faces:** the four try-on models are illustrations rendered by `tools/tryon/make_models.py` from MediaPipe's canonical face mesh (Apache-2.0, `tools/tryon/MEDIAPIPE_LICENSE`). They are not photographs of real people, so no model release is needed.
+**Model faces:** the six try-on models are computer-rendered by `tools/tryon/make_faces.py` from MediaPipe's canonical face mesh (Apache-2.0, `tools/tryon/MEDIAPIPE_LICENSE`), with skin mid-tones sampled from real skin (#e6d0cd fair, #f3c6a8 light, #d39b78 medium, #ab6f51 tan, #91604b deep, #483026 very deep). They are not photographs and are not based on any real person, so no model release is needed.
 
 ## Disclaimer
 

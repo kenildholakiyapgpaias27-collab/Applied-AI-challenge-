@@ -1,0 +1,57 @@
+{
+ "source": "Rendered by tools/tryon/make_faces.py from MediaPipe's canonical face mesh (Apache-2.0). No photographs of real people; no face is based on a real person.",
+ "size": [
+  640,
+  800
+ ],
+ "faces": [
+  {
+   "id": "fair-cool",
+   "label": "Fair · cool",
+   "hex": "#e6d0cd",
+   "monk": 3,
+   "undertone": "cool",
+   "file": "data/model_faces/fair-cool.jpg"
+  },
+  {
+   "id": "light-warm",
+   "label": "Light · warm",
+   "hex": "#f3c6a8",
+   "monk": 4,
+   "undertone": "warm",
+   "file": "data/model_faces/light-warm.jpg"
+  },
+  {
+   "id": "medium-olive",
+   "label": "Medium · olive",
+   "hex": "#d39b78",
+   "monk": 5,
+   "undertone": "olive",
+   "file": "data/model_faces/medium-olive.jpg"
+  },
+  {
+   "id": "tan-warm",
+   "label": "Tan · warm",
+   "hex": "#ab6f51",
+   "monk": 6,
+   "undertone": "warm",
+   "file": "data/model_faces/tan-warm.jpg"
+  },
+  {
+   "id": "deep-warm",
+   "label": "Deep · warm",
+   "hex": "#91604b",
+   "monk": 7,
+   "undertone": "warm",
+   "file": "data/model_faces/deep-warm.jpg"
+  },
+  {
+   "id": "very-deep",
+   "label": "Very deep · neutral",
+   "hex": "#483026",
+   "monk": 9,
+   "undertone": "neutral",
+   "file": "data/model_faces/very-deep.jpg"
+  }
+ ]
+}

@@ -981,11 +981,15 @@ html.to-lock,html.to-lock body{overflow:hidden}
 .to-way-models{cursor:default}.to-way-models:hover{transform:none}
 .to-wayic{width:42px;height:42px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin-bottom:8px}
 .to-way b{font-size:16px}.to-way small{color:var(--muted);font-size:13px;line-height:1.4}
-.to-models{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
-.to-model{padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--sunken);cursor:pointer;text-align:left}
-.to-model:hover{border-color:var(--accent);transform:translateY(-2px)}
-.to-model img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover}
-.to-model span{display:block;padding:6px 8px;font-size:12px;font-weight:600}.to-model small{display:block;color:var(--muted);font-weight:400}
+.to-models{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 8px;margin-top:12px}
+.to-model{padding:0;border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;color:inherit;position:relative}
+.to-mimg{position:relative;display:block;width:100%;max-width:92px;aspect-ratio:1;border-radius:50%;overflow:hidden;background:var(--sunken);box-shadow:0 0 0 1px var(--line);transition:box-shadow .16s ease,transform .16s ease}
+.to-mimg img{position:absolute;width:167%;left:-33.5%;top:-41%;max-width:none}
+.to-model:hover .to-mimg{box-shadow:0 0 0 2px var(--accent);transform:translateY(-2px)}
+.to-mlab{font-size:12px;font-weight:600;line-height:1.25}
+.to-mclose{display:none;font:600 10px/1 var(--body);letter-spacing:.04em;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 7px}
+.to-model.closest .to-mimg{box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--accent)}
+.to-model.closest .to-mclose{display:inline-block}
 .to-consentnote{display:flex;gap:8px;align-items:flex-start;margin:18px 0 4px;color:var(--text-body);font-size:13.5px;line-height:1.45}
 .to-consentnote svg{flex:none;color:var(--accent);margin-top:1px}
 .to-tip{font-size:13px;color:var(--muted);margin:0 0 0 26px}
