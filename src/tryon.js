@@ -100,9 +100,10 @@ const TRYON=(()=>{
 
   /* ---------- state ---------- */
   const S={open:false,src:null,mode:null,model:null,stream:null,video:null,img:null,lm:null,lmS:null,tab:"face",cat:"Foundation",pid:null,
-    look:{},compare:false,cmp:[],split:0,skinMean:[0.3,0.2,0.15],lipMean:[0.2,0.08,0.07],raf:0,lastDetect:0,detMs:[],noFaceSince:0,
-    tracker:null,trackerP:null,fallback:null,snaps:[],gl:null,pushedHash:false,frameW:0,frameH:0,maskDirty:true};
-  let root,stage,cv,maskA,maskB,detCv;
+    look:{},compare:false,cmp:[],split:0.5,skinMean:[0.3,0.2,0.15],lipMean:[0.2,0.08,0.07],raf:0,lastDetect:0,detMs:[],noFaceSince:0,
+    tracker:null,trackerP:null,fallback:null,snaps:[],gl:null,pushedHash:false,frameW:0,frameH:0,maskDirty:true,hover:null,sheetUp:false,added:new Set()};
+  let root,stage,fit,cv,maskA,maskB,detCv;
+  const mobile=()=>window.matchMedia("(max-width:767px)").matches;
 
   /* ---------- catalogue ---------- */
   const products=cat=>{const list=(typeof CAT!=="undefined"?CAT:[]).filter(p=>p.c===cat&&(SLOT[cat]&&(p.s&&p.s.length||DEMO[p.id])));
@@ -117,127 +118,171 @@ const TRYON=(()=>{
   function matchFor(p){
     if(!(p.s&&p.s.length)||typeof bestShade!=="function")return null;
     const tone=(typeof P!=="undefined"&&P.tone)||null;
-    if(tone){const m=bestShade(p,tone,P.undertone||"neutral");return m?{name:m.name,good:m.good,label:m.good?"Your match":"Closest to you"}:null}
-    if(S.model){const m=bestShade(p,S.model.tone,S.model.undertone);return m?{name:m.name,good:m.good,label:"Matches this model"}:null}
+    if(tone){const m=bestShade(p,tone,P.undertone||"neutral");return m?{name:m.name,good:m.good,label:m.good?"Your match":"Closest to you",you:true}:null}
+    if(S.model){const m=bestShade(p,S.model.tone,S.model.undertone);return m?{name:m.name,good:m.good,label:"Matches this model",you:false}:null}
     return null}
-  const inPlan=id=>typeof PL!=="undefined"&&PL&&(PL.extras||[]).some(x=>x.p.id===id)||(typeof PL!=="undefined"&&PL&&PL.slots.some(s=>s.p&&s.p.id===id));
+  const hasPlan=()=>typeof PL!=="undefined"&&!!PL;
+  const inPlan=id=>hasPlan()&&((PL.extras||[]).some(x=>x.p.id===id)||PL.slots.some(s=>s.p&&s.p.id===id));
+  const shadeInfo=s=>[s.name,s.depth?`Tone ${s.depth}`:"",s.und?`${s.und} undertone`:"",s.cov?`${s.cov} coverage`:"",s.demo?`${s.fin} · demo colour`:""].filter(Boolean).join(" · ");
+
+  /* ---------- icons (simple line drawings) ---------- */
+  const ic=d=>`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const ICON={
+    camera:ic('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),
+    upload:ic('<path d="M12 15V4m0 0L8 8m4-4 4 4"/><path d="M5 14v5h14v-5"/>'),
+    face:ic('<circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M9 15c1.7 1.3 4.3 1.3 6 0"/>'),
+    swap:ic('<path d="M4 8h14l-3-3M20 16H6l3 3"/>'),
+    grid:ic('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'),
+    snap:ic('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),
+    reset:ic('<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4 4.5v4h4"/>'),
+    lock:ic('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>')};
 
   /* ---------- DOM ---------- */
   function build(){
     root=document.createElement("section");root.id="tryon";root.className="tryon";root.hidden=true;
     root.setAttribute("role","dialog");root.setAttribute("aria-modal","true");root.setAttribute("aria-label","Virtual try-on");
-    root.innerHTML=`<div class="to-bar"><div><span class="eyebrow">Aaina</span><h2>Try it on</h2></div><button type="button" class="to-x" data-to="close" aria-label="Close try-on">✕</button></div>
-      <div class="to-body">
+    root.innerHTML=`<header class="to-bar"><div><span class="eyebrow">Aaina</span><h2>Try it on</h2></div><button type="button" class="to-x" data-to="close" aria-label="Close try-on">✕</button></header>
+      <div class="to-main">
         <div class="to-left">
-          <div class="to-start" data-pane="start">
-            <p class="to-lead">See shades on a face before you buy. Pick how you'd like to try.</p>
+          <section class="to-start" data-pane="start">
+            <h3 class="to-h">How would you like to try?</h3>
             <div class="to-ways">
-              <button type="button" class="to-way" data-to="consent"><b>Live camera</b><small>Mirror view, follows your face</small></button>
-              <label class="to-way"><b>Upload a photo</b><small>A clear, front-facing photo works best</small><input type="file" accept="image/*" data-to="file" hidden></label>
+              <button type="button" class="to-way" data-to="consent"><span class="to-wayic">${ICON.camera}</span><b>Use my camera</b><small>A live mirror that follows your face</small></button>
+              <label class="to-way" tabindex="0"><span class="to-wayic">${ICON.upload}</span><b>Upload a photo</b><small>A clear, front-facing photo works best</small><input type="file" accept="image/*" data-to="file" hidden></label>
+              <div class="to-way to-way-models"><span class="to-wayic">${ICON.face}</span><b>Try on a model</b><small>Illustrated faces, light to deep</small>
+                <div class="to-models">${MODELS.map((m,i)=>`<button type="button" class="to-model" data-to="model" data-i="${i}" aria-label="Model ${e(m.name)}, skin tone ${m.tone}"><img src="${m.src}" alt=""><span>${e(m.name)} <small>Tone ${m.tone}</small></span></button>`).join("")}</div></div>
             </div>
-            <p class="to-sub">Or try on a model</p>
-            <div class="to-models">${MODELS.map((m,i)=>`<button type="button" class="to-model" data-to="model" data-i="${i}" aria-label="Model ${e(m.name)}, skin tone ${m.tone}"><img src="${m.src}" alt="" loading="lazy"><span>${e(m.name)}<small>Tone ${m.tone}</small></span></button>`).join("")}</div>
-            <p class="to-fine">Model faces are illustrations, not photos of real people.</p>
-          </div>
-          <div class="to-consent" data-pane="consent" hidden>
-            <h3>Before your camera turns on</h3>
+            <p class="to-consentnote">${ICON.lock}<span>Your camera and photos stay on this device. Frames are processed in your browser and never uploaded or stored.</span></p>
+            <p class="to-tip">Tip: face a window or soft, even light, with no beauty filter. Model faces are illustrations, not photos of real people.</p>
+          </section>
+          <section class="to-consent" data-pane="consent" hidden>
+            <h3 class="to-h">Before your camera turns on</h3>
             <ul><li>Your camera feed is processed <b>on this device</b>, in your browser.</li><li>Frames are <b>never uploaded or stored</b>. Nothing is recorded.</li><li>You can <b>stop the camera</b> at any time.</li></ul>
             <p class="small muted">The face tracker (Google MediaPipe) downloads once from a public CDN. Your images never leave the device.</p>
             <div class="to-row"><button type="button" class="btn primary" data-to="camera">Turn on camera</button><button type="button" class="btn ghost" data-to="start">Not now</button></div>
-          </div>
-          <div class="to-stagewrap" data-pane="stage" hidden>
-            <div class="to-stage"><canvas class="to-cv" aria-label="Try-on preview"></canvas>
-              <div class="to-tiles" hidden></div>
-              <div class="to-divider" hidden><span>Before</span><span>After</span></div>
-              <div class="to-msg" hidden></div></div>
-            <div class="to-ba"><label>Before / after <input type="range" min="0" max="100" value="0" class="to-split" aria-label="Before and after slider: drag right to see more of the face without makeup"></label></div>
-            <div class="to-row to-actions">
-              <button type="button" class="btn ghost" data-to="stop" hidden>Stop camera</button>
-              <button type="button" class="btn ghost" data-to="compare" aria-pressed="false">Compare shades</button>
-              <button type="button" class="btn ghost" data-to="snap">Save snapshot</button>
-              <button type="button" class="btn ghost" data-to="start">Change face</button>
+          </section>
+          <section class="to-stagewrap" data-pane="stage" hidden>
+            <div class="to-stage">
+              <div class="to-fit"><canvas class="to-cv" aria-label="Try-on preview"></canvas>
+                <div class="to-divider"><span class="to-lbl b">Before</span><span class="to-lbl a">After</span>
+                  <div class="to-handle" role="slider" tabindex="0" aria-label="Before and after: drag to compare with and without makeup" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><span class="to-grip" aria-hidden="true">‹›</span></div></div>
+                <div class="to-tiles" hidden></div>
+              </div>
+              <div class="to-tools" role="toolbar" aria-label="Try-on tools">
+                <button type="button" class="to-tool" data-to="start" title="Switch input" aria-label="Switch input">${ICON.swap}</button>
+                <button type="button" class="to-tool" data-to="compare" title="Compare shades" aria-label="Compare shades" aria-pressed="false">${ICON.grid}</button>
+                <button type="button" class="to-tool" data-to="snap" title="Save snapshot to this device" aria-label="Save snapshot">${ICON.snap}</button>
+                <button type="button" class="to-tool" data-to="clear" title="Reset look" aria-label="Reset look">${ICON.reset}</button>
+              </div>
+              <button type="button" class="to-stop" data-to="stop" hidden>Stop camera</button>
+              <div class="to-face" role="status" aria-live="polite" hidden></div>
+              <div class="to-toast" role="status" aria-live="polite" hidden></div>
+              <button type="button" class="btn to-cmpdone" data-to="compare" hidden>Done comparing</button>
             </div>
-            <div class="to-snaps"></div>
-          </div>
-          <div class="to-fallback" data-pane="fallback" hidden></div>
+          </section>
+          <section class="to-fallback" data-pane="fallback" hidden></section>
         </div>
-        <div class="to-right">
+        <aside class="to-panel" aria-label="Products and shades">
+          <button type="button" class="to-grab" aria-label="Show all products" aria-expanded="false"><span></span></button>
           <div class="to-tabs" role="tablist">${TABS.map(([k,l])=>`<button type="button" role="tab" data-tab="${k}">${l}</button>`).join("")}</div>
-          <div class="to-cats"></div>
-          <div class="to-prods" role="listbox" aria-label="Products"></div>
-          <div class="to-detail"></div>
-          <div class="to-look"></div>
-          <p class="to-note">Preview only. Screen colours vary; your shade match is based on your tone and undertone.</p>
-        </div>
+          <div class="to-scroll">
+            <div class="to-cats"></div>
+            <div class="to-prods" role="listbox" aria-label="Products"></div>
+            <div class="to-detail"></div>
+            <p class="to-note">Preview only. Screen colours vary; your shade match is based on your tone and undertone.</p>
+          </div>
+        </aside>
+        <footer class="to-foot" aria-label="Your look"></footer>
       </div>`;
     document.body.appendChild(root);
-    stage=root.querySelector(".to-stage");cv=root.querySelector(".to-cv");
+    stage=root.querySelector(".to-stage");fit=root.querySelector(".to-fit");cv=root.querySelector(".to-cv");
     maskA=document.createElement("canvas");maskB=document.createElement("canvas");detCv=document.createElement("canvas");
     root.addEventListener("click",onClick);
     root.querySelector("[data-to=file]").addEventListener("change",ev=>{const f=ev.target.files&&ev.target.files[0];ev.target.value="";if(f)useFile(f)});
-    root.querySelector(".to-split").addEventListener("input",ev=>{S.split=+ev.target.value/100;drawDivider();kick()});
-    root.addEventListener("keydown",ev=>{if(ev.key==="Escape")close()});
+    root.querySelector(".to-way[tabindex]").addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();root.querySelector("[data-to=file]").click()}});
+    root.addEventListener("keydown",ev=>{if(ev.key==="Escape"){if(S.compare)toggleCompare(false);else close()}});
+    root.addEventListener("pointerover",ev=>{const b=ev.target.closest&&ev.target.closest(".to-sw");if(b){S.hover=+b.dataset.shade;swInfo()}});
+    root.addEventListener("pointerout",ev=>{const b=ev.target.closest&&ev.target.closest(".to-sw");if(b){S.hover=null;swInfo()}});
+    root.addEventListener("focusin",ev=>{const b=ev.target.closest&&ev.target.closest(".to-sw");if(b){S.hover=+b.dataset.shade;swInfo()}});
+    wireHandle();wireSheet();
+    if("ResizeObserver"in window)new ResizeObserver(()=>{if(S.open&&S.src){layout();kick()}}).observe(stage);
   }
-  const pane=name=>root.querySelectorAll("[data-pane]").forEach(x=>x.hidden=x.dataset.pane!==name);
+  const pane=name=>{root.querySelectorAll("[data-pane]").forEach(x=>x.hidden=x.dataset.pane!==name);root.dataset.pane=name};
   function onClick(ev){
-    const t=ev.target.closest("[data-to],[data-tab],[data-cat],[data-pid],[data-shade],[data-rm],[data-cmprm]");if(!t||!root.contains(t))return;
+    const t=ev.target.closest("[data-to],[data-tab],[data-cat],[data-pid],[data-shade],[data-rm],[data-pick]");if(!t||!root.contains(t))return;
     if(t.dataset.tab){S.tab=t.dataset.tab;S.cat=TABS.find(x=>x[0]===S.tab)[2][0];S.pid=null;renderPanel();return}
     if(t.dataset.cat){S.cat=t.dataset.cat;S.pid=null;renderPanel();return}
     if(t.dataset.pid){pickProduct(t.dataset.pid);return}
     if(t.dataset.shade!=null){pickShade(+t.dataset.shade);return}
-    if(t.dataset.rm){delete S.look[t.dataset.rm];renderPanel();kick();return}
-    if(t.dataset.cmprm!=null){S.cmp.splice(+t.dataset.cmprm,1);layout();kick();return}
+    if(t.dataset.rm){delete S.look[t.dataset.rm];renderPanel();kick();fallbackRender();return}
+    if(t.dataset.pick!=null){const c=S.cmp[+t.dataset.pick];if(c){S.look[c.slot]={p:c.p,s:c.s};toggleCompare(false);toast(`Picked ${c.s.name}`)}return}
     const a=t.dataset.to;
     if(a==="close")close();
     else if(a==="consent"){stopCamera();pane("consent")}
-    else if(a==="start"){stopCamera();S.src=null;pane("start")}
+    else if(a==="start"){stopCamera();S.src=null;toggleCompare(false,true);pane("start")}
     else if(a==="camera")startCamera();
     else if(a==="stop"){stopCamera();S.src=null;pane("start")}
     else if(a==="model")useModel(+t.dataset.i);
-    else if(a==="compare"){S.compare=!S.compare;S.cmp=[];t.setAttribute("aria-pressed",S.compare);layout();renderPanel();kick()}
+    else if(a==="compare")toggleCompare(!S.compare);
     else if(a==="snap")snapshot();
-    else if(a==="add")addToPlan(t.dataset.id,t.dataset.shadename);
-    else if(a==="clear"){S.look={};renderPanel();kick()}
+    else if(a==="addlook")addLook();
+    else if(a==="clear"){S.look={};S.split=0.5;drawDivider();renderPanel();kick();fallbackRender();toast("Look cleared")}
   }
 
   /* ---------- panel ---------- */
   function renderPanel(){
     if(!root)return;
-    root.querySelectorAll("[data-tab]").forEach(b=>{const on=b.dataset.tab===S.tab;b.classList.toggle("on",on);b.setAttribute("aria-selected",on)});
+    root.querySelectorAll("[data-tab]").forEach(b=>{const on=b.dataset.tab===S.tab;b.classList.toggle("on",on);b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1});
     const cats=TABS.find(x=>x[0]===S.tab)[2];
-    root.querySelector(".to-cats").innerHTML=cats.length>1?cats.map(c=>`<button type="button" class="chip${c===S.cat?" on":""}" data-cat="${e(c)}">${e(c)}</button>`).join(""):"";
+    root.querySelector(".to-cats").innerHTML=cats.length>1?cats.map(c=>`<button type="button" class="to-cat${c===S.cat?" on":""}" aria-pressed="${c===S.cat}" data-cat="${e(c)}">${e(c)}</button>`).join(""):"";
     const list=products(S.cat);
     if(!S.pid||!list.some(x=>x.p.id===S.pid)){const cur=S.look[SLOT[S.cat]];S.pid=cur&&cur.p.c===S.cat?cur.p.id:(list[0]&&list[0].p.id)||null}
-    root.querySelector(".to-prods").innerHTML=list.length?list.map(({p,st})=>`<button type="button" role="option" class="to-prod${p.id===S.pid?" on":""}${st.ok?"":" bad"}" aria-selected="${p.id===S.pid}" data-pid="${p.id}">
-      <span class="to-dots">${shadesOf(p).slice(0,5).map(s=>`<i style="background:${e(s.hex)}"></i>`).join("")}</span>
-      <b>${e(p.n.replace(p.b+" ",""))}</b><small>${e(p.b)} · ${money(p.p)}</small>${st.ok?"":`<em>Not suitable for you</em>`}</button>`).join(""):`<p class="small muted">No products in this category.</p>`;
-    renderDetail();renderLook();
+    root.querySelector(".to-prods").innerHTML=list.length?list.map(({p,st})=>{const m=matchFor(p),demo=!(p.s&&p.s.length);
+      const chips=[m&&m.you&&m.good?`<span class="to-chip match">Your match</span>`:"",demo?`<span class="to-chip demo">Demo colour</span>`:"",st.ok?"":`<span class="to-chip bad">Not suitable for you</span>`].join("");
+      return`<button type="button" role="option" class="to-prod${p.id===S.pid?" on":""}${st.ok?"":" bad"}" aria-selected="${p.id===S.pid}" data-pid="${p.id}">
+        <span class="to-dots" aria-hidden="true">${shadesOf(p).slice(0,4).map(s=>`<i style="background:${e(s.hex)}"></i>`).join("")}</span>
+        <span class="to-pt"><b>${e(p.n.replace(p.b+" ",""))}</b><small>${e(p.b)}</small></span><span class="to-pp">${money(p.p)}</span>
+        ${chips?`<span class="to-chips">${chips}</span>`:""}</button>`}).join(""):`<p class="small muted">No products in this category.</p>`;
+    renderDetail();renderFoot();centerSel();
   }
+  /* keep the selected product and shade in view in the horizontal strips */
+  function centerSel(){for(const[box,sel]of[[".to-prods",".to-prod.on"],[".to-shades",".to-sw.on"]]){const b=root.querySelector(box),el=b&&b.querySelector(sel);if(!el||b.scrollWidth<=b.clientWidth)continue;b.scrollLeft=Math.max(0,el.offsetLeft-(b.clientWidth-el.offsetWidth)/2)}}
   function renderDetail(){
     const box=root.querySelector(".to-detail"),p=S.pid&&typeof BY_ID!=="undefined"?BY_ID[S.pid]:null;if(!p){box.innerHTML="";return}
-    const sh=shadesOf(p),st=status(p),m=matchFor(p),slot=SLOT[p.c],cur=S.look[slot],curName=cur&&cur.p.id===p.id?cur.s.name:null;
-    const demo=sh.some(s=>s.demo);
-    const cmpOn=S.compare;
-    const plan=typeof PL!=="undefined"&&PL;
-    const btn=!st.ok?"":!st.checked?`<p class="small muted">Answer the advisor's safety questions and I'll check this product against your skin.</p>`
-      :inPlan(p.id)?`<span class="to-inplan">✓ In your plan</span>`:plan?`<button type="button" class="btn primary" data-to="add" data-id="${p.id}" data-shadename="${e(curName||"")}">Add to my plan</button>`
-      :`<p class="small muted">Finish the advisor to build your plan, then add this to it.</p>`;
+    const sh=shadesOf(p),st=status(p),m=matchFor(p),slot=SLOT[p.c],cur=S.look[slot],curName=cur&&cur.p.id===p.id?cur.s.name:null,demo=sh.some(s=>s.demo);
     box.innerHTML=`<div class="to-ph"><b>${e(p.n)}</b><small>${e(p.c)} · ${money(p.p)}${p.fin?` · ${e(p.fin)} finish`:""}</small></div>
-      ${st.ok?"":`<p class="to-bad" role="status"><b>Not suitable for you</b>: ${e(st.why)}. You can still preview it.</p>`}
+      ${st.ok?"":`<p class="to-bad" role="status"><b>Not suitable for you</b>: ${e(st.why)}. You can still preview it, but it won't be added to your plan.</p>`}
       ${demo?`<p class="to-demo">Demo colour, not real product data</p>`:""}
-      ${cmpOn?`<p class="small muted">Compare: tap up to 4 shades (${S.cmp.length}/4).</p>`:""}
-      <div class="to-shades" role="listbox" aria-label="Shades">${sh.map((s,i)=>{const isM=m&&m.name===s.name,on=cmpOn?S.cmp.some(c=>c.p.id===p.id&&c.s.name===s.name):curName===s.name;
-        return`<button type="button" role="option" aria-selected="${on}" class="to-sw${on?" on":""}${isM?" match":""}" data-shade="${i}" title="${e(s.name)}"><i style="background:${e(s.hex)}"></i><span>${e(s.name)}${s.cov?`<small>${e(s.cov)}</small>`:""}${isM?`<em>${e(m.label)}</em>`:""}</span></button>`}).join("")}</div>
-      ${btn}`;
+      ${S.compare?`<p class="to-cmphint">Tap shades to compare (${S.cmp.length}/4). The oldest is replaced after four.</p>`:""}
+      <div class="to-shades" role="listbox" aria-label="Shades of ${e(p.n)}">${sh.map((s,i)=>{const isM=m&&m.name===s.name,on=S.compare?S.cmp.some(c=>c.p.id===p.id&&c.s.name===s.name):curName===s.name;
+        return`<button type="button" role="option" aria-selected="${on}" class="to-sw${on?" on":""}${isM?" match":""}" data-shade="${i}" title="${e(shadeInfo(s))}" aria-label="${e(shadeInfo(s))}${isM?`, ${e(m.label)}`:""}"><i style="background:${e(s.hex)}"></i></button>`}).join("")}</div>
+      <p class="to-swinfo" aria-live="polite"></p>`;
+    swInfo();
   }
-  function renderLook(){
-    const box=root.querySelector(".to-look"),ks=Object.keys(S.look);
-    box.innerHTML=ks.length?`<h4>Your look</h4><div class="to-lookchips">${ks.map(k=>`<span class="chip on">${SLOT_LABEL[k]}: ${e(S.look[k].s.name)}<button type="button" data-rm="${k}" aria-label="Remove ${SLOT_LABEL[k]}">×</button></span>`).join("")}<button type="button" class="link small" data-to="clear">Clear look</button></div>`:`<p class="small muted">Build a full look: pick a shade in each tab.</p>`;
+  function swInfo(){
+    const box=root&&root.querySelector(".to-swinfo"),p=S.pid&&BY_ID[S.pid];if(!box||!p)return;
+    const sh=shadesOf(p),cur=S.look[SLOT[p.c]],m=matchFor(p);
+    const s=S.hover!=null?sh[S.hover]:cur&&cur.p.id===p.id?cur.s:null;
+    box.innerHTML=s?`<b>${e(s.name)}</b>${m&&m.name===s.name?` <span class="to-chip match">${e(m.label)}</span>`:""}<br><small>${e(shadeInfo(s).replace(s.name+" · ",""))}</small>`:`<small>Hover or tap a shade to see its name and depth.</small>`;
+  }
+  function lookItems(){return Object.entries(S.look).map(([k,v])=>({k,v,st:status(v.p)}))}
+  function renderFoot(){
+    const box=root.querySelector(".to-foot"),items=lookItems();
+    const ids=[...new Set(items.map(x=>x.v.p.id))],total=ids.reduce((t,id)=>t+(BY_ID[id].p||0),0);
+    const addable=items.filter(x=>x.st.ok&&x.st.checked&&!inPlan(x.v.p.id)),bad=items.filter(x=>!x.st.ok);
+    const hint=!items.length?"Pick shades in each tab to build a look."
+      :bad.length?`${bad.length===1?"1 item isn't":`${bad.length} items aren't`} suitable for you and won't be added.`
+      :!profiled()||!hasPlan()?"Finish the advisor to add this look to your plan."
+      :!addable.length?"✓ In your plan":"";
+    box.innerHTML=`<div class="to-lookchips"><span class="to-lookh">Your look</span>${items.map(({k,v,st})=>`<button type="button" class="to-lc${st.ok?"":" bad"}" data-rm="${k}" aria-label="Remove ${e(SLOT_LABEL[k])}: ${e(v.s.name)}"><i style="background:${e(v.s.hex)}"></i>${e(SLOT_LABEL[k])} · ${e(v.s.name)}${inPlan(v.p.id)?" ✓":""}<span aria-hidden="true">×</span></button>`).join("")||`<span class="small muted">Nothing yet</span>`}</div>
+      <div class="to-total"><small>Total</small><b>${items.length?money(total):"–"}</b></div>
+      <div class="to-addwrap"><button type="button" class="btn primary" data-to="addlook" ${addable.length&&hasPlan()?"":"disabled"}>Add look to my plan</button>${hint?`<small class="to-foothint">${e(hint)}</small>`:""}</div>`;
   }
   function pickProduct(id){
-    S.pid=id;const p=BY_ID[id];const slot=SLOT[p.c];
-    if(!S.compare&&!(S.look[slot]&&S.look[slot].p.id===id)){const sh=shadesOf(p),m=matchFor(p);const i=m?Math.max(0,sh.findIndex(s=>s.name===m.name)):Math.floor(sh.length/2);if(sh[i])S.look[slot]={p,s:sh[i]}}
-    renderPanel();kick();fallbackRender();
+    S.pid=id;const p=BY_ID[id];const slot=SLOT[p.c];S.hover=null;
+    if(S.compare)prefillCompare(p);
+    else if(!(S.look[slot]&&S.look[slot].p.id===id)){const sh=shadesOf(p),m=matchFor(p);const i=m?Math.max(0,sh.findIndex(s=>s.name===m.name)):Math.floor(sh.length/2);if(sh[i])S.look[slot]={p,s:sh[i]}}
+    renderPanel();kick();fallbackRender();if(S.compare)layout();
   }
   function pickShade(i){
     const p=BY_ID[S.pid];if(!p)return;const s=shadesOf(p)[i];if(!s)return;const slot=SLOT[p.c];
@@ -245,21 +290,62 @@ const TRYON=(()=>{
     else S.look[slot]={p,s};
     renderPanel();kick();fallbackRender();
   }
-  function addToPlan(id,shadeName){
-    const p=BY_ID[id];if(!p||!status(p).ok||typeof PL==="undefined"||!PL)return;
-    const slot={role:`${p.c} (try-on pick)`,when:shadeName?`Shade: ${shadeName}`:"As you like"};
-    PL.extras=PL.extras||[];if(!PL.extras.some(x=>x.p.id===id))PL.extras.push({slot,p});
-    if(typeof META!=="undefined"){META.extraIds=PL.extras.map(x=>({id:x.p.id,slot:x.slot}))}
+  function prefillCompare(p){
+    p=p||(S.pid&&BY_ID[S.pid]);if(!p)return;const sh=shadesOf(p),slot=SLOT[p.c],cur=S.look[slot],m=matchFor(p);
+    let at=cur&&cur.p.id===p.id?sh.findIndex(s=>s.name===cur.s.name):m?sh.findIndex(s=>s.name===m.name):Math.floor(sh.length/2);at=Math.max(0,at);
+    const idx=[at];for(let d=1;idx.length<Math.min(4,sh.length);d++){if(at+d<sh.length)idx.push(at+d);if(idx.length<4&&at-d>=0)idx.push(at-d)}
+    S.cmp=idx.slice(0,4).sort((a,b)=>a-b).map(i=>({slot,p,s:sh[i]}));
+  }
+  function toggleCompare(on,quiet){
+    if(!root)return;S.compare=!!on;S.cmp=[];if(on)prefillCompare();
+    root.classList.toggle("cmp",S.compare);
+    root.querySelectorAll("[data-to=compare]").forEach(b=>b.setAttribute("aria-pressed",S.compare));
+    root.querySelector(".to-cmpdone").hidden=!S.compare;
+    if(!quiet){layout();renderPanel();kick();}
+  }
+  function addLook(){
+    if(!hasPlan())return;const items=lookItems().filter(x=>x.st.ok&&x.st.checked&&!inPlan(x.v.p.id));if(!items.length)return;
+    PL.extras=PL.extras||[];
+    for(const{v}of items)if(!PL.extras.some(x=>x.p.id===v.p.id))PL.extras.push({slot:{role:`${v.p.c} (try-on pick)`,when:`Shade: ${v.s.name}`},p:v.p});
+    if(typeof META!=="undefined")META.extraIds=PL.extras.map(x=>({id:x.p.id,slot:x.slot}));
     if(typeof saveState==="function")saveState();
     if(typeof renderPlan==="function")renderPlan();
-    renderDetail();say(`Added ${p.n} to your plan.`);
+    renderFoot();toast(`Added ${items.length===1?items[0].v.p.n:`${items.length} products`} to your plan`);
   }
-  function say(t){const m=root.querySelector(".to-msg");m.hidden=false;m.className="to-msg toast";m.textContent=t;clearTimeout(say.t);say.t=setTimeout(()=>{if(m.classList.contains("toast"))m.hidden=true},2600)}
-  function message(html,keep){const m=root.querySelector(".to-msg");m.className="to-msg";m.hidden=!html;m.innerHTML=html||"";if(!keep)return}
+  function toast(t){const m=root.querySelector(".to-toast");m.textContent=t;m.hidden=false;m.classList.remove("show");void m.offsetWidth;m.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>{m.classList.remove("show");setTimeout(()=>{m.hidden=true},200)},2600)}
+  /* face-tracking state on the canvas: "busy", "finding", "noface" or "" (hidden) */
+  function faceState(kind,text){
+    const f=root.querySelector(".to-face");if(!kind){f.hidden=true;f.dataset.kind="";return}
+    if(f.dataset.kind===kind&&f.dataset.text===(text||""))return;
+    f.dataset.kind=kind;f.dataset.text=text||"";f.hidden=false;
+    f.innerHTML=kind==="noface"?`<b>No face found.</b> Move into better light and face the camera. <button type="button" class="to-link" data-to="start">Try a photo or model</button>`
+      :`<span class="to-pulse" aria-hidden="true"></span>${e(text||"Finding your face…")}`;
+  }
+  /* before/after handle: drag, or arrow keys */
+  function setSplit(v){S.split=Math.min(1,Math.max(0,v));drawDivider();kick()}
+  function wireHandle(){
+    const h=root.querySelector(".to-handle");let drag=false;
+    const at=ev=>{const r=fit.getBoundingClientRect();setSplit((ev.clientX-r.left)/Math.max(1,r.width))};
+    h.addEventListener("pointerdown",ev=>{drag=true;h.setPointerCapture(ev.pointerId);ev.preventDefault();h.classList.add("drag")});
+    h.addEventListener("pointermove",ev=>{if(drag)at(ev)});
+    const end=ev=>{drag=false;h.classList.remove("drag");try{h.releasePointerCapture(ev.pointerId)}catch{}};
+    h.addEventListener("pointerup",end);h.addEventListener("pointercancel",end);
+    h.addEventListener("keydown",ev=>{const k={ArrowLeft:-0.05,ArrowRight:0.05,ArrowDown:-0.05,ArrowUp:0.05}[ev.key];if(k!=null){ev.preventDefault();setSplit(S.split+k)}else if(ev.key==="Home"){ev.preventDefault();setSplit(0)}else if(ev.key==="End"){ev.preventDefault();setSplit(1)}});
+  }
+  /* mobile bottom sheet: swipe up for the full product list, down to collapse */
+  function wireSheet(){
+    const panel=root.querySelector(".to-panel"),grab=root.querySelector(".to-grab");let y0=null;
+    const set=up=>{S.sheetUp=up;root.classList.toggle("sheet-up",up);grab.setAttribute("aria-expanded",up);grab.setAttribute("aria-label",up?"Show fewer products":"Show all products")};
+    grab.addEventListener("click",()=>set(!S.sheetUp));
+    panel.addEventListener("pointerdown",ev=>{if(!mobile()||ev.target.closest(".to-prods,.to-shades,.to-cats"))return;y0=ev.clientY});
+    panel.addEventListener("pointerup",ev=>{if(y0==null)return;const dy=ev.clientY-y0;y0=null;if(dy<-40)set(true);else if(dy>40)set(false)});
+    panel.addEventListener("pointercancel",()=>{y0=null});
+    S.setSheet=set;
+  }
 
   /* ---------- fallback: swatches on your skin colour ---------- */
   function fallback(reason){
-    S.fallback=reason;stopLoop();pane("fallback");fallbackRender();
+    S.fallback=reason;stopLoop();faceState("");toggleCompare(false,true);pane("fallback");fallbackRender();
   }
   function fallbackRender(){
     if(!S.fallback||!root)return;const box=root.querySelector("[data-pane=fallback]");
@@ -274,7 +360,7 @@ const TRYON=(()=>{
 
   /* ---------- sources ---------- */
   async function startCamera(){
-    S.fallback=null;S.mode="camera";pane("stage");message("Starting your camera…");
+    S.fallback=null;S.mode="camera";pane("stage");faceState("busy","Starting your camera…");
     root.querySelector("[data-to=stop]").hidden=false;
     if(!glInit())return fallback("Your browser can't run the live try-on here (WebGL is off or unavailable).");
     try{S.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:960},height:{ideal:720}},audio:false})}
@@ -283,28 +369,28 @@ const TRYON=(()=>{
     v.srcObject=S.stream;try{await v.play()}catch{}
     await new Promise(r=>{if(v.readyState>=2)r();else v.onloadeddata=()=>r()});
     S.src=v;S.frameW=v.videoWidth;S.frameH=v.videoHeight;S.lm=S.lmS=null;S.noFaceSince=performance.now();S.detMs=[];
-    message("Loading face tracking…");
+    faceState("busy","Loading face tracking…");
     const tr=await tracker("VIDEO");if(!tr)return fallback("Face tracking couldn't load (you may be offline). Showing shades as swatches.");
-    if(S.mode!=="camera")return;message("Looking for your face…");setup();loop();
+    if(S.mode!=="camera")return;faceState("finding","Finding your face…");setup();loop();
   }
   function stopCamera(){stopLoop();if(S.stream){S.stream.getTracks().forEach(t=>t.stop());S.stream=null}if(S.video){S.video.srcObject=null;if(S.src===S.video){S.src=null;S.lm=S.lmS=null}}if(root)root.querySelector("[data-to=stop]").hidden=true;if(S.mode==="camera")S.mode=null}
   async function useFile(f){
-    stopCamera();S.fallback=null;S.mode="photo";S.model=null;pane("stage");message("Reading your photo…");
+    stopCamera();S.fallback=null;S.mode="photo";S.model=null;pane("stage");faceState("busy","Reading your photo…");
     if(!glInit())return fallback("Your browser can't run the try-on here (WebGL is off or unavailable).");
     let img;try{img=await loadImage(URL.createObjectURL(f))}catch{return fallback("That file doesn't look like a photo I can open.")}
     S.src=toCanvas(img,1280);S.frameW=S.src.width;S.frameH=S.src.height;
-    message("Finding your face…");const tr=await tracker("IMAGE");
+    faceState("finding","Finding your face…");const tr=await tracker("IMAGE");
     if(!tr)return fallback("Face tracking couldn't load (you may be offline). Try a model face, or see shades as swatches.");
     let res;try{res=tr.detect(S.src)}catch{res=null}
     const lm=res&&res.faceLandmarks&&res.faceLandmarks[0];
-    if(!lm)return fallback("I couldn't find a face in that photo. Try a well-lit, front-facing photo, or pick a model.");
-    S.lm=S.lmS=lm.map(p=>[p.x,p.y]);message("");setup();sampleColours();kick();
+    if(!lm)return fallback("No face found in that photo. Move into better light and face the camera, or try a model face.");
+    S.lm=S.lmS=lm.map(p=>[p.x,p.y]);faceState("");setup();sampleColours();kick();
   }
   async function useModel(i){
     stopCamera();const m=MODELS[i];if(!m)return;S.fallback=null;S.mode="model";S.model=m;pane("stage");
     if(!glInit())return fallback("Your browser can't run the try-on here (WebGL is off or unavailable).");
     const img=await loadImage(m.src);S.src=toCanvas(img,1280);S.frameW=S.src.width;S.frameH=S.src.height;
-    S.lm=S.lmS=m.landmarks.map(p=>p.slice());message("");setup();sampleColours();renderPanel();kick();
+    S.lm=S.lmS=m.landmarks.map(p=>p.slice());faceState("");setup();sampleColours();renderPanel();kick();
   }
   const loadImage=src=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=src});
   function toCanvas(img,max){const k=Math.min(1,max/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));const c=document.createElement("canvas");c.width=Math.round((img.naturalWidth||img.width)*k);c.height=Math.round((img.naturalHeight||img.height)*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);return c}
@@ -336,8 +422,8 @@ const TRYON=(()=>{
         const dt=performance.now()-t0;S.detMs.push(dt);if(S.detMs.length>30)S.detMs.shift();
         const lm=res&&res.faceLandmarks&&res.faceLandmarks[0];
         if(lm){const pts=lm.map(p=>[p.x,p.y]);S.lm=pts;S.lmS=S.lmS&&S.lmS.length===pts.length?S.lmS.map((q,i)=>[q[0]+(pts[i][0]-q[0])*0.6,q[1]+(pts[i][1]-q[1])*0.6]):pts;S.maskDirty=true;S.noFaceSince=0;
-          if(++S.frameN%15===1)sampleColours(dctx,detCv.width,detCv.height);message("")}
-        else{S.lm=null;if(!S.noFaceSince)S.noFaceSince=now;if(now-S.noFaceSince>8000)message(`<b>I can't see a face yet.</b> Face the camera in good light. <button type="button" class="link" data-to="start">Try a photo or model instead</button>`);else message("Looking for your face…")}
+          if(++S.frameN%15===1)sampleColours(dctx,detCv.width,detCv.height);faceState("")}
+        else{S.lm=null;if(!S.noFaceSince)S.noFaceSince=now;if(now-S.noFaceSince>4000)faceState("noface");else faceState("finding","Finding your face…")}
         if(S.detMs.length>=20&&avg(S.detMs)>150){S.busy=false;stopCamera();return fallback("This device is a bit slow for the live try-on. Try a photo or a model face, or see shades as swatches.")}
         S.busy=false}
       draw();
@@ -461,16 +547,21 @@ void main(){vec2 t=vec2(uMirror>0.5?1.-uv.x:uv.x,uv.y);vec3 S=s2l(texture2D(uTex
   }
   function setup(){layout();S.maskDirty=true;if(S.mode!=="camera")drawMasks()}
   function layout(){
-    if(!cv||!S.frameW)return;
-    const box=stage.getBoundingClientRect(),maxW=Math.min(960,Math.max(320,(box.width||640)*(window.devicePixelRatio||1)));
-    const k=Math.min(1,maxW/S.frameW);cv.width=Math.round(S.frameW*k);cv.height=Math.round(S.frameH*k);
-    stage.style.aspectRatio=`${S.frameW} / ${S.frameH}`;stage.style.setProperty("--to-ar",(S.frameW/S.frameH).toFixed(4));
+    if(!cv||!S.frameW||!fit)return;
+    const r=stage.getBoundingClientRect();if(!r.width||!r.height)return;
+    const ar=S.frameW/S.frameH;let w=r.width,h=w/ar;if(h>r.height){h=r.height;w=h*ar}
+    w=Math.max(1,Math.floor(w));h=Math.max(1,Math.floor(h));fit.style.width=w+"px";fit.style.height=h+"px";
+    const k=Math.min(Math.min(2,window.devicePixelRatio||1),1280/Math.max(w,h));
+    const cw=Math.round(w*k),ch=Math.round(h*k);if(cv.width!==cw||cv.height!==ch){cv.width=cw;cv.height=ch}
     const tiles=root.querySelector(".to-tiles");tiles.hidden=!S.compare;
-    root.querySelector(".to-divider").hidden=S.compare;root.querySelector(".to-ba").hidden=S.compare;
-    if(S.compare){tiles.innerHTML=[0,1,2,3].map(i=>{const c=S.cmp[i];return`<div class="to-tile">${c?`<span>${e(c.s.name)}${c.s.demo?" · demo":""}<button type="button" data-cmprm="${i}" aria-label="Remove ${e(c.s.name)} from compare">×</button></span>`:`<span class="empty">Tap a shade to add</span>`}</div>`}).join("")}
+    if(S.compare)tiles.innerHTML=[0,1,2,3].map(i=>{const c=S.cmp[i];return`<div class="to-tile">${c?`<div class="to-tilecap"><span><b>${e(c.s.name)}</b><small>${money(c.p.p)}${c.s.demo?" · demo colour":""}</small></span><button type="button" class="to-pick" data-pick="${i}">Pick this</button></div>`:`<div class="to-tilecap empty">Tap a shade to compare</div>`}</div>`}).join("");
     drawDivider();
   }
-  function drawDivider(){if(!root)return;const d=root.querySelector(".to-divider");d.style.setProperty("--x",(S.split*100)+"%");d.classList.toggle("off",S.split<=0.001)}
+  function drawDivider(){
+    if(!root)return;const d=root.querySelector(".to-divider"),h=root.querySelector(".to-handle");
+    d.hidden=S.compare;d.style.setProperty("--x",(S.split*100).toFixed(1)+"%");h.setAttribute("aria-valuenow",Math.round(S.split*100));
+    d.classList.toggle("nob",S.split<=0.02);d.classList.toggle("noa",S.split>=0.98);
+  }
   const lin=h=>C.hexToLin(h)||[0,0,0];
   function looks(){
     const L=S.look;
@@ -523,25 +614,25 @@ void main(){vec2 t=vec2(uMirror>0.5?1.-uv.x:uv.x,uv.y);vec3 S=s2l(texture2D(uTex
   /* ---------- snapshot (stays on the device) ---------- */
   function snapshot(){
     if(!S.gl||!S.src)return;draw();
-    let url;try{url=cv.toDataURL("image/jpeg",0.9)}catch{return say("Couldn't save a snapshot here.")}
+    let url;try{url=cv.toDataURL("image/jpeg",0.9)}catch{return toast("Couldn't save a snapshot here.")}
     S.snaps.unshift(url);S.snaps=S.snaps.slice(0,4);
     const a=document.createElement("a");a.href=url;a.download=`aaina-look-${new Date().toISOString().slice(0,10)}.jpg`;document.body.appendChild(a);a.click();a.remove();
-    root.querySelector(".to-snaps").innerHTML=`<p class="small muted">Saved to this device only. Nothing is uploaded.</p><div>${S.snaps.map(u=>`<img src="${u}" alt="Saved try-on snapshot">`).join("")}</div>`;
+    toast("Snapshot saved to this device only. Nothing is uploaded.");
   }
 
   /* ---------- open / close / route ---------- */
   function open(opts={}){
     if(!root)build();
-    if(!S.open){S.open=true;root.hidden=false;document.documentElement.classList.add("to-lock");
+    if(!S.open){S.open=true;root.hidden=false;if(S.setSheet)S.setSheet(false);document.documentElement.classList.add("to-lock");
       if(location.hash!=="#try-on"){history.pushState(null,"",location.pathname+location.search+"#try-on");S.pushedHash=true}}
     if(opts.pid&&typeof BY_ID!=="undefined"&&BY_ID[opts.pid]){const p=BY_ID[opts.pid];S.tab=TABS.find(t=>t[2].includes(p.c))[0];S.cat=p.c;pickProduct(p.id)}
     else if(opts.base){S.tab="face";S.cat="Foundation";S.pid=null;renderPanel();const list=products("Foundation").filter(x=>x.st.ok);if(list[0])pickProduct(list[0].p.id)}
     else renderPanel();
-    if(!S.src)pane("start");
+    if(!S.src)pane("start");else{layout();kick()}
     root.querySelector(".to-x").focus();
   }
   function close(){
-    if(!S.open)return;S.open=false;stopCamera();stopLoop();root.hidden=true;document.documentElement.classList.remove("to-lock");
+    if(!S.open)return;S.open=false;toggleCompare(false,true);stopCamera();stopLoop();root.hidden=true;document.documentElement.classList.remove("to-lock");
     if(location.hash==="#try-on"){if(S.pushedHash){S.pushedHash=false;history.back()}else history.replaceState(null,"",location.pathname+location.search)}
   }
   window.addEventListener("hashchange",()=>{if(location.hash==="#try-on"&&!S.open)open();else if(location.hash!=="#try-on"&&S.open){S.pushedHash=false;close()}});
@@ -549,5 +640,5 @@ void main(){vec2 t=vec2(uMirror>0.5?1.-uv.x:uv.x,uv.y);vec3 S=s2l(texture2D(uTex
   window.addEventListener("resize",()=>{if(S.open&&S.src){layout();kick()}});
   document.addEventListener("click",ev=>{const b=ev.target.closest&&ev.target.closest("[data-tryon]");if(!b||(root&&root.contains(b)))return;ev.preventDefault();open(b.dataset.tryon==="base"?{base:true}:{pid:b.dataset.tryon||null})});
   if(location.hash==="#try-on")setTimeout(()=>open(),0);
-  return{open,close,state:S,_draw:draw,_products:products,_status:status};
+  return{open,close,setSplit,state:S,_draw:draw,_products:products,_status:status};
 })();
