@@ -104,7 +104,7 @@ def main():
             const l=CAT.find(p=>p.c==='Lipstick'&&TRYON_DEMO.products[p.id]&&TRYON_DEMO.products[p.id].shades.some(s=>s.name==={json.dumps(LIPSTICK_SHADE)}));
             const bad=CAT.find(p=>p.c==='Lipstick'&&TRYON_DEMO.products[p.id]&&(p.frag||p.eo));return{{f:f&&f.id,l:l&&l.id,bad:bad&&bad.id}}}})()""")
         check("route: #try-on opens the try-on", pg.is_visible("#tryon") and pg.is_visible(".to-start"))
-        check("all three ways to start are offered", pg.locator(".to-way").count() == 2 and pg.locator(".to-model").count() == len(MODELS))
+        check("all three ways to start are offered", pg.locator(".to-way").count() == 3 and pg.locator(".to-model").count() == len(MODELS))
         ctx.close()
 
         # A. model face, fully offline (no CDN at all)
@@ -115,6 +115,9 @@ def main():
         pg.wait_for_timeout(500)
         check("A: model face renders offline with WebGL", pg.evaluate("TRYON.state.mode==='model'&&!!TRYON.state.gl&&!!TRYON.state.lmS"))
         m = BY[pg.evaluate("TRYON.state.model.id")]
+        check("A: before/after handle starts down the middle", pg.evaluate("TRYON.state.split") == 0.5 and pg.is_visible(".to-handle"))
+        check("A: tool buttons on the canvas", all(pg.is_visible(f".to-tools [data-to={t}]") for t in ("start", "compare", "snap", "clear")))
+        pg.evaluate("TRYON.setSplit(0)")
         cx, cy = m["landmarks"][205]
         before = pixel(pg, cx, cy)
         pick(pg, "face", found["f"], FOUNDATION_SHADE)
@@ -128,27 +131,40 @@ def main():
         check("A: demo shades are labelled", pg.locator(".to-demo").inner_text() == "Demo colour, not real product data")
         check("A: preview note shown", "Preview only. Screen colours vary" in pg.inner_text(".to-note"))
         check("A: full look across categories", sorted(pg.evaluate("Object.keys(TRYON.state.look)")) == ["base", "lips"])
-        # before/after slider
-        pg.eval_on_selector(".to-split", "e=>{e.value=60;e.dispatchEvent(new Event('input'))}")
+        # before/after: drag the handle with the mouse, then the keyboard
+        pg.evaluate("TRYON.setSplit(0.5)")
+        box = pg.locator(".to-fit").bounding_box()
+        hb = pg.locator(".to-handle").bounding_box()
+        pg.mouse.move(hb["x"] + hb["width"] / 2, hb["y"] + hb["height"] / 2)
+        pg.mouse.down(); pg.mouse.move(box["x"] + box["width"] * 0.6, hb["y"] + hb["height"] / 2, steps=6); pg.mouse.up()
         pg.wait_for_timeout(150)
-        check("A: slider moves the before/after line", pg.evaluate("TRYON.state.split") == 0.6 and "60%" in pg.eval_on_selector(".to-divider", "e=>e.style.getPropertyValue('--x')"))
-        check("A: left of the line shows the face without makeup", cx < 0.6 and pixel(pg, cx, cy) == before, (cx, pixel(pg, cx, cy), before))
-        pg.eval_on_selector(".to-split", "e=>{e.value=0;e.dispatchEvent(new Event('input'))}")
-        # compare 4 shades
-        pg.click("[data-to=compare]")
+        sp = pg.evaluate("TRYON.state.split")
+        check("A: dragging the handle moves the before/after line", abs(sp - 0.6) < 0.02 and pg.get_attribute(".to-handle", "aria-valuenow") == str(round(sp * 100)), sp)
+        check("A: left of the line shows the face without makeup", cx < sp and pixel(pg, cx, cy) == before, (cx, pixel(pg, cx, cy), before))
+        pg.focus(".to-handle"); pg.keyboard.press("ArrowLeft")
+        check("A: handle works with the keyboard", abs(pg.evaluate("TRYON.state.split") - (sp - 0.05)) < 1e-6)
+        pg.evaluate("TRYON.setSplit(0)")
+        # compare: opens with 4 shades of the current product, each with name, price and 'Pick this'
         pg.click(".tryon [data-tab='face']")
         pg.click(f".to-prod[data-pid='{found['f']}']")
-        for i in range(4):
-            pg.click(f".to-sw >> nth={i}")
-        check("A: compare shows a 2x2 grid of 4 shades", pg.locator(".to-tile").count() == 4 and pg.locator(".to-tile span:not(.empty)").count() == 4)
+        pg.click(".to-tools [data-to=compare]")
+        pg.wait_for_timeout(200)
+        caps = pg.locator(".to-tilecap:not(.empty)").all_inner_texts()
+        check("A: compare shows a 2x2 grid of 4 shades", pg.locator(".to-tile").count() == 4 and len(caps) == 4 and all("₹" in c and "Pick this" in c for c in caps), caps)
         tiles = canvas_png(pg)
         w, h = tiles.size
         q = [tiles.getpixel((int(w * x), int(h * y))) for x, y in ((0.25, 0.3), (0.75, 0.3), (0.25, 0.8), (0.75, 0.8))]
         check("A: the four tiles show different shades", len(set(q)) >= 3, q)
-        pg.click("[data-to=compare]")
+        pick_name = pg.evaluate("TRYON.state.cmp[2].s.name")
+        pg.click(".to-tile >> nth=2 >> .to-pick")
+        pg.wait_for_timeout(200)
+        check("A: 'Pick this' applies that shade and closes compare", pg.evaluate("TRYON.state.look.base.s.name") == pick_name and not pg.evaluate("TRYON.state.compare"))
         with pg.expect_download() as dl:
-            pg.click("[data-to=snap]")
-        check("A: snapshot is saved as a file on the device", dl.value.suggested_filename.startswith("aaina-look-") and pg.locator(".to-snaps img").count() == 1)
+            pg.click(".to-tools [data-to=snap]")
+        check("A: snapshot is saved as a file on the device", dl.value.suggested_filename.startswith("aaina-look-") and "this device" in pg.inner_text(".to-toast"))
+        check("A: 'Your look' bar shows chips and a total", pg.locator(".to-foot .to-lc").count() == 2 and "₹" in pg.inner_text(".to-total"))
+        pg.click(".to-foot .to-lc >> nth=1")
+        check("A: tapping a look chip removes it", pg.locator(".to-foot .to-lc").count() == 1)
         check("A: model faces need no network (nothing requested off the device)", not outside, outside[:3])
         ctx.close()
 
@@ -171,7 +187,7 @@ def main():
             check("B: a shade can be applied to the photo", pg.evaluate("!!TRYON.state.look.base"))
         pg.set_input_files(".tryon input[type=file]", str(blank))
         wait_for(pg, "document.querySelector('[data-pane=fallback]:not([hidden])')", 60000)
-        check("B: no face found -> friendly message and swatches", "couldn't find a face" in pg.inner_text("[data-pane=fallback]"))
+        check("B: no face found -> friendly message and swatches", "No face found" in pg.inner_text("[data-pane=fallback]"))
         ctx.close()
 
         # C. a product that fails check() can be previewed but never added
@@ -184,7 +200,7 @@ def main():
         txt = pg.inner_text(".to-detail")
         check("C: product failing check() shows 'Not suitable for you'", "Not suitable for you" in txt and "fragrance" in txt, txt[:160])
         check("C: it can still be previewed", pg.evaluate(f"TRYON.state.look.lips&&TRYON.state.look.lips.p.id==='{found['bad']}'"))
-        check("C: no 'Add to my plan' for it", pg.locator(".to-detail [data-to=add]").count() == 0)
+        check("C: look bar says it won't be added", "isn't suitable for you and won't be added" in pg.inner_text(".to-foot"), pg.inner_text(".to-foot"))
         check("C: product list flags it too", "Not suitable for you" in pg.inner_text(f".to-prod[data-pid='{found['bad']}']"))
         ctx.close()
 
@@ -200,15 +216,17 @@ def main():
         check("D: card button opens the try-on on that product", pg.is_visible("#tryon") and pg.evaluate("TRYON.state.pid") == pid and "#try-on" in pg.url)
         match = pg.evaluate(f"bestShade(BY_ID['{pid}'],6,'warm').name")
         sel = pg.locator(".to-sw.match")
-        check("D: user's best shade is marked 'Your match'", sel.count() == 1 and match in sel.inner_text() and "Your match" in sel.inner_text())
+        lab = sel.get_attribute("aria-label") if sel.count() == 1 else ""
+        check("D: user's best shade is marked 'Your match'", sel.count() == 1 and match in lab and "Your match" in lab, lab)
+        check("D: product list shows a 'Your match' chip", "Your match" in pg.inner_text(f".to-prod[data-pid='{pid}']"))
         check("D: and it is pre-selected", pg.evaluate("TRYON.state.look.base&&TRYON.state.look.base.s.name") == match)
         lip = pg.evaluate("TRYON._products('Lipstick').find(x=>x.st.ok&&!PL.extras?.some(e=>e.p.id===x.p.id)).p.id")
         pg.click(".to-model >> nth=0")
         pg.click(".tryon [data-tab='lips']"); pg.click(f".to-prod[data-pid='{lip}']")
-        pg.click(".to-detail [data-to=add]")
+        pg.click(".to-foot [data-to=addlook]")
         pg.wait_for_timeout(300)
-        check("D: 'Add to my plan' adds the product to the plan", pg.evaluate(f"PL.extras.some(x=>x.p.id==='{lip}')") and pg.evaluate(f"META.extraIds.some(x=>x.id==='{lip}')"))
-        check("D: button turns into 'In your plan'", "In your plan" in pg.inner_text(".to-detail"))
+        check("D: 'Add look to my plan' adds the look to the plan", pg.evaluate(f"PL.extras.some(x=>x.p.id==='{lip}')") and pg.evaluate(f"META.extraIds.some(x=>x.id==='{lip}')"))
+        check("D: the bar then shows it is in your plan", "In your plan" in pg.inner_text(".to-foot") and pg.is_disabled(".to-foot [data-to=addlook]"))
         pg.click(".to-x")
         pg.wait_for_timeout(300)
         check("D: closing hides it and clears the route", not pg.is_visible("#tryon") and "#try-on" not in pg.url)
@@ -258,10 +276,10 @@ def main():
             pg = bs.new_page(viewport={"width": 1280, "height": 900}); pg.goto(url + "#try-on"); pg.wait_for_timeout(400)
             rows = []
             for mid in ("ira", "meher", "zoya"):
-                if pg.is_visible(".to-actions [data-to=start]"):
-                    pg.click(".to-actions [data-to=start]")
+                if pg.is_visible(".to-tools [data-to=start]"):
+                    pg.click(".to-tools [data-to=start]")
                 pg.click(f".to-model[data-i='{[m['id'] for m in MODELS].index(mid)}']"); pg.wait_for_timeout(300)
-                pg.evaluate("TRYON.state.look={};TRYON._draw()")
+                pg.evaluate("TRYON.state.look={};TRYON.setSplit(0);TRYON._draw()")
                 base_img = canvas_png(pg)
                 pick(pg, "face", found["f"], FOUNDATION_SHADE); pick(pg, "lips", found["l"], LIPSTICK_SHADE)
                 same = canvas_png(pg)

@@ -955,92 +955,179 @@ body{background:#fcfbfa;color:var(--ink);font:16px/1.55 var(--body);margin:0}
 .about .goalopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:10px;margin-top:6px}
 .about .goalopts .opt{text-align:left}.about .goalic svg{width:26px;height:26px}
 
-/* ---------- virtual try-on ---------- */
+/* ---------- virtual try-on (Aaina tokens only) ---------- */
 html.to-lock,html.to-lock body{overflow:hidden}
-.tryon{position:fixed;inset:0;z-index:1000;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;font-family:var(--body)}
-.to-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--surface)}
-.to-bar h2{font-family:var(--display);font-size:1.6rem;margin:0;font-weight:500}
-.to-x{border:1px solid var(--line);background:var(--surface);border-radius:999px;width:40px;height:40px;font-size:1rem;cursor:pointer}
-.to-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,0.75fr);gap:0}
-.to-left{min-height:0;overflow:auto;padding:16px 20px;display:flex;flex-direction:column}
-.to-right{min-height:0;overflow:auto;padding:16px 20px;border-left:1px solid var(--line);background:var(--surface)}
-.to-lead{margin:0 0 12px;color:var(--text-body)}
-.to-ways{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.to-way{display:flex;flex-direction:column;gap:4px;text-align:left;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--surface);cursor:pointer;font:inherit;color:inherit}
-.to-way:hover,.to-way:focus-visible{border-color:var(--accent)}
-.to-way small,.to-fine,.to-sub{color:var(--muted)}
-.to-sub{margin:18px 0 8px;font-size:.85rem;text-transform:uppercase;letter-spacing:.08em}
-.to-models{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.to-model{padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface);cursor:pointer;font:inherit;color:inherit;text-align:left}
+.tryon{position:fixed;inset:0;z-index:1000;background:var(--bg);color:var(--ink);font-family:var(--body);display:flex;flex-direction:column}
+.tryon button,.tryon .to-way{transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease,opacity .16s ease}
+.tryon :focus-visible,.tryon .to-way:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.to-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;border-bottom:1px solid var(--line);background:var(--surface)}
+.to-bar h2{font:500 26px/1.1 var(--display);margin:2px 0 0}
+.to-x{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:15px}
+.to-x:hover{border-color:var(--accent)}
+.to-main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,3fr) minmax(340px,2fr);grid-template-rows:minmax(0,1fr) auto;grid-template-areas:"left panel" "foot foot"}
+.to-left{grid-area:left;min-height:0;padding:20px;display:flex;flex-direction:column}
+.to-left>[data-pane]{flex:1;min-height:0;animation:toIn .18s ease}
+@keyframes toIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.to-panel{grid-area:panel;min-height:0;display:flex;flex-direction:column;border-left:1px solid var(--line);background:var(--surface)}
+.to-scroll{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:16px 22px 18px}
+.to-scroll>*{flex:none}
+.to-foot{grid-area:foot;display:flex;align-items:center;gap:18px;padding:12px 24px;border-top:1px solid var(--line);background:var(--surface)}
+/* start */
+.to-start{overflow:auto}
+.to-h{font:500 26px/1.2 var(--display);margin:4px 0 16px}
+.to-ways{display:grid;grid-template-columns:1fr 1fr 1.7fr;gap:14px;align-items:start}
+.to-way{display:flex;flex-direction:column;gap:6px;text-align:left;padding:20px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);cursor:pointer;color:inherit;font:inherit;box-shadow:0 4px 16px rgba(0,0,0,.02)}
+.to-way:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 16px 36px -12px rgba(140,94,40,.12)}
+.to-way-models{cursor:default}.to-way-models:hover{transform:none}
+.to-wayic{width:42px;height:42px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin-bottom:8px}
+.to-way b{font-size:16px}.to-way small{color:var(--muted);font-size:13px;line-height:1.4}
+.to-models{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+.to-model{padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--sunken);cursor:pointer;text-align:left}
+.to-model:hover{border-color:var(--accent);transform:translateY(-2px)}
 .to-model img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover}
-.to-model span{display:flex;justify-content:space-between;padding:6px 8px;font-size:.85rem}
-.to-model small{color:var(--muted)}
-.to-fine{font-size:.78rem;margin-top:8px}
-.to-consent{max-width:520px}
-.to-consent ul{padding-left:18px;line-height:1.6}
-.to-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
-.to-stage{position:relative;width:min(100%,calc(var(--to-maxh,70vh) * var(--to-ar,1)));margin:0 auto;border-radius:16px;overflow:hidden;background:var(--sunken)}
+.to-model span{display:block;padding:6px 8px;font-size:12px;font-weight:600}.to-model small{display:block;color:var(--muted);font-weight:400}
+.to-consentnote{display:flex;gap:8px;align-items:flex-start;margin:18px 0 4px;color:var(--text-body);font-size:13.5px;line-height:1.45}
+.to-consentnote svg{flex:none;color:var(--accent);margin-top:1px}
+.to-tip{font-size:13px;color:var(--muted);margin:0 0 0 26px}
+.to-consent{max-width:560px}.to-consent ul{padding-left:18px;line-height:1.7;color:var(--text-body)}
+.to-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+/* stage */
+.to-stagewrap{display:flex}
+.to-stage{position:relative;flex:1;min-height:0;border-radius:var(--r);background:var(--sunken);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.to-fit{position:relative;flex:none;border-radius:14px;overflow:hidden}
 .to-cv{display:block;width:100%;height:100%}
 .to-divider{position:absolute;inset:0;pointer-events:none}
-.to-divider::before{content:"";position:absolute;top:0;bottom:0;left:var(--x,0%);width:2px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
-.to-divider span{position:absolute;top:10px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;background:rgba(17,17,17,.6);color:#fff;padding:3px 8px;border-radius:999px}
-.to-divider span:first-child{left:10px}.to-divider span:last-child{right:10px}
-.to-divider.off::before,.to-divider.off span:first-child{display:none}
-.to-ba{margin-top:8px}.to-ba label{display:flex;align-items:center;gap:10px;font-size:.85rem;color:var(--muted)}.to-ba input{flex:1}
-.to-tiles{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;pointer-events:none}
-.to-tile{border:1px solid rgba(255,255,255,.7);position:relative}
-.to-tile span{position:absolute;left:8px;bottom:8px;background:rgba(17,17,17,.65);color:#fff;font-size:.75rem;padding:3px 8px;border-radius:999px;pointer-events:auto;display:flex;gap:6px;align-items:center}
-.to-tile span.empty{background:rgba(255,255,255,.75);color:var(--ink)}
-.to-tile button{background:none;border:0;color:#fff;cursor:pointer;font-size:.9rem;padding:0 2px}
-.to-msg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.94);color:var(--ink);padding:12px 16px;border-radius:12px;max-width:86%;text-align:center;font-size:.9rem;box-shadow:0 8px 24px rgba(0,0,0,.12)}
-.to-msg.toast{top:auto;bottom:12px;transform:translateX(-50%)}
-.to-snaps img{width:72px;height:auto;border-radius:8px;margin:4px 6px 0 0;border:1px solid var(--line)}
-.to-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:10px}
-.to-tabs button{flex:1;background:none;border:0;border-bottom:2px solid transparent;padding:10px 4px;font:inherit;cursor:pointer;color:var(--muted)}
+.to-divider::before{content:"";position:absolute;top:0;bottom:0;left:var(--x,50%);width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.18)}
+.to-handle{position:absolute;top:50%;left:var(--x,50%);width:42px;height:42px;margin:-21px 0 0 -21px;border-radius:50%;background:var(--surface);border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.16);pointer-events:auto;cursor:ew-resize;display:grid;place-items:center;touch-action:none;transition:transform .16s ease}
+.to-handle.drag{transform:scale(1.08)}
+.to-grip{font:700 15px/1 var(--body);color:var(--accent);letter-spacing:3px;margin-left:3px}
+.to-lbl{position:absolute;bottom:14px;font:600 10.5px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;background:rgba(17,17,17,.55);color:#fff;padding:5px 9px;border-radius:999px;transition:opacity .16s ease}
+.to-lbl.b{left:14px}.to-lbl.a{right:14px}
+.to-divider.nob .to-lbl.b,.to-divider.noa .to-lbl.a{opacity:0}
+.to-tools{position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:2}
+.to-tool{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.94);color:var(--ink);display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.to-tool:hover{border-color:var(--accent);color:var(--accent)}
+.to-tool[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.to-stop{position:absolute;top:14px;left:14px;z-index:2;border:0;border-radius:999px;background:rgba(17,17,17,.75);color:#fff;font:600 12.5px/1 var(--body);padding:10px 14px;cursor:pointer}
+.to-stop:hover{background:#111}
+.to-face{position:absolute;left:0;right:0;margin:0 auto;width:fit-content;bottom:52px;z-index:2;display:flex;align-items:center;gap:8px;max-width:88%;box-sizing:border-box;background:rgba(255,255,255,.95);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:9px 14px;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.1);animation:toIn .18s ease}
+.to-face[data-kind=noface]{border-radius:14px;background:#fff8ec;border-color:#ecd2a4;color:#5c3b0b;display:block;text-align:center}
+.to-pulse{flex:none;width:9px;height:9px;border-radius:50%;background:var(--accent);animation:toPulse 1.2s ease-in-out infinite}
+@keyframes toPulse{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+.to-link{background:none;border:0;padding:0 2px;font:inherit;font-weight:600;color:var(--accent);text-decoration:underline;cursor:pointer}
+.to-toast{position:absolute;left:50%;top:66px;z-index:3;transform:translate(-50%,-6px);opacity:0;background:var(--ink);color:#fff;border-radius:999px;padding:9px 16px;font-size:13px;white-space:nowrap;transition:opacity .18s ease,transform .18s ease}
+.to-toast.show{opacity:1;transform:translate(-50%,0)}
+.to-cmpdone{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:2;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.to-tiles{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.to-tile{position:relative;border:1px solid rgba(255,255,255,.85)}
+.to-tilecap{position:absolute;left:8px;right:8px;bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,.95);border-radius:12px;padding:7px 7px 7px 12px;box-shadow:0 4px 12px rgba(0,0,0,.1);animation:toIn .18s ease}
+.to-tilecap b{display:block;font-size:12.5px;line-height:1.2}.to-tilecap small{color:var(--muted);font:500 11.5px var(--mono)}
+.to-tilecap.empty{justify-content:center;color:var(--muted);font-size:12px;padding:10px}
+.to-pick{flex:none;border:0;background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:8px 12px;font:600 12px/1 var(--body);cursor:pointer;white-space:nowrap}
+.to-pick:hover{background:#6f4a1f}
+/* panel */
+.to-grab{display:none}
+.to-tabs{display:flex;padding:0 22px;border-bottom:1px solid var(--line)}
+.to-tabs button{flex:1;background:none;border:0;border-bottom:2px solid transparent;padding:15px 4px 13px;cursor:pointer;color:var(--muted);font-weight:500}
+.to-tabs button:hover{color:var(--ink)}
 .to-tabs button.on{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
-.to-cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.to-cats .chip{cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font:inherit;font-size:.82rem}
-.to-cats .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.to-prods{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x proximity}
-.to-prod{flex:0 0 150px;scroll-snap-align:start;text-align:left;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--surface);cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;gap:3px}
+.to-cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.to-cats:empty{display:none}
+.to-cat{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.to-cat:hover{border-color:var(--accent)}
+.to-cat.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.to-prods{position:relative;display:flex;flex-direction:column;gap:8px;flex:1 1 auto!important;min-height:120px;overflow:auto;padding:2px 4px 2px 2px;margin:-2px -4px -2px -2px;overscroll-behavior:contain}
+.to-prod{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"dots t p" "dots c c";gap:2px 12px;align-items:center;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);cursor:pointer}
+.to-prod:hover{border-color:#d8cdbf}
 .to-prod.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-.to-prod b{font-size:.85rem;line-height:1.25}.to-prod small{color:var(--muted);font-size:.75rem}
-.to-prod em{font-style:normal;font-size:.72rem;color:#9b2c2c}
-.to-prod.bad{opacity:.85}
-.to-dots{display:flex;gap:2px}.to-dots i{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.08)}
-.to-detail{margin-top:12px}
-.to-ph b{display:block}.to-ph small{color:var(--muted)}
-.to-bad{background:#fbeceb;color:#7d1f1f;border-radius:10px;padding:8px 10px;font-size:.85rem}
-.to-demo{display:inline-block;background:#fff6dd;color:#6b4e00;border:1px dashed #d9b24c;border-radius:8px;padding:3px 8px;font-size:.78rem;margin:6px 0}
-.to-shades{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:10px 0}
-.to-sw{display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid var(--line);border-radius:12px;padding:8px 4px;background:var(--surface);cursor:pointer;font:inherit;color:inherit}
-.to-sw i{width:34px;height:34px;border-radius:50%;border:1px solid rgba(0,0,0,.1)}
-.to-sw span{font-size:.72rem;text-align:center;line-height:1.2}.to-sw small{display:block;color:var(--muted)}
-.to-sw em{display:block;font-style:normal;color:var(--accent);font-weight:600}
-.to-sw.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
-.to-sw.match i{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent)}
-.to-inplan{color:var(--accent);font-weight:600}
-.to-look{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
-.to-look h4{margin:0 0 6px;font-size:.9rem}
-.to-lookchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.to-lookchips .chip{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.78rem}
-.to-lookchips .chip button{border:0;background:none;cursor:pointer;font-size:.9rem}
-.to-look .link{background:none;border:0;padding:0 4px;text-decoration:underline;cursor:pointer;color:var(--muted);font:inherit;font-size:.8rem}
-.to-note{font-size:.78rem;color:var(--muted);margin-top:14px}
+.to-dots{grid-area:dots;display:grid;grid-template-columns:repeat(2,14px);gap:3px}
+.to-dots i{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.08)}
+.to-pt{grid-area:t;min-width:0}.to-pt b{display:block;font-size:14px;line-height:1.25}.to-pt small{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.to-pp{grid-area:p;font:500 14px var(--mono);white-space:nowrap}
+.to-chips{grid-area:c;display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.to-chip{font:600 10.5px/1 var(--body);padding:4px 8px;border-radius:999px;background:var(--sunken);color:var(--muted);white-space:nowrap}
+.to-chip.match{background:var(--accent-soft);color:var(--accent)}
+.to-chip.demo{background:#fff6dd;color:#6b4e00}
+.to-chip.bad{background:#fbeceb;color:#8a2323}
+.to-detail{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.to-ph b{display:block;font-size:15px}.to-ph small{color:var(--muted);font-size:12.5px}
+.to-bad{background:#fbeceb;color:#7d1f1f;border-radius:12px;padding:9px 12px;font-size:13px;margin:10px 0 0}
+.to-demo{display:inline-block;background:#fff6dd;color:#6b4e00;border:1px dashed #d9b24c;border-radius:8px;padding:4px 8px;font-size:12px;margin:10px 0 0}
+.to-cmphint{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.to-shades{position:relative;display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+.to-sw{flex:none;width:44px;height:44px;padding:0;border:0;background:none;border-radius:50%;display:grid;place-items:center;cursor:pointer;position:relative}
+.to-sw i{width:36px;height:36px;border-radius:50%;border:1px solid rgba(0,0,0,.1);transition:transform .16s ease,box-shadow .16s ease}
+.to-sw:hover i{transform:scale(1.08)}
+.to-sw.on i{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.to-sw.match::after{content:"";position:absolute;top:3px;right:3px;width:11px;height:11px;border-radius:50%;background:var(--accent);border:2px solid var(--surface)}
+.to-swinfo{min-height:40px;font-size:13.5px;margin:4px 0 0;line-height:1.4}.to-swinfo small{color:var(--muted);font-size:12.5px}
+.to-note{font-size:12px;color:var(--muted);margin:16px 0 0}
+/* bottom bar */
+.to-lookchips{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:thin;padding:2px}
+.to-lookh{font:600 11px/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-right:6px;white-space:nowrap}
+.to-lc{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 10px 5px 5px;font-size:12.5px;cursor:pointer}
+.to-lc i{width:20px;height:20px;border-radius:50%;border:1px solid rgba(0,0,0,.08)}
+.to-lc span{color:var(--muted);margin-left:2px;font-size:14px}
+.to-lc:hover{border-color:#b9867f}.to-lc.bad{border-style:dashed;border-color:#d9a6a0}
+.to-total{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.to-total small{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}.to-total b{font:600 17px var(--mono)}
+.to-addwrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.to-foothint{font-size:11.5px;color:var(--muted);max-width:280px;text-align:right}
+/* fallback */
+.to-fallback{overflow:auto}
 .to-fbmsg{background:var(--accent-soft);border-radius:12px;padding:12px 14px}
 .to-fsl{list-style:none;padding:0;display:grid;gap:10px}
 .to-fsl li{display:flex;gap:12px;align-items:center}
 .to-fs{display:flex}.to-fs i{width:44px;height:44px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line)}.to-fs i+i{margin-left:-12px}
 .to-fsl small{display:block;color:var(--muted)}
 .tryon-btn{border:1px solid var(--accent);color:var(--accent);background:var(--surface);border-radius:999px;padding:6px 12px;font:inherit;font-size:.8rem;cursor:pointer}
-@media (max-width:820px){
-  .to-body{display:flex;flex-direction:column;overflow:auto}
-  .to-left,.to-right{flex:0 0 auto;min-height:auto;overflow:visible;padding:12px 16px}
-  .to-right{border-left:0;border-top:1px solid var(--line)}
-  .to-stage{--to-maxh:56vh}
-  .to-models{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .to-ways{grid-template-columns:1fr}
-  .to-bar{padding:10px 16px}
+/* tablet */
+@media (max-width:1023px){
+  .to-main{grid-template-columns:minmax(0,1fr) 340px}
+  .to-ways{grid-template-columns:1fr 1fr}.to-way-models{grid-column:1/-1}
+}
+/* phone: canvas on top, bottom sheet below */
+@media (max-width:767px){
+  .to-bar{padding:8px 16px}.to-bar h2{font-size:21px}.to-x{width:36px;height:36px}
+  .to-main{display:block;position:relative}
+  .to-left{position:absolute;left:0;right:0;top:0;height:calc(65dvh - 54px);padding:8px}
+  .to-stage{border-radius:16px}
+  .to-tools{top:10px;right:10px;gap:6px}.to-tool{width:36px;height:36px}
+  .to-stop{top:10px;left:10px;padding:9px 12px}
+  .to-lbl{bottom:12px}
+  .to-face{bottom:auto;top:56px}
+  .to-panel{position:absolute;left:0;right:0;top:calc(65dvh - 54px);bottom:var(--to-foot-h,62px);z-index:3;border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;box-shadow:0 -10px 28px rgba(0,0,0,.07);transition:top .2s ease}
+  .tryon.sheet-up .to-panel{top:9dvh}
+  .to-grab{display:flex;justify-content:center;width:100%;border:0;background:none;padding:8px 0 2px;cursor:pointer;touch-action:none}
+  .to-grab span{width:42px;height:5px;border-radius:3px;background:#d9d2c8}
+  .to-tabs{padding:0 10px}.to-tabs button{padding:10px 4px 9px}
+  .to-scroll{display:block;overflow:auto;padding:6px 14px 10px}
+  .to-cats{flex-wrap:nowrap;overflow-x:auto;margin-bottom:8px;scrollbar-width:none}.to-cat{padding:6px 11px;font-size:12px}
+  .to-prods{flex-direction:row;overflow-x:auto;overflow-y:hidden;min-height:0;scroll-snap-type:x mandatory;scrollbar-width:none}
+  .to-prod{flex:0 0 74%;scroll-snap-align:start;padding:9px 11px;gap:1px 10px}.to-prod .to-chips{margin-top:3px}.to-pt b{font-size:13.5px}
+  .tryon:not(.sheet-up) .to-prod{padding:7px 11px;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"t p" "c c";flex-basis:66%}
+  .tryon:not(.sheet-up) .to-dots,.tryon:not(.sheet-up) .to-pt small{display:none}.tryon:not(.sheet-up) .to-pt b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+  .tryon:not(.sheet-up) .to-pp{font-size:12.5px}.tryon:not(.sheet-up) .to-chips{margin-top:3px;flex-wrap:nowrap;overflow:hidden}.tryon:not(.sheet-up) .to-chip{font-size:10px;padding:3px 7px}
+  .tryon:not(.sheet-up) .to-cat{padding:5px 10px;font-size:11.5px}.tryon:not(.sheet-up) .to-cats{margin-bottom:6px}.tryon:not(.sheet-up) .to-scroll{padding-top:4px}
+  .tryon:not(.sheet-up) .to-swinfo{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tryon:not(.sheet-up) .to-tabs button{font-size:14px}.tryon:not(.sheet-up) .to-detail{margin-top:4px;padding-top:2px;border-top:0}.tryon:not(.sheet-up) .to-shades{margin-top:2px}
+  .tryon:not(.sheet-up) .to-bad,.tryon:not(.sheet-up) .to-demo,.tryon:not(.sheet-up) .to-note,.tryon:not(.sheet-up) .to-cmphint{display:none}
+  .tryon:not(.sheet-up) .to-tabs button{padding:6px 4px 6px}.tryon:not(.sheet-up) .to-grab{padding:5px 0 0}
+  .tryon.sheet-up .to-prods{flex-direction:column;overflow:visible}.tryon.sheet-up .to-prod{flex:none;padding:12px 14px}
+  .to-detail{margin-top:8px;padding-top:6px}.to-bad,.to-demo{margin-top:6px;font-size:12px;padding:6px 10px}
+  .to-ph{display:none}.tryon.sheet-up .to-ph{display:block}
+  .to-shades{flex-wrap:nowrap;overflow-x:auto;margin:8px -4px 2px;padding:0 4px;scrollbar-width:none}
+  .tryon.sheet-up .to-shades{flex-wrap:wrap}
+  .to-swinfo{min-height:20px;font-size:12.5px;margin:2px 0 0}.to-swinfo br{display:none}.to-swinfo small{margin-left:4px}.to-note{margin-top:10px}
+  .to-tilecap{left:5px;right:5px;bottom:5px;padding:6px 6px 6px 9px;gap:6px}.to-tilecap b{font-size:11.5px}.to-pick{padding:7px 10px;font-size:11.5px}
+  .to-foot{position:absolute;left:0;right:0;bottom:0;z-index:4;gap:10px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));height:var(--to-foot-h,62px);box-sizing:border-box}
+  .to-lookh{display:none}.to-total b{font-size:15px}
+  .to-addwrap .btn{padding:10px 12px;font-size:13px}.to-foothint{display:none}
+  .to-ways{grid-template-columns:1fr}.to-way{min-height:0;padding:16px}.to-way-models{grid-column:auto}
+  .tryon[data-pane=start] .to-panel,.tryon[data-pane=start] .to-foot,.tryon[data-pane=consent] .to-panel,.tryon[data-pane=consent] .to-foot{display:none}
+  .tryon[data-pane=start] .to-left,.tryon[data-pane=consent] .to-left{height:auto;bottom:0;overflow:auto;padding:16px}
+  .tryon.cmp .to-stage{position:fixed;inset:0;z-index:20;border-radius:0;background:#1a1816}
+  .tryon.cmp .to-tools{display:none}
 }
 </style>
 
@@ -8586,9 +8673,10 @@ const TRYON=(()=>{
 
   /* ---------- state ---------- */
   const S={open:false,src:null,mode:null,model:null,stream:null,video:null,img:null,lm:null,lmS:null,tab:"face",cat:"Foundation",pid:null,
-    look:{},compare:false,cmp:[],split:0,skinMean:[0.3,0.2,0.15],lipMean:[0.2,0.08,0.07],raf:0,lastDetect:0,detMs:[],noFaceSince:0,
-    tracker:null,trackerP:null,fallback:null,snaps:[],gl:null,pushedHash:false,frameW:0,frameH:0,maskDirty:true};
-  let root,stage,cv,maskA,maskB,detCv;
+    look:{},compare:false,cmp:[],split:0.5,skinMean:[0.3,0.2,0.15],lipMean:[0.2,0.08,0.07],raf:0,lastDetect:0,detMs:[],noFaceSince:0,
+    tracker:null,trackerP:null,fallback:null,snaps:[],gl:null,pushedHash:false,frameW:0,frameH:0,maskDirty:true,hover:null,sheetUp:false,added:new Set()};
+  let root,stage,fit,cv,maskA,maskB,detCv;
+  const mobile=()=>window.matchMedia("(max-width:767px)").matches;
 
   /* ---------- catalogue ---------- */
   const products=cat=>{const list=(typeof CAT!=="undefined"?CAT:[]).filter(p=>p.c===cat&&(SLOT[cat]&&(p.s&&p.s.length||DEMO[p.id])));
@@ -8603,127 +8691,171 @@ const TRYON=(()=>{
   function matchFor(p){
     if(!(p.s&&p.s.length)||typeof bestShade!=="function")return null;
     const tone=(typeof P!=="undefined"&&P.tone)||null;
-    if(tone){const m=bestShade(p,tone,P.undertone||"neutral");return m?{name:m.name,good:m.good,label:m.good?"Your match":"Closest to you"}:null}
-    if(S.model){const m=bestShade(p,S.model.tone,S.model.undertone);return m?{name:m.name,good:m.good,label:"Matches this model"}:null}
+    if(tone){const m=bestShade(p,tone,P.undertone||"neutral");return m?{name:m.name,good:m.good,label:m.good?"Your match":"Closest to you",you:true}:null}
+    if(S.model){const m=bestShade(p,S.model.tone,S.model.undertone);return m?{name:m.name,good:m.good,label:"Matches this model",you:false}:null}
     return null}
-  const inPlan=id=>typeof PL!=="undefined"&&PL&&(PL.extras||[]).some(x=>x.p.id===id)||(typeof PL!=="undefined"&&PL&&PL.slots.some(s=>s.p&&s.p.id===id));
+  const hasPlan=()=>typeof PL!=="undefined"&&!!PL;
+  const inPlan=id=>hasPlan()&&((PL.extras||[]).some(x=>x.p.id===id)||PL.slots.some(s=>s.p&&s.p.id===id));
+  const shadeInfo=s=>[s.name,s.depth?`Tone ${s.depth}`:"",s.und?`${s.und} undertone`:"",s.cov?`${s.cov} coverage`:"",s.demo?`${s.fin} · demo colour`:""].filter(Boolean).join(" · ");
+
+  /* ---------- icons (simple line drawings) ---------- */
+  const ic=d=>`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const ICON={
+    camera:ic('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),
+    upload:ic('<path d="M12 15V4m0 0L8 8m4-4 4 4"/><path d="M5 14v5h14v-5"/>'),
+    face:ic('<circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M9 15c1.7 1.3 4.3 1.3 6 0"/>'),
+    swap:ic('<path d="M4 8h14l-3-3M20 16H6l3 3"/>'),
+    grid:ic('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'),
+    snap:ic('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),
+    reset:ic('<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4 4.5v4h4"/>'),
+    lock:ic('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>')};
 
   /* ---------- DOM ---------- */
   function build(){
     root=document.createElement("section");root.id="tryon";root.className="tryon";root.hidden=true;
     root.setAttribute("role","dialog");root.setAttribute("aria-modal","true");root.setAttribute("aria-label","Virtual try-on");
-    root.innerHTML=`<div class="to-bar"><div><span class="eyebrow">Aaina</span><h2>Try it on</h2></div><button type="button" class="to-x" data-to="close" aria-label="Close try-on">✕</button></div>
-      <div class="to-body">
+    root.innerHTML=`<header class="to-bar"><div><span class="eyebrow">Aaina</span><h2>Try it on</h2></div><button type="button" class="to-x" data-to="close" aria-label="Close try-on">✕</button></header>
+      <div class="to-main">
         <div class="to-left">
-          <div class="to-start" data-pane="start">
-            <p class="to-lead">See shades on a face before you buy. Pick how you'd like to try.</p>
+          <section class="to-start" data-pane="start">
+            <h3 class="to-h">How would you like to try?</h3>
             <div class="to-ways">
-              <button type="button" class="to-way" data-to="consent"><b>Live camera</b><small>Mirror view, follows your face</small></button>
-              <label class="to-way"><b>Upload a photo</b><small>A clear, front-facing photo works best</small><input type="file" accept="image/*" data-to="file" hidden></label>
+              <button type="button" class="to-way" data-to="consent"><span class="to-wayic">${ICON.camera}</span><b>Use my camera</b><small>A live mirror that follows your face</small></button>
+              <label class="to-way" tabindex="0"><span class="to-wayic">${ICON.upload}</span><b>Upload a photo</b><small>A clear, front-facing photo works best</small><input type="file" accept="image/*" data-to="file" hidden></label>
+              <div class="to-way to-way-models"><span class="to-wayic">${ICON.face}</span><b>Try on a model</b><small>Illustrated faces, light to deep</small>
+                <div class="to-models">${MODELS.map((m,i)=>`<button type="button" class="to-model" data-to="model" data-i="${i}" aria-label="Model ${e(m.name)}, skin tone ${m.tone}"><img src="${m.src}" alt=""><span>${e(m.name)} <small>Tone ${m.tone}</small></span></button>`).join("")}</div></div>
             </div>
-            <p class="to-sub">Or try on a model</p>
-            <div class="to-models">${MODELS.map((m,i)=>`<button type="button" class="to-model" data-to="model" data-i="${i}" aria-label="Model ${e(m.name)}, skin tone ${m.tone}"><img src="${m.src}" alt="" loading="lazy"><span>${e(m.name)}<small>Tone ${m.tone}</small></span></button>`).join("")}</div>
-            <p class="to-fine">Model faces are illustrations, not photos of real people.</p>
-          </div>
-          <div class="to-consent" data-pane="consent" hidden>
-            <h3>Before your camera turns on</h3>
+            <p class="to-consentnote">${ICON.lock}<span>Your camera and photos stay on this device. Frames are processed in your browser and never uploaded or stored.</span></p>
+            <p class="to-tip">Tip: face a window or soft, even light, with no beauty filter. Model faces are illustrations, not photos of real people.</p>
+          </section>
+          <section class="to-consent" data-pane="consent" hidden>
+            <h3 class="to-h">Before your camera turns on</h3>
             <ul><li>Your camera feed is processed <b>on this device</b>, in your browser.</li><li>Frames are <b>never uploaded or stored</b>. Nothing is recorded.</li><li>You can <b>stop the camera</b> at any time.</li></ul>
             <p class="small muted">The face tracker (Google MediaPipe) downloads once from a public CDN. Your images never leave the device.</p>
             <div class="to-row"><button type="button" class="btn primary" data-to="camera">Turn on camera</button><button type="button" class="btn ghost" data-to="start">Not now</button></div>
-          </div>
-          <div class="to-stagewrap" data-pane="stage" hidden>
-            <div class="to-stage"><canvas class="to-cv" aria-label="Try-on preview"></canvas>
-              <div class="to-tiles" hidden></div>
-              <div class="to-divider" hidden><span>Before</span><span>After</span></div>
-              <div class="to-msg" hidden></div></div>
-            <div class="to-ba"><label>Before / after <input type="range" min="0" max="100" value="0" class="to-split" aria-label="Before and after slider: drag right to see more of the face without makeup"></label></div>
-            <div class="to-row to-actions">
-              <button type="button" class="btn ghost" data-to="stop" hidden>Stop camera</button>
-              <button type="button" class="btn ghost" data-to="compare" aria-pressed="false">Compare shades</button>
-              <button type="button" class="btn ghost" data-to="snap">Save snapshot</button>
-              <button type="button" class="btn ghost" data-to="start">Change face</button>
+          </section>
+          <section class="to-stagewrap" data-pane="stage" hidden>
+            <div class="to-stage">
+              <div class="to-fit"><canvas class="to-cv" aria-label="Try-on preview"></canvas>
+                <div class="to-divider"><span class="to-lbl b">Before</span><span class="to-lbl a">After</span>
+                  <div class="to-handle" role="slider" tabindex="0" aria-label="Before and after: drag to compare with and without makeup" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><span class="to-grip" aria-hidden="true">‹›</span></div></div>
+                <div class="to-tiles" hidden></div>
+              </div>
+              <div class="to-tools" role="toolbar" aria-label="Try-on tools">
+                <button type="button" class="to-tool" data-to="start" title="Switch input" aria-label="Switch input">${ICON.swap}</button>
+                <button type="button" class="to-tool" data-to="compare" title="Compare shades" aria-label="Compare shades" aria-pressed="false">${ICON.grid}</button>
+                <button type="button" class="to-tool" data-to="snap" title="Save snapshot to this device" aria-label="Save snapshot">${ICON.snap}</button>
+                <button type="button" class="to-tool" data-to="clear" title="Reset look" aria-label="Reset look">${ICON.reset}</button>
+              </div>
+              <button type="button" class="to-stop" data-to="stop" hidden>Stop camera</button>
+              <div class="to-face" role="status" aria-live="polite" hidden></div>
+              <div class="to-toast" role="status" aria-live="polite" hidden></div>
+              <button type="button" class="btn to-cmpdone" data-to="compare" hidden>Done comparing</button>
             </div>
-            <div class="to-snaps"></div>
-          </div>
-          <div class="to-fallback" data-pane="fallback" hidden></div>
+          </section>
+          <section class="to-fallback" data-pane="fallback" hidden></section>
         </div>
-        <div class="to-right">
+        <aside class="to-panel" aria-label="Products and shades">
+          <button type="button" class="to-grab" aria-label="Show all products" aria-expanded="false"><span></span></button>
           <div class="to-tabs" role="tablist">${TABS.map(([k,l])=>`<button type="button" role="tab" data-tab="${k}">${l}</button>`).join("")}</div>
-          <div class="to-cats"></div>
-          <div class="to-prods" role="listbox" aria-label="Products"></div>
-          <div class="to-detail"></div>
-          <div class="to-look"></div>
-          <p class="to-note">Preview only. Screen colours vary; your shade match is based on your tone and undertone.</p>
-        </div>
+          <div class="to-scroll">
+            <div class="to-cats"></div>
+            <div class="to-prods" role="listbox" aria-label="Products"></div>
+            <div class="to-detail"></div>
+            <p class="to-note">Preview only. Screen colours vary; your shade match is based on your tone and undertone.</p>
+          </div>
+        </aside>
+        <footer class="to-foot" aria-label="Your look"></footer>
       </div>`;
     document.body.appendChild(root);
-    stage=root.querySelector(".to-stage");cv=root.querySelector(".to-cv");
+    stage=root.querySelector(".to-stage");fit=root.querySelector(".to-fit");cv=root.querySelector(".to-cv");
     maskA=document.createElement("canvas");maskB=document.createElement("canvas");detCv=document.createElement("canvas");
     root.addEventListener("click",onClick);
     root.querySelector("[data-to=file]").addEventListener("change",ev=>{const f=ev.target.files&&ev.target.files[0];ev.target.value="";if(f)useFile(f)});
-    root.querySelector(".to-split").addEventListener("input",ev=>{S.split=+ev.target.value/100;drawDivider();kick()});
-    root.addEventListener("keydown",ev=>{if(ev.key==="Escape")close()});
+    root.querySelector(".to-way[tabindex]").addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();root.querySelector("[data-to=file]").click()}});
+    root.addEventListener("keydown",ev=>{if(ev.key==="Escape"){if(S.compare)toggleCompare(false);else close()}});
+    root.addEventListener("pointerover",ev=>{const b=ev.target.closest&&ev.target.closest(".to-sw");if(b){S.hover=+b.dataset.shade;swInfo()}});
+    root.addEventListener("pointerout",ev=>{const b=ev.target.closest&&ev.target.closest(".to-sw");if(b){S.hover=null;swInfo()}});
+    root.addEventListener("focusin",ev=>{const b=ev.target.closest&&ev.target.closest(".to-sw");if(b){S.hover=+b.dataset.shade;swInfo()}});
+    wireHandle();wireSheet();
+    if("ResizeObserver"in window)new ResizeObserver(()=>{if(S.open&&S.src){layout();kick()}}).observe(stage);
   }
-  const pane=name=>root.querySelectorAll("[data-pane]").forEach(x=>x.hidden=x.dataset.pane!==name);
+  const pane=name=>{root.querySelectorAll("[data-pane]").forEach(x=>x.hidden=x.dataset.pane!==name);root.dataset.pane=name};
   function onClick(ev){
-    const t=ev.target.closest("[data-to],[data-tab],[data-cat],[data-pid],[data-shade],[data-rm],[data-cmprm]");if(!t||!root.contains(t))return;
+    const t=ev.target.closest("[data-to],[data-tab],[data-cat],[data-pid],[data-shade],[data-rm],[data-pick]");if(!t||!root.contains(t))return;
     if(t.dataset.tab){S.tab=t.dataset.tab;S.cat=TABS.find(x=>x[0]===S.tab)[2][0];S.pid=null;renderPanel();return}
     if(t.dataset.cat){S.cat=t.dataset.cat;S.pid=null;renderPanel();return}
     if(t.dataset.pid){pickProduct(t.dataset.pid);return}
     if(t.dataset.shade!=null){pickShade(+t.dataset.shade);return}
-    if(t.dataset.rm){delete S.look[t.dataset.rm];renderPanel();kick();return}
-    if(t.dataset.cmprm!=null){S.cmp.splice(+t.dataset.cmprm,1);layout();kick();return}
+    if(t.dataset.rm){delete S.look[t.dataset.rm];renderPanel();kick();fallbackRender();return}
+    if(t.dataset.pick!=null){const c=S.cmp[+t.dataset.pick];if(c){S.look[c.slot]={p:c.p,s:c.s};toggleCompare(false);toast(`Picked ${c.s.name}`)}return}
     const a=t.dataset.to;
     if(a==="close")close();
     else if(a==="consent"){stopCamera();pane("consent")}
-    else if(a==="start"){stopCamera();S.src=null;pane("start")}
+    else if(a==="start"){stopCamera();S.src=null;toggleCompare(false,true);pane("start")}
     else if(a==="camera")startCamera();
     else if(a==="stop"){stopCamera();S.src=null;pane("start")}
     else if(a==="model")useModel(+t.dataset.i);
-    else if(a==="compare"){S.compare=!S.compare;S.cmp=[];t.setAttribute("aria-pressed",S.compare);layout();renderPanel();kick()}
+    else if(a==="compare")toggleCompare(!S.compare);
     else if(a==="snap")snapshot();
-    else if(a==="add")addToPlan(t.dataset.id,t.dataset.shadename);
-    else if(a==="clear"){S.look={};renderPanel();kick()}
+    else if(a==="addlook")addLook();
+    else if(a==="clear"){S.look={};S.split=0.5;drawDivider();renderPanel();kick();fallbackRender();toast("Look cleared")}
   }
 
   /* ---------- panel ---------- */
   function renderPanel(){
     if(!root)return;
-    root.querySelectorAll("[data-tab]").forEach(b=>{const on=b.dataset.tab===S.tab;b.classList.toggle("on",on);b.setAttribute("aria-selected",on)});
+    root.querySelectorAll("[data-tab]").forEach(b=>{const on=b.dataset.tab===S.tab;b.classList.toggle("on",on);b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1});
     const cats=TABS.find(x=>x[0]===S.tab)[2];
-    root.querySelector(".to-cats").innerHTML=cats.length>1?cats.map(c=>`<button type="button" class="chip${c===S.cat?" on":""}" data-cat="${e(c)}">${e(c)}</button>`).join(""):"";
+    root.querySelector(".to-cats").innerHTML=cats.length>1?cats.map(c=>`<button type="button" class="to-cat${c===S.cat?" on":""}" aria-pressed="${c===S.cat}" data-cat="${e(c)}">${e(c)}</button>`).join(""):"";
     const list=products(S.cat);
     if(!S.pid||!list.some(x=>x.p.id===S.pid)){const cur=S.look[SLOT[S.cat]];S.pid=cur&&cur.p.c===S.cat?cur.p.id:(list[0]&&list[0].p.id)||null}
-    root.querySelector(".to-prods").innerHTML=list.length?list.map(({p,st})=>`<button type="button" role="option" class="to-prod${p.id===S.pid?" on":""}${st.ok?"":" bad"}" aria-selected="${p.id===S.pid}" data-pid="${p.id}">
-      <span class="to-dots">${shadesOf(p).slice(0,5).map(s=>`<i style="background:${e(s.hex)}"></i>`).join("")}</span>
-      <b>${e(p.n.replace(p.b+" ",""))}</b><small>${e(p.b)} · ${money(p.p)}</small>${st.ok?"":`<em>Not suitable for you</em>`}</button>`).join(""):`<p class="small muted">No products in this category.</p>`;
-    renderDetail();renderLook();
+    root.querySelector(".to-prods").innerHTML=list.length?list.map(({p,st})=>{const m=matchFor(p),demo=!(p.s&&p.s.length);
+      const chips=[m&&m.you&&m.good?`<span class="to-chip match">Your match</span>`:"",demo?`<span class="to-chip demo">Demo colour</span>`:"",st.ok?"":`<span class="to-chip bad">Not suitable for you</span>`].join("");
+      return`<button type="button" role="option" class="to-prod${p.id===S.pid?" on":""}${st.ok?"":" bad"}" aria-selected="${p.id===S.pid}" data-pid="${p.id}">
+        <span class="to-dots" aria-hidden="true">${shadesOf(p).slice(0,4).map(s=>`<i style="background:${e(s.hex)}"></i>`).join("")}</span>
+        <span class="to-pt"><b>${e(p.n.replace(p.b+" ",""))}</b><small>${e(p.b)}</small></span><span class="to-pp">${money(p.p)}</span>
+        ${chips?`<span class="to-chips">${chips}</span>`:""}</button>`}).join(""):`<p class="small muted">No products in this category.</p>`;
+    renderDetail();renderFoot();centerSel();
   }
+  /* keep the selected product and shade in view in the horizontal strips */
+  function centerSel(){for(const[box,sel]of[[".to-prods",".to-prod.on"],[".to-shades",".to-sw.on"]]){const b=root.querySelector(box),el=b&&b.querySelector(sel);if(!el||b.scrollWidth<=b.clientWidth)continue;b.scrollLeft=Math.max(0,el.offsetLeft-(b.clientWidth-el.offsetWidth)/2)}}
   function renderDetail(){
     const box=root.querySelector(".to-detail"),p=S.pid&&typeof BY_ID!=="undefined"?BY_ID[S.pid]:null;if(!p){box.innerHTML="";return}
-    const sh=shadesOf(p),st=status(p),m=matchFor(p),slot=SLOT[p.c],cur=S.look[slot],curName=cur&&cur.p.id===p.id?cur.s.name:null;
-    const demo=sh.some(s=>s.demo);
-    const cmpOn=S.compare;
-    const plan=typeof PL!=="undefined"&&PL;
-    const btn=!st.ok?"":!st.checked?`<p class="small muted">Answer the advisor's safety questions and I'll check this product against your skin.</p>`
-      :inPlan(p.id)?`<span class="to-inplan">✓ In your plan</span>`:plan?`<button type="button" class="btn primary" data-to="add" data-id="${p.id}" data-shadename="${e(curName||"")}">Add to my plan</button>`
-      :`<p class="small muted">Finish the advisor to build your plan, then add this to it.</p>`;
+    const sh=shadesOf(p),st=status(p),m=matchFor(p),slot=SLOT[p.c],cur=S.look[slot],curName=cur&&cur.p.id===p.id?cur.s.name:null,demo=sh.some(s=>s.demo);
     box.innerHTML=`<div class="to-ph"><b>${e(p.n)}</b><small>${e(p.c)} · ${money(p.p)}${p.fin?` · ${e(p.fin)} finish`:""}</small></div>
-      ${st.ok?"":`<p class="to-bad" role="status"><b>Not suitable for you</b>: ${e(st.why)}. You can still preview it.</p>`}
+      ${st.ok?"":`<p class="to-bad" role="status"><b>Not suitable for you</b>: ${e(st.why)}. You can still preview it, but it won't be added to your plan.</p>`}
       ${demo?`<p class="to-demo">Demo colour, not real product data</p>`:""}
-      ${cmpOn?`<p class="small muted">Compare: tap up to 4 shades (${S.cmp.length}/4).</p>`:""}
-      <div class="to-shades" role="listbox" aria-label="Shades">${sh.map((s,i)=>{const isM=m&&m.name===s.name,on=cmpOn?S.cmp.some(c=>c.p.id===p.id&&c.s.name===s.name):curName===s.name;
-        return`<button type="button" role="option" aria-selected="${on}" class="to-sw${on?" on":""}${isM?" match":""}" data-shade="${i}" title="${e(s.name)}"><i style="background:${e(s.hex)}"></i><span>${e(s.name)}${s.cov?`<small>${e(s.cov)}</small>`:""}${isM?`<em>${e(m.label)}</em>`:""}</span></button>`}).join("")}</div>
-      ${btn}`;
+      ${S.compare?`<p class="to-cmphint">Tap shades to compare (${S.cmp.length}/4). The oldest is replaced after four.</p>`:""}
+      <div class="to-shades" role="listbox" aria-label="Shades of ${e(p.n)}">${sh.map((s,i)=>{const isM=m&&m.name===s.name,on=S.compare?S.cmp.some(c=>c.p.id===p.id&&c.s.name===s.name):curName===s.name;
+        return`<button type="button" role="option" aria-selected="${on}" class="to-sw${on?" on":""}${isM?" match":""}" data-shade="${i}" title="${e(shadeInfo(s))}" aria-label="${e(shadeInfo(s))}${isM?`, ${e(m.label)}`:""}"><i style="background:${e(s.hex)}"></i></button>`}).join("")}</div>
+      <p class="to-swinfo" aria-live="polite"></p>`;
+    swInfo();
   }
-  function renderLook(){
-    const box=root.querySelector(".to-look"),ks=Object.keys(S.look);
-    box.innerHTML=ks.length?`<h4>Your look</h4><div class="to-lookchips">${ks.map(k=>`<span class="chip on">${SLOT_LABEL[k]}: ${e(S.look[k].s.name)}<button type="button" data-rm="${k}" aria-label="Remove ${SLOT_LABEL[k]}">×</button></span>`).join("")}<button type="button" class="link small" data-to="clear">Clear look</button></div>`:`<p class="small muted">Build a full look: pick a shade in each tab.</p>`;
+  function swInfo(){
+    const box=root&&root.querySelector(".to-swinfo"),p=S.pid&&BY_ID[S.pid];if(!box||!p)return;
+    const sh=shadesOf(p),cur=S.look[SLOT[p.c]],m=matchFor(p);
+    const s=S.hover!=null?sh[S.hover]:cur&&cur.p.id===p.id?cur.s:null;
+    box.innerHTML=s?`<b>${e(s.name)}</b>${m&&m.name===s.name?` <span class="to-chip match">${e(m.label)}</span>`:""}<br><small>${e(shadeInfo(s).replace(s.name+" · ",""))}</small>`:`<small>Hover or tap a shade to see its name and depth.</small>`;
+  }
+  function lookItems(){return Object.entries(S.look).map(([k,v])=>({k,v,st:status(v.p)}))}
+  function renderFoot(){
+    const box=root.querySelector(".to-foot"),items=lookItems();
+    const ids=[...new Set(items.map(x=>x.v.p.id))],total=ids.reduce((t,id)=>t+(BY_ID[id].p||0),0);
+    const addable=items.filter(x=>x.st.ok&&x.st.checked&&!inPlan(x.v.p.id)),bad=items.filter(x=>!x.st.ok);
+    const hint=!items.length?"Pick shades in each tab to build a look."
+      :bad.length?`${bad.length===1?"1 item isn't":`${bad.length} items aren't`} suitable for you and won't be added.`
+      :!profiled()||!hasPlan()?"Finish the advisor to add this look to your plan."
+      :!addable.length?"✓ In your plan":"";
+    box.innerHTML=`<div class="to-lookchips"><span class="to-lookh">Your look</span>${items.map(({k,v,st})=>`<button type="button" class="to-lc${st.ok?"":" bad"}" data-rm="${k}" aria-label="Remove ${e(SLOT_LABEL[k])}: ${e(v.s.name)}"><i style="background:${e(v.s.hex)}"></i>${e(SLOT_LABEL[k])} · ${e(v.s.name)}${inPlan(v.p.id)?" ✓":""}<span aria-hidden="true">×</span></button>`).join("")||`<span class="small muted">Nothing yet</span>`}</div>
+      <div class="to-total"><small>Total</small><b>${items.length?money(total):"–"}</b></div>
+      <div class="to-addwrap"><button type="button" class="btn primary" data-to="addlook" ${addable.length&&hasPlan()?"":"disabled"}>Add look to my plan</button>${hint?`<small class="to-foothint">${e(hint)}</small>`:""}</div>`;
   }
   function pickProduct(id){
-    S.pid=id;const p=BY_ID[id];const slot=SLOT[p.c];
-    if(!S.compare&&!(S.look[slot]&&S.look[slot].p.id===id)){const sh=shadesOf(p),m=matchFor(p);const i=m?Math.max(0,sh.findIndex(s=>s.name===m.name)):Math.floor(sh.length/2);if(sh[i])S.look[slot]={p,s:sh[i]}}
-    renderPanel();kick();fallbackRender();
+    S.pid=id;const p=BY_ID[id];const slot=SLOT[p.c];S.hover=null;
+    if(S.compare)prefillCompare(p);
+    else if(!(S.look[slot]&&S.look[slot].p.id===id)){const sh=shadesOf(p),m=matchFor(p);const i=m?Math.max(0,sh.findIndex(s=>s.name===m.name)):Math.floor(sh.length/2);if(sh[i])S.look[slot]={p,s:sh[i]}}
+    renderPanel();kick();fallbackRender();if(S.compare)layout();
   }
   function pickShade(i){
     const p=BY_ID[S.pid];if(!p)return;const s=shadesOf(p)[i];if(!s)return;const slot=SLOT[p.c];
@@ -8731,21 +8863,62 @@ const TRYON=(()=>{
     else S.look[slot]={p,s};
     renderPanel();kick();fallbackRender();
   }
-  function addToPlan(id,shadeName){
-    const p=BY_ID[id];if(!p||!status(p).ok||typeof PL==="undefined"||!PL)return;
-    const slot={role:`${p.c} (try-on pick)`,when:shadeName?`Shade: ${shadeName}`:"As you like"};
-    PL.extras=PL.extras||[];if(!PL.extras.some(x=>x.p.id===id))PL.extras.push({slot,p});
-    if(typeof META!=="undefined"){META.extraIds=PL.extras.map(x=>({id:x.p.id,slot:x.slot}))}
+  function prefillCompare(p){
+    p=p||(S.pid&&BY_ID[S.pid]);if(!p)return;const sh=shadesOf(p),slot=SLOT[p.c],cur=S.look[slot],m=matchFor(p);
+    let at=cur&&cur.p.id===p.id?sh.findIndex(s=>s.name===cur.s.name):m?sh.findIndex(s=>s.name===m.name):Math.floor(sh.length/2);at=Math.max(0,at);
+    const idx=[at];for(let d=1;idx.length<Math.min(4,sh.length);d++){if(at+d<sh.length)idx.push(at+d);if(idx.length<4&&at-d>=0)idx.push(at-d)}
+    S.cmp=idx.slice(0,4).sort((a,b)=>a-b).map(i=>({slot,p,s:sh[i]}));
+  }
+  function toggleCompare(on,quiet){
+    if(!root)return;S.compare=!!on;S.cmp=[];if(on)prefillCompare();
+    root.classList.toggle("cmp",S.compare);
+    root.querySelectorAll("[data-to=compare]").forEach(b=>b.setAttribute("aria-pressed",S.compare));
+    root.querySelector(".to-cmpdone").hidden=!S.compare;
+    if(!quiet){layout();renderPanel();kick();}
+  }
+  function addLook(){
+    if(!hasPlan())return;const items=lookItems().filter(x=>x.st.ok&&x.st.checked&&!inPlan(x.v.p.id));if(!items.length)return;
+    PL.extras=PL.extras||[];
+    for(const{v}of items)if(!PL.extras.some(x=>x.p.id===v.p.id))PL.extras.push({slot:{role:`${v.p.c} (try-on pick)`,when:`Shade: ${v.s.name}`},p:v.p});
+    if(typeof META!=="undefined")META.extraIds=PL.extras.map(x=>({id:x.p.id,slot:x.slot}));
     if(typeof saveState==="function")saveState();
     if(typeof renderPlan==="function")renderPlan();
-    renderDetail();say(`Added ${p.n} to your plan.`);
+    renderFoot();toast(`Added ${items.length===1?items[0].v.p.n:`${items.length} products`} to your plan`);
   }
-  function say(t){const m=root.querySelector(".to-msg");m.hidden=false;m.className="to-msg toast";m.textContent=t;clearTimeout(say.t);say.t=setTimeout(()=>{if(m.classList.contains("toast"))m.hidden=true},2600)}
-  function message(html,keep){const m=root.querySelector(".to-msg");m.className="to-msg";m.hidden=!html;m.innerHTML=html||"";if(!keep)return}
+  function toast(t){const m=root.querySelector(".to-toast");m.textContent=t;m.hidden=false;m.classList.remove("show");void m.offsetWidth;m.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>{m.classList.remove("show");setTimeout(()=>{m.hidden=true},200)},2600)}
+  /* face-tracking state on the canvas: "busy", "finding", "noface" or "" (hidden) */
+  function faceState(kind,text){
+    const f=root.querySelector(".to-face");if(!kind){f.hidden=true;f.dataset.kind="";return}
+    if(f.dataset.kind===kind&&f.dataset.text===(text||""))return;
+    f.dataset.kind=kind;f.dataset.text=text||"";f.hidden=false;
+    f.innerHTML=kind==="noface"?`<b>No face found.</b> Move into better light and face the camera. <button type="button" class="to-link" data-to="start">Try a photo or model</button>`
+      :`<span class="to-pulse" aria-hidden="true"></span>${e(text||"Finding your face…")}`;
+  }
+  /* before/after handle: drag, or arrow keys */
+  function setSplit(v){S.split=Math.min(1,Math.max(0,v));drawDivider();kick()}
+  function wireHandle(){
+    const h=root.querySelector(".to-handle");let drag=false;
+    const at=ev=>{const r=fit.getBoundingClientRect();setSplit((ev.clientX-r.left)/Math.max(1,r.width))};
+    h.addEventListener("pointerdown",ev=>{drag=true;h.setPointerCapture(ev.pointerId);ev.preventDefault();h.classList.add("drag")});
+    h.addEventListener("pointermove",ev=>{if(drag)at(ev)});
+    const end=ev=>{drag=false;h.classList.remove("drag");try{h.releasePointerCapture(ev.pointerId)}catch{}};
+    h.addEventListener("pointerup",end);h.addEventListener("pointercancel",end);
+    h.addEventListener("keydown",ev=>{const k={ArrowLeft:-0.05,ArrowRight:0.05,ArrowDown:-0.05,ArrowUp:0.05}[ev.key];if(k!=null){ev.preventDefault();setSplit(S.split+k)}else if(ev.key==="Home"){ev.preventDefault();setSplit(0)}else if(ev.key==="End"){ev.preventDefault();setSplit(1)}});
+  }
+  /* mobile bottom sheet: swipe up for the full product list, down to collapse */
+  function wireSheet(){
+    const panel=root.querySelector(".to-panel"),grab=root.querySelector(".to-grab");let y0=null;
+    const set=up=>{S.sheetUp=up;root.classList.toggle("sheet-up",up);grab.setAttribute("aria-expanded",up);grab.setAttribute("aria-label",up?"Show fewer products":"Show all products")};
+    grab.addEventListener("click",()=>set(!S.sheetUp));
+    panel.addEventListener("pointerdown",ev=>{if(!mobile()||ev.target.closest(".to-prods,.to-shades,.to-cats"))return;y0=ev.clientY});
+    panel.addEventListener("pointerup",ev=>{if(y0==null)return;const dy=ev.clientY-y0;y0=null;if(dy<-40)set(true);else if(dy>40)set(false)});
+    panel.addEventListener("pointercancel",()=>{y0=null});
+    S.setSheet=set;
+  }
 
   /* ---------- fallback: swatches on your skin colour ---------- */
   function fallback(reason){
-    S.fallback=reason;stopLoop();pane("fallback");fallbackRender();
+    S.fallback=reason;stopLoop();faceState("");toggleCompare(false,true);pane("fallback");fallbackRender();
   }
   function fallbackRender(){
     if(!S.fallback||!root)return;const box=root.querySelector("[data-pane=fallback]");
@@ -8760,7 +8933,7 @@ const TRYON=(()=>{
 
   /* ---------- sources ---------- */
   async function startCamera(){
-    S.fallback=null;S.mode="camera";pane("stage");message("Starting your camera…");
+    S.fallback=null;S.mode="camera";pane("stage");faceState("busy","Starting your camera…");
     root.querySelector("[data-to=stop]").hidden=false;
     if(!glInit())return fallback("Your browser can't run the live try-on here (WebGL is off or unavailable).");
     try{S.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:960},height:{ideal:720}},audio:false})}
@@ -8769,28 +8942,28 @@ const TRYON=(()=>{
     v.srcObject=S.stream;try{await v.play()}catch{}
     await new Promise(r=>{if(v.readyState>=2)r();else v.onloadeddata=()=>r()});
     S.src=v;S.frameW=v.videoWidth;S.frameH=v.videoHeight;S.lm=S.lmS=null;S.noFaceSince=performance.now();S.detMs=[];
-    message("Loading face tracking…");
+    faceState("busy","Loading face tracking…");
     const tr=await tracker("VIDEO");if(!tr)return fallback("Face tracking couldn't load (you may be offline). Showing shades as swatches.");
-    if(S.mode!=="camera")return;message("Looking for your face…");setup();loop();
+    if(S.mode!=="camera")return;faceState("finding","Finding your face…");setup();loop();
   }
   function stopCamera(){stopLoop();if(S.stream){S.stream.getTracks().forEach(t=>t.stop());S.stream=null}if(S.video){S.video.srcObject=null;if(S.src===S.video){S.src=null;S.lm=S.lmS=null}}if(root)root.querySelector("[data-to=stop]").hidden=true;if(S.mode==="camera")S.mode=null}
   async function useFile(f){
-    stopCamera();S.fallback=null;S.mode="photo";S.model=null;pane("stage");message("Reading your photo…");
+    stopCamera();S.fallback=null;S.mode="photo";S.model=null;pane("stage");faceState("busy","Reading your photo…");
     if(!glInit())return fallback("Your browser can't run the try-on here (WebGL is off or unavailable).");
     let img;try{img=await loadImage(URL.createObjectURL(f))}catch{return fallback("That file doesn't look like a photo I can open.")}
     S.src=toCanvas(img,1280);S.frameW=S.src.width;S.frameH=S.src.height;
-    message("Finding your face…");const tr=await tracker("IMAGE");
+    faceState("finding","Finding your face…");const tr=await tracker("IMAGE");
     if(!tr)return fallback("Face tracking couldn't load (you may be offline). Try a model face, or see shades as swatches.");
     let res;try{res=tr.detect(S.src)}catch{res=null}
     const lm=res&&res.faceLandmarks&&res.faceLandmarks[0];
-    if(!lm)return fallback("I couldn't find a face in that photo. Try a well-lit, front-facing photo, or pick a model.");
-    S.lm=S.lmS=lm.map(p=>[p.x,p.y]);message("");setup();sampleColours();kick();
+    if(!lm)return fallback("No face found in that photo. Move into better light and face the camera, or try a model face.");
+    S.lm=S.lmS=lm.map(p=>[p.x,p.y]);faceState("");setup();sampleColours();kick();
   }
   async function useModel(i){
     stopCamera();const m=MODELS[i];if(!m)return;S.fallback=null;S.mode="model";S.model=m;pane("stage");
     if(!glInit())return fallback("Your browser can't run the try-on here (WebGL is off or unavailable).");
     const img=await loadImage(m.src);S.src=toCanvas(img,1280);S.frameW=S.src.width;S.frameH=S.src.height;
-    S.lm=S.lmS=m.landmarks.map(p=>p.slice());message("");setup();sampleColours();renderPanel();kick();
+    S.lm=S.lmS=m.landmarks.map(p=>p.slice());faceState("");setup();sampleColours();renderPanel();kick();
   }
   const loadImage=src=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=src});
   function toCanvas(img,max){const k=Math.min(1,max/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));const c=document.createElement("canvas");c.width=Math.round((img.naturalWidth||img.width)*k);c.height=Math.round((img.naturalHeight||img.height)*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);return c}
@@ -8822,8 +8995,8 @@ const TRYON=(()=>{
         const dt=performance.now()-t0;S.detMs.push(dt);if(S.detMs.length>30)S.detMs.shift();
         const lm=res&&res.faceLandmarks&&res.faceLandmarks[0];
         if(lm){const pts=lm.map(p=>[p.x,p.y]);S.lm=pts;S.lmS=S.lmS&&S.lmS.length===pts.length?S.lmS.map((q,i)=>[q[0]+(pts[i][0]-q[0])*0.6,q[1]+(pts[i][1]-q[1])*0.6]):pts;S.maskDirty=true;S.noFaceSince=0;
-          if(++S.frameN%15===1)sampleColours(dctx,detCv.width,detCv.height);message("")}
-        else{S.lm=null;if(!S.noFaceSince)S.noFaceSince=now;if(now-S.noFaceSince>8000)message(`<b>I can't see a face yet.</b> Face the camera in good light. <button type="button" class="link" data-to="start">Try a photo or model instead</button>`);else message("Looking for your face…")}
+          if(++S.frameN%15===1)sampleColours(dctx,detCv.width,detCv.height);faceState("")}
+        else{S.lm=null;if(!S.noFaceSince)S.noFaceSince=now;if(now-S.noFaceSince>4000)faceState("noface");else faceState("finding","Finding your face…")}
         if(S.detMs.length>=20&&avg(S.detMs)>150){S.busy=false;stopCamera();return fallback("This device is a bit slow for the live try-on. Try a photo or a model face, or see shades as swatches.")}
         S.busy=false}
       draw();
@@ -8947,16 +9120,21 @@ void main(){vec2 t=vec2(uMirror>0.5?1.-uv.x:uv.x,uv.y);vec3 S=s2l(texture2D(uTex
   }
   function setup(){layout();S.maskDirty=true;if(S.mode!=="camera")drawMasks()}
   function layout(){
-    if(!cv||!S.frameW)return;
-    const box=stage.getBoundingClientRect(),maxW=Math.min(960,Math.max(320,(box.width||640)*(window.devicePixelRatio||1)));
-    const k=Math.min(1,maxW/S.frameW);cv.width=Math.round(S.frameW*k);cv.height=Math.round(S.frameH*k);
-    stage.style.aspectRatio=`${S.frameW} / ${S.frameH}`;stage.style.setProperty("--to-ar",(S.frameW/S.frameH).toFixed(4));
+    if(!cv||!S.frameW||!fit)return;
+    const r=stage.getBoundingClientRect();if(!r.width||!r.height)return;
+    const ar=S.frameW/S.frameH;let w=r.width,h=w/ar;if(h>r.height){h=r.height;w=h*ar}
+    w=Math.max(1,Math.floor(w));h=Math.max(1,Math.floor(h));fit.style.width=w+"px";fit.style.height=h+"px";
+    const k=Math.min(Math.min(2,window.devicePixelRatio||1),1280/Math.max(w,h));
+    const cw=Math.round(w*k),ch=Math.round(h*k);if(cv.width!==cw||cv.height!==ch){cv.width=cw;cv.height=ch}
     const tiles=root.querySelector(".to-tiles");tiles.hidden=!S.compare;
-    root.querySelector(".to-divider").hidden=S.compare;root.querySelector(".to-ba").hidden=S.compare;
-    if(S.compare){tiles.innerHTML=[0,1,2,3].map(i=>{const c=S.cmp[i];return`<div class="to-tile">${c?`<span>${e(c.s.name)}${c.s.demo?" · demo":""}<button type="button" data-cmprm="${i}" aria-label="Remove ${e(c.s.name)} from compare">×</button></span>`:`<span class="empty">Tap a shade to add</span>`}</div>`}).join("")}
+    if(S.compare)tiles.innerHTML=[0,1,2,3].map(i=>{const c=S.cmp[i];return`<div class="to-tile">${c?`<div class="to-tilecap"><span><b>${e(c.s.name)}</b><small>${money(c.p.p)}${c.s.demo?" · demo colour":""}</small></span><button type="button" class="to-pick" data-pick="${i}">Pick this</button></div>`:`<div class="to-tilecap empty">Tap a shade to compare</div>`}</div>`}).join("");
     drawDivider();
   }
-  function drawDivider(){if(!root)return;const d=root.querySelector(".to-divider");d.style.setProperty("--x",(S.split*100)+"%");d.classList.toggle("off",S.split<=0.001)}
+  function drawDivider(){
+    if(!root)return;const d=root.querySelector(".to-divider"),h=root.querySelector(".to-handle");
+    d.hidden=S.compare;d.style.setProperty("--x",(S.split*100).toFixed(1)+"%");h.setAttribute("aria-valuenow",Math.round(S.split*100));
+    d.classList.toggle("nob",S.split<=0.02);d.classList.toggle("noa",S.split>=0.98);
+  }
   const lin=h=>C.hexToLin(h)||[0,0,0];
   function looks(){
     const L=S.look;
@@ -9009,25 +9187,25 @@ void main(){vec2 t=vec2(uMirror>0.5?1.-uv.x:uv.x,uv.y);vec3 S=s2l(texture2D(uTex
   /* ---------- snapshot (stays on the device) ---------- */
   function snapshot(){
     if(!S.gl||!S.src)return;draw();
-    let url;try{url=cv.toDataURL("image/jpeg",0.9)}catch{return say("Couldn't save a snapshot here.")}
+    let url;try{url=cv.toDataURL("image/jpeg",0.9)}catch{return toast("Couldn't save a snapshot here.")}
     S.snaps.unshift(url);S.snaps=S.snaps.slice(0,4);
     const a=document.createElement("a");a.href=url;a.download=`aaina-look-${new Date().toISOString().slice(0,10)}.jpg`;document.body.appendChild(a);a.click();a.remove();
-    root.querySelector(".to-snaps").innerHTML=`<p class="small muted">Saved to this device only. Nothing is uploaded.</p><div>${S.snaps.map(u=>`<img src="${u}" alt="Saved try-on snapshot">`).join("")}</div>`;
+    toast("Snapshot saved to this device only. Nothing is uploaded.");
   }
 
   /* ---------- open / close / route ---------- */
   function open(opts={}){
     if(!root)build();
-    if(!S.open){S.open=true;root.hidden=false;document.documentElement.classList.add("to-lock");
+    if(!S.open){S.open=true;root.hidden=false;if(S.setSheet)S.setSheet(false);document.documentElement.classList.add("to-lock");
       if(location.hash!=="#try-on"){history.pushState(null,"",location.pathname+location.search+"#try-on");S.pushedHash=true}}
     if(opts.pid&&typeof BY_ID!=="undefined"&&BY_ID[opts.pid]){const p=BY_ID[opts.pid];S.tab=TABS.find(t=>t[2].includes(p.c))[0];S.cat=p.c;pickProduct(p.id)}
     else if(opts.base){S.tab="face";S.cat="Foundation";S.pid=null;renderPanel();const list=products("Foundation").filter(x=>x.st.ok);if(list[0])pickProduct(list[0].p.id)}
     else renderPanel();
-    if(!S.src)pane("start");
+    if(!S.src)pane("start");else{layout();kick()}
     root.querySelector(".to-x").focus();
   }
   function close(){
-    if(!S.open)return;S.open=false;stopCamera();stopLoop();root.hidden=true;document.documentElement.classList.remove("to-lock");
+    if(!S.open)return;S.open=false;toggleCompare(false,true);stopCamera();stopLoop();root.hidden=true;document.documentElement.classList.remove("to-lock");
     if(location.hash==="#try-on"){if(S.pushedHash){S.pushedHash=false;history.back()}else history.replaceState(null,"",location.pathname+location.search)}
   }
   window.addEventListener("hashchange",()=>{if(location.hash==="#try-on"&&!S.open)open();else if(location.hash!=="#try-on"&&S.open){S.pushedHash=false;close()}});
@@ -9035,7 +9213,7 @@ void main(){vec2 t=vec2(uMirror>0.5?1.-uv.x:uv.x,uv.y);vec3 S=s2l(texture2D(uTex
   window.addEventListener("resize",()=>{if(S.open&&S.src){layout();kick()}});
   document.addEventListener("click",ev=>{const b=ev.target.closest&&ev.target.closest("[data-tryon]");if(!b||(root&&root.contains(b)))return;ev.preventDefault();open(b.dataset.tryon==="base"?{base:true}:{pid:b.dataset.tryon||null})});
   if(location.hash==="#try-on")setTimeout(()=>open(),0);
-  return{open,close,state:S,_draw:draw,_products:products,_status:status};
+  return{open,close,setSplit,state:S,_draw:draw,_products:products,_status:status};
 })();
 
 </script>
