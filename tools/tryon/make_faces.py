@@ -41,8 +41,8 @@ FACES = [
     dict(id="medium-olive", label="Medium · olive", hex="#d39b78", monk=5, undertone="olive", sex="m", hair="short",
          hair_col="#16100c", eyes="#33200f", cloth="#e7e1d6", seed=303,
          shape=dict(width=1.03, jaw=1.07, chin=1.02, cheek=0.98, nose=1.08, lips=0.98, mouth=1.03, eye_open=0.7, eye=0.98, brow=-0.1)),
-    dict(id="tan-warm", label="Tan · warm", hex="#ab6f51", monk=6, undertone="warm", sex="f", hair="covered",
-         hair_col="#120d0a", eyes="#2f1d10", cloth="#4f6f69", scarf="#55776f", seed=404,
+    dict(id="tan-warm", label="Tan · warm", hex="#ab6f51", monk=6, undertone="warm", sex="f", hair="braid",
+         hair_col="#140e0a", eyes="#2f1d10", cloth="#6e5876", seed=404,
          shape=dict(width=0.98, jaw=0.96, chin=1.0, cheek=1.02, nose=1.02, lips=1.1, mouth=0.99, eye_open=0.8, eye=1.05, brow=0.02)),
     dict(id="deep-warm", label="Deep · warm", hex="#91604b", monk=7, undertone="warm", sex="f", hair="straight",
          hair_col="#120d0a", eyes="#2a190d", cloth="#c79a3e", seed=505,
@@ -278,8 +278,30 @@ def hair_layer(f, rng, geo):
             x, y = hcx + hrx * rr * math.cos(a0), hcy + hry * 0.15 - hry * rr * 0.98 * math.sin(a0)
             rad = rng.uniform(0.09, 0.16) * hrx
             bd.ellipse([x - rad, y - rad, x + rad, y + rad], fill=255)
-    elif style == "covered":
-        pass
+    elif style == "braid":
+        # sleek, pulled back, with one braid over the shoulder
+        fd.polygon(hl + arc(hrx * 1.07, hry * 1.04, -0.03, math.pi * 1.03), fill=255)
+        for i in range(700):
+            hx, hy = hl[int(rng.uniform(0, len(hl) - 1))]
+            curves_front.append([(hx, hy), (hx + (hcx - hx) * 0.25, hy - hry * 0.35), (hcx + hrx * rng.uniform(0.3, 0.7), top + hry * 0.25),
+                                 (hcx + hrx * 0.95, P2[234, 1] - hry * 0.1)])
+        n = 11
+        x0, y0 = hcx + hrx * 1.16, P2[152, 1] - hry * 0.2
+        x1, y1 = hcx + hrx * 1.3, H2 * 0.97
+        # hair swept back behind the ear into the braid
+        bd.polygon([(hcx + hrx * 0.9, P2[234, 1] - hry * 0.55), (hcx + hrx * 1.12, P2[234, 1] - hry * 0.3), (x0 + hrx * 0.14, y0),
+                    (x0 - hrx * 0.12, y0), (hcx + hrx * 0.98, P2[234, 1] + hry * 0.2)], fill=255)
+        for j in range(160):
+            curves_back.append([(hcx + hrx * rng.uniform(0.9, 1.08), P2[234, 1] - hry * 0.45), (hcx + hrx * 1.1, P2[234, 1]), (x0 + rng.normal(0, hrx * 0.04), y0)])
+        for k in range(n):
+            t_ = k / (n - 1)
+            bx = x0 + (x1 - x0) * t_ ** 0.8 + (hrx * 0.05 if k % 2 else -hrx * 0.05)
+            by = y0 + (y1 - y0) * t_
+            rx_, ry_ = hrx * (0.2 - 0.05 * t_), (y1 - y0) / n * 0.75
+            fd.ellipse([bx - rx_, by - ry_, bx + rx_, by + ry_], fill=255)
+            for j in range(26):
+                a0 = rng.uniform(-0.6, 0.6) + (0.5 if k % 2 else -0.5)
+                curves_front.append([(bx - rx_ * math.cos(a0), by - ry_ * 0.9), (bx + rx_ * 0.2 * math.sin(a0), by), (bx + rx_ * math.cos(a0), by + ry_ * 0.9)])
     back_a = gaussian_filter(np.asarray(back, float) / 255, 2.6 * SS)
     front_a = gaussian_filter(np.asarray(front, float) / 255, 2.4 * SS)
 
@@ -290,7 +312,7 @@ def hair_layer(f, rng, geo):
     light = np.clip(col * 1.9 + 0.06, 0, 1)
     strands(tex_b, rng, curves_back, light, n_alpha=(30, 90), width=(1, 3))
     strands(tex_f, rng, curves_front, light, n_alpha=(34, 100), width=(1, 3))
-    if style != "covered":
+    if True:
         dd = ImageDraw.Draw(front, None)
         for k in range(160):
             hx, hy = hl[int(rng.uniform(1, len(hl) - 2))]
@@ -321,30 +343,6 @@ def hair_layer(f, rng, geo):
     br, ba = paint(back_a, tb)
     fr, fa = paint(front_a, tf)
     return br, ba, fr, fa
-
-
-def scarf_layer(f, rng, geo):
-    """hijab: covers hair, ears and neck, framing the face"""
-    hcx, hcy, hrx, hry, P2, hairline = geo["hcx"], geo["hcy"], geo["hrx"], geo["hry"], geo["P2"], geo["hairline"]
-    outer = [(hcx + hrx * 1.24 * math.cos(t), hcy - hry * 1.14 * math.sin(t)) for t in np.linspace(math.pi * 1.08, -0.08, 50)]
-    outer = [(hcx - hrx * 2.5, H2 + 10)] + outer + [(hcx + hrx * 2.5, H2 + 10)]
-    ring = [hairline[0]] + list(hairline) + [hairline[-1]]
-    side = lambda s, i: (P2[i, 0] - s * hrx * 0.01, P2[i, 1])
-    opening = ([side(-1, i) for i in (93, 132, 58, 172, 136, 150, 149, 176, 148)] + [(P2[152, 0], P2[152, 1] + hry * 0.05)]
-               + [side(1, i) for i in (377, 400, 378, 379, 365, 397, 288, 361, 323)][::1])
-    opening = [hl for hl in ring[1:-1]][::-1]
-    face_open = list(hairline) + [side(1, i) for i in (356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377)] + \
-        [(P2[152, 0], P2[152, 1] + hry * 0.06)] + [side(-1, i) for i in (148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127)]
-    m = mask_from(lambda d: (d.polygon(outer, fill=255), d.polygon([tuple(p) for p in face_open], fill=0)), 1.4 * SS)
-    yy, xx = np.mgrid[0:H2, 0:W2].astype(float)
-    col = to_lin(hex_rgb(f["scarf"]))
-    nx = np.clip((xx - hcx) / (hrx * 2.2), -1, 1)
-    shade = 0.62 + 0.45 * (1 - np.abs(nx) ** 1.5) - 0.18 * np.clip((yy - hcy) / H2, 0, 1)
-    folds = gaussian_filter(np.sin((xx - hcx) / (hrx * 0.16) + np.sin(yy / (hry * 0.5)) * 2.5), 3 * SS) * np.clip((yy - P2[152, 1]) / (hry * 0.5), 0, 1)
-    edge = gaussian_filter(mask_from(lambda d: d.polygon([tuple(p) for p in face_open], fill=255)), 6 * SS)
-    shade = shade * (1 + 0.07 * folds) * (1 - 0.28 * edge)
-    tex = 1 + 0.03 * gaussian_filter(rng.normal(0, 1, (H2, W2)), 0.8)
-    return col * (shade * tex)[..., None], m, face_open
 
 
 # ---------------------------------------------------------------- render one face
@@ -388,7 +386,7 @@ def render(f):
     chin_y = P2[152, 1]
     occl = np.where(neck, 0.42 + 0.58 * np.clip((yy - chin_y) / (0.45 * hry), 0, 1) ** 0.8, occl)
     ears = np.zeros((H2, W2))
-    if f["hair"] in ("short", "bun"):
+    if f["hair"] in ("short", "bun", "braid"):
         for sd in (-1, 1):
             ex, ey = hcx + sd * hrx * 0.98, P2[234, 1] + 0.06 * hry
             e = ((xx - ex) / (0.15 * hrx)) ** 2 + ((yy - ey) / (0.27 * hry)) ** 2 < 1
@@ -518,10 +516,8 @@ def render(f):
     hairline = [tuple(p) for p in smooth_curve(ctrl, 60)]
     geo = dict(hcx=hcx, hcy=hcy, hrx=hrx, hry=hry, hairline=hairline, P2=P2, fw=fw)
 
-    covered = f["hair"] == "covered"
-    if not covered:
-        hb_rgb, hb_a, hf_rgb, hf_a = hair_layer(f, rng, geo)
-        img = img * (1 - hb_a[..., None]) + hb_rgb * hb_a[..., None]
+    hb_rgb, hb_a, hf_rgb, hf_a = hair_layer(f, rng, geo)
+    img = img * (1 - hb_a[..., None]) + hb_rgb * hb_a[..., None]
 
     # clothes: shoulders with a neckline (a collar for the man)
     sy = chin_y + hry * 0.42
@@ -611,16 +607,10 @@ def render(f):
         img = img * (1 - 0.1 * beard)[..., None]
         img = over(img, hair_lin, np.clip(dots, 0, 1) * beard * 0.4)
 
-    # hair over the forehead edge, or the scarf
-    if covered:
-        sc_rgb, sc_a, opening = scarf_layer(f, rng, geo)
-        shadow = gaussian_filter(sc_a, 5 * SS) - sc_a
-        img = img * (1 - 0.35 * np.clip(shadow * 3, 0, 1))[..., None]
-        img = over(img, sc_rgb, sc_a)
-    else:
-        shadow = np.clip(gaussian_filter(hf_a, 4 * SS) - hf_a, 0, 1)
-        img = img * (1 - 0.4 * shadow * skin)[..., None]
-        img = img * (1 - hf_a[..., None]) + hf_rgb * hf_a[..., None]
+    # hair over the forehead edge
+    shadow = np.clip(gaussian_filter(hf_a, 4 * SS) - hf_a, 0, 1)
+    img = img * (1 - 0.4 * shadow * skin)[..., None]
+    img = img * (1 - hf_a[..., None]) + hf_rgb * hf_a[..., None]
 
     # a touch of film grain so it doesn't look airbrushed
     img = img * (1 + gaussian_filter(rng.normal(0, 0.012, (H2, W2)), 0.5))[..., None]
