@@ -131,7 +131,6 @@ def classify_direct_color(payload: DirectColorRequest) -> Dict[str, Any]:
 
 # Serve the static AAINA application so frontend + backend run on one unified server
 INDEX_FILE = ROOT_DIR / "index.html"
-DECK_FILE = ROOT_DIR / "deck.html"
 SRC_DIR = ROOT_DIR / "src"
 ASSETS_DIR = ROOT_DIR / "assets"
 
@@ -148,10 +147,3 @@ def serve_index():
         return FileResponse(INDEX_FILE)
     return HTMLResponse("<h1>AAINA Monk Skin Tone Engine Running</h1><p>Visit /docs for API specs.</p>")
 
-
-@app.get("/deck", response_class=HTMLResponse)
-@app.get("/deck.html", response_class=HTMLResponse)
-def serve_deck():
-    if DECK_FILE.exists():
-        return FileResponse(DECK_FILE)
-    raise HTTPException(status_code=404, detail="deck.html not found")
