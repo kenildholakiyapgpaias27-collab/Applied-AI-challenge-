@@ -5,6 +5,17 @@
   "test_set": "PS-14_recommendation_test_set.xlsx"
  },
  "A": {
+  "unsure": {
+   "n": 38,
+   "exact_hit": 50.0,
+   "depth_err_mean": -0.18,
+   "depth_mae": 0.66,
+   "within_1": 89.5,
+   "off_by_2plus": 10.5,
+   "undertone_match": 39.5,
+   "within_1_of_best": 94.7,
+   "best_among_shown": 60.5
+  },
   "tryon": {
    "overall": {
     "n": 220,
@@ -14,7 +25,8 @@
     "within_1": 84.1,
     "off_by_2plus": 15.9,
     "undertone_match": 40.0,
-    "within_1_of_best": 90.0
+    "within_1_of_best": 90.0,
+    "best_among_shown": 54.1
    },
    "bands": {
     "1–3": {
@@ -25,7 +37,8 @@
      "within_1": 94.4,
      "off_by_2plus": 5.6,
      "undertone_match": 44.4,
-     "within_1_of_best": 88.9
+     "within_1_of_best": 88.9,
+     "best_among_shown": 55.6
     },
     "4–7": {
      "n": 176,
@@ -35,7 +48,8 @@
      "within_1": 88.1,
      "off_by_2plus": 11.9,
      "undertone_match": 38.6,
-     "within_1_of_best": 89.2
+     "within_1_of_best": 89.2,
+     "best_among_shown": 48.3
     },
     "8–10": {
      "n": 26,
@@ -45,7 +59,8 @@
      "within_1": 50.0,
      "off_by_2plus": 50.0,
      "undertone_match": 46.2,
-     "within_1_of_best": 96.2
+     "within_1_of_best": 96.2,
+     "best_among_shown": 92.3
     }
    },
    "band_gap": {
@@ -489,8 +504,8 @@
  "C": {
   "overall": {
    "groups": 415,
-   "hit_rate": 65.3,
-   "good_recall": 31.0
+   "hit_rate": 65.5,
+   "good_recall": 31.4
   },
   "per_category": {
    "Cleanser": {
@@ -506,7 +521,7 @@
    "Eye cream": {
     "groups": 37,
     "hit_rate": 83.8,
-    "good_recall": 36.0
+    "good_recall": 37.8
    },
    "Face mask": {
     "groups": 34,
@@ -530,8 +545,8 @@
    },
    "Serum": {
     "groups": 35,
-    "hit_rate": 57.1,
-    "good_recall": 26.7
+    "hit_rate": 60.0,
+    "good_recall": 29.5
    },
    "Spot treatment": {
     "groups": 25,
@@ -550,13 +565,8 @@
    }
   }
  },
- "mapping_notes": {
-  "concerns the quiz can't take: dark circles": 45,
-  "concerns the quiz can't take: fine lines": 16,
-  "concerns the quiz can't take: fine lines, dark circles": 2,
-  "concerns the quiz can't take: dark circles, fine lines": 2
- },
- "tryon_call": "matchTone",
+ "mapping_notes": {},
+ "tryon_call": "matchTone+unsure",
  "compare": {
   "ref": "80c2665",
   "before": {
@@ -570,7 +580,8 @@
       "within_1": 71.4,
       "off_by_2plus": 28.6,
       "undertone_match": 45.9,
-      "within_1_of_best": 79.5
+      "within_1_of_best": 79.5,
+      "best_among_shown": 39.1
      },
      "bands": {
       "1–3": {
@@ -581,7 +592,8 @@
        "within_1": 94.4,
        "off_by_2plus": 5.6,
        "undertone_match": 38.9,
-       "within_1_of_best": 94.4
+       "within_1_of_best": 94.4,
+       "best_among_shown": 44.4
       },
       "4–7": {
        "n": 176,
@@ -591,7 +603,8 @@
        "within_1": 72.7,
        "off_by_2plus": 27.3,
        "undertone_match": 46.0,
-       "within_1_of_best": 75.6
+       "within_1_of_best": 75.6,
+       "best_among_shown": 33.0
       },
       "8–10": {
        "n": 26,
@@ -601,7 +614,8 @@
        "within_1": 46.2,
        "off_by_2plus": 53.8,
        "undertone_match": 50.0,
-       "within_1_of_best": 96.2
+       "within_1_of_best": 96.2,
+       "best_among_shown": 76.9
       }
      },
      "band_gap": {
@@ -623,8 +637,8 @@
    },
    "C": {
     "groups": 415,
-    "hit_rate": 65.3,
-    "good_recall": 30.9
+    "hit_rate": 65.5,
+    "good_recall": 31.3
    }
   }
  },

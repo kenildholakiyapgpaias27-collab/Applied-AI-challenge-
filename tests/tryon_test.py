@@ -261,6 +261,36 @@ def main():
         ctx.close()
         b.close()
 
+        # D2. undertone helper: "Not sure" adds one question; "Still not sure" shows a second shade
+        b2 = p.chromium.launch(executable_path=CHROME, args=["--no-sandbox"])
+        for answer, want in (("Still not sure", None), ("Gold suits me", "warm")):
+            pg = b2.new_page(viewport={"width": 1280, "height": 860}); pg.on("pageerror", lambda e: ERRORS.append(str(e)))
+            pg.goto(url); pg.wait_for_timeout(400)
+            pg.fill("#nameInput", "Asha"); pg.keyboard.press("Enter"); pg.wait_for_timeout(400)
+            Q.about(pg, "woman", "makeup"); Q.pick(pg, "Natural")
+            Q.safety(pg, "false"); Q.skin(pg, "Comfortable"); Q.tone(pg, 4); Q.pick(pg, "Not sure")
+            check(f"D2: 'Not sure' adds the undertone helper ({answer})", Q.current(pg) == "utHelp" and "veins" in pg.inner_text(".q:not(.answered)"), Q.current(pg))
+            Q.pick(pg, answer)
+            pg.wait_for_timeout(400)
+            st = pg.evaluate("({ut:P.undertone,src:P.undertoneSource,plan:!!PL})")
+            if want:
+                check("D2: a helper answer sets the undertone", st["ut"] == want and st["src"] == "helper" and st["plan"], st)
+            else:
+                check("D2: 'Still not sure' keeps undertone unknown and builds the plan", st["ut"] is None and st["plan"], st)
+                alts = pg.evaluate("PL.slots.filter(s=>s.p&&s.p.s).map(s=>{const a=altShadeFor(s.p);return a&&a.und})")
+                check("D2: plan cards show an 'also try' line exactly where the warm match differs",
+                      all(x in (None, "warm") for x in alts) and pg.locator(".plan:not(.old) .shadealt").count() == sum(1 for x in alts if x), alts)
+                pid = pg.evaluate("(CAT.find(p=>p.c==='Foundation'&&p.s&&altShadeFor(p))||{}).id||null")
+                check("D2: some foundations have a different warm match for this profile", bool(pid))
+                pg.evaluate(f"TRYON.open({{pid:'{pid}'}})"); pg.wait_for_timeout(300)
+                pg.click(".to-model >> nth=0"); pg.wait_for_timeout(400)
+                pg.click(".tryon [data-tab='face']"); pg.click(f".to-prod[data-pid='{pid}']"); pg.wait_for_timeout(200)
+                alt = pg.evaluate(f"altShadeFor(BY_ID['{pid}']).name")
+                check("D2: the try-on rings the warm 'also try' shade and explains it",
+                      pg.locator(".to-sw.alt").count() == 1 and alt in (pg.get_attribute(".to-sw.alt", "aria-label") or "") and "warm match" in pg.inner_text(".to-althint"))
+            pg.close()
+        b2.close()
+
         # E. live camera with Chrome's fake camera playing a face
         bc = p.chromium.launch(executable_path=CHROME, args=["--no-sandbox", "--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", f"--use-file-for-fake-video-capture={y4m}"])
         ctx = bc.new_context(viewport={"width": 1280, "height": 860}, permissions=["camera"])

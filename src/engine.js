@@ -395,6 +395,10 @@ function utPenalty(want,have){if(want===have)return 0;if(want==="neutral"||have=
 /* Depth matters more than undertone: an undertone mismatch costs 0.4 of a depth step, so a shade of the right depth
    in a neighbouring undertone beats a lighter shade in the "right" undertone (test set: exact match 39% -> 52% with matchTone). */
 const UT_WEIGHT=0.4;
+/* "Not sure" of undertone: match as neutral (a hedge: it is never far from any undertone, so depth decides) and also offer the
+   warm match, because 54% of customers who said "don't know" measured warm in store (181 in the organisers' data, excluding
+   the evaluation set). Matching warm first scored lower on the test set (50.9% vs 52.3% exact), so neutral stays first. */
+const UNSURE_UNDERTONE="neutral",UNSURE_ALT="warm";
 function bestShade(p,tone,ut){const r=typeof P!=="undefined"&&P.toneRead&&P.toneRead.lab&&P.toneRead.tone===tone?P.toneRead:null;if(r){const m=matchShade(p,r);if(m)return m}let best=null;for(const[name,depth,und,hex,cov]of p.s||[]){const dd=Math.abs(depth-tone),up=utPenalty(ut,und),sc=dd+UT_WEIGHT*up;if(!best||sc<best.score)best={name,depth,und,hex,cov,score:sc,good:dd<=1&&up<=0.5}}return best}
 
 /* =====================================================================

@@ -22,7 +22,8 @@ for (const row of input.profiles) for (const k of Object.keys(row)) if (/^true_/
 
 // guard: the try-on must still compute "Your match" the way this harness calls it
 const tryon = fs.readFileSync(path.join(ROOT, "src/tryon.js"), "utf8");
-const TRYON_CALL = tryon.includes('bestShade(p,typeof matchTone==="function"?matchTone():tone,P.undertone||"neutral")') ? "matchTone"
+const TRYON_CALL = tryon.includes("UNSURE_ALT") && tryon.includes("const m=bestShade(p,t,ut)") ? "matchTone+unsure"
+  : tryon.includes('bestShade(p,typeof matchTone==="function"?matchTone():tone,P.undertone||"neutral")') ? "matchTone"
   : tryon.includes('bestShade(p,tone,P.undertone||"neutral")') ? "rawTone" : null;
 if (!TRYON_CALL) { console.error("src/tryon.js matchFor() changed: update the harness"); process.exit(3) }
 
@@ -32,10 +33,14 @@ const cal = path.join(ROOT, "data/calibration.json");
 ctx.AAINA_CAL = fs.existsSync(cal) ? JSON.parse(fs.readFileSync(cal, "utf8")) : null;
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(ROOT, "src/engine.js"), "utf8") +
-  "\nthis.E={emptyProfile,check,rank,bestShade,correctedTone,matchTone:typeof matchTone==='function'?matchTone:null,REACTIONS,setP:v=>{P=v},getP:()=>P};", ctx);
+  "\nthis.E={emptyProfile,check,rank,bestShade,correctedTone,matchTone:typeof matchTone==='function'?matchTone:null,REACTIONS,setP:v=>{P=v},getP:()=>P,"+
+  "UNSURE:typeof UNSURE_UNDERTONE!=='undefined'?[UNSURE_UNDERTONE,UNSURE_ALT]:null};", ctx);
 const E = ctx.E;
 
-const CONCERN_KEYS = new Set(["acne", "pigmentation", "dullness", "dehydration", "oiliness", "tanning", "redness"]);
+// concern keys the quiz offers, read from PROBLEMS in src/app.js (goal entries like "sunscreen" are not concerns)
+const appSrc = fs.readFileSync(path.join(ROOT, "src/app.js"), "utf8");
+const probBlock = appSrc.slice(appSrc.indexOf("const PROBLEMS="), appSrc.indexOf("\n};", appSrc.indexOf("const PROBLEMS=")));
+const CONCERN_KEYS = new Set([...probBlock.matchAll(/\n  "?([a-z ]+)"?:\{label:"[^"]*"(.{0,200})/g)].filter(m => !/goal:true/.test(m[2])).map(m => m[1]));
 const BUDGET_OPTS = [400, 700, 1200, null];      // the Tune-your-plan options in src/app.js
 const bandMax = {"under ₹500": 500, "₹500–1,000": 1000, "₹1,000–2,000": 2000, "over ₹2,000": null};
 
@@ -59,7 +64,7 @@ function toProfile(r, month) {
   P.budget = mx == null ? null : BUDGET_OPTS.filter(b => b != null && b <= mx).pop() ?? BUDGET_OPTS[0];
   P.tone = r.monk_tone_self; P.toneSource = "you picked";                  // tone step
   const ut = String(r.undertone_self || "").toLowerCase();
-  if (ut === "don't know" || ut === "dont know" || ut === "unsure" || !ut) { P.undertone = null; P.undertoneSource = "unsure" }
+  if (ut === "don't know" || ut === "dont know" || ut === "unsure" || !ut) { P.undertone = null; P.undertoneSource = "unsure" }   // "Not sure", then "Still not sure" in the helper
   else { P.undertone = ut; P.undertoneSource = "you picked" }
   return {P, notes};
 }
@@ -67,7 +72,7 @@ function toProfile(r, month) {
 const month = monthArg != null ? +monthArg : new Date().getMonth();
 const cats = input.categories;
 const foundations = ctx.CAT.filter(p => p.c === "Foundation" && p.s && p.s.length).map(p => p.id);
-const out = {month, tryon_call: TRYON_CALL, profiles: []};
+const out = {month, tryon_call: TRYON_CALL, concern_keys: [...CONCERN_KEYS], profiles: []};
 for (const r of input.profiles) {
   const {P, notes} = toProfile(r, month);
   E.setP(P);
@@ -80,9 +85,11 @@ for (const r of input.profiles) {
   for (const id of foundations) {
     const p = ctx.CAT.find(x => x.id === id);
     const idx = m => m ? p.s.findIndex(s => s[0] === m.name && s[3] === m.hex) : -1;
-    const tone = TRYON_CALL === "matchTone" ? E.matchTone() : P.tone;      // exactly what matchFor() in src/tryon.js passes
-    const tryon = E.bestShade(p, tone, P.undertone || "neutral");
-    match[id] = {tryon: idx(tryon), tryon_good: !!(tryon && tryon.good)};
+    const tone = TRYON_CALL === "rawTone" ? P.tone : E.matchTone();     // exactly what matchFor() in src/tryon.js passes
+    const unsure = TRYON_CALL === "matchTone+unsure" && !P.undertone;
+    const tryon = E.bestShade(p, tone, P.undertone || (unsure ? E.UNSURE[0] : "neutral"));
+    const alt = unsure ? E.bestShade(p, tone, E.UNSURE[1]) : null;      // the "also try" shade shown when undertone is unknown
+    match[id] = {tryon: idx(tryon), tryon_good: !!(tryon && tryon.good), alt: alt && alt.name !== tryon.name ? idx(alt) : -1};
   }
   out.profiles.push({customer_id: r.customer_id, P: JSON.parse(JSON.stringify(P)), notes, top5, passing, blocked, match});
 }

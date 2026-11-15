@@ -75,9 +75,10 @@ Measured on 2026-11-15 against the organisers' labelled test set (220 synthetic 
 | Gap between tone bands (within 1 of labelled best) | 20.6 pts | **7.3 pts** (1–3: 88.9%, 4–7: 89.2%, 8–10: 96.2%) | under 5 pts |
 | Profiles with a MUST_NOT product in a top 5 | 0.5% | **0%** | 0 |
 | MUST_NOT products blocked by `check()` | 96.4% | **98.1%**; 100% on what the quiz can know | 100% |
-| GOOD product in the top 5 | 65.3% | 65.3% | |
+| Undertone "don't know" (38 customers): best shade among those shown | 50.0% (one shade) | **60.5%** (match + warm "also try") | |
+| GOOD product in the top 5 | 65.3% | 65.5% | |
 
-What changed: "Your match" and the plan's shades now use the engine's correction for self-picked tones (`matchTone()`), and shade matching weighs depth above undertone. The 14 skin-type tags an earlier catalogue clean-up added were restored to the organisers' values, and `tools/catalogue_check.py` now only reports such cases. Still open: the 10 remaining MUST_NOT misses use the measured skin type where the customer told the quiz something else; tones 8–10 often have no shade deep enough in the catalogue; and agreement with the measured undertone fell from 45.9% to 40.0% because depth now wins ties.
+What changed: "Your match" and the plan's shades now use the engine's correction for self-picked tones (`matchTone()`), and shade matching weighs depth above undertone. The 14 skin-type tags an earlier catalogue clean-up added were restored to the organisers' values, and `tools/catalogue_check.py` now only reports such cases. "Not sure" of undertone now brings up one helper question (jewellery and veins); if still unsure, the match stays neutral and the warm match is shown as "also try" (54% of "don't know" customers measured warm in the organisers' in-store data). The 65.3% relevance figure was understated by an evaluation bug that dropped the quiz's "dark circles" and "fine lines" answers; with it fixed, relevance is 65.5%. Still open: the 10 remaining MUST_NOT misses use the measured skin type where the customer told the quiz something else; tones 8–10 often have no shade deep enough in the catalogue; and agreement with the measured undertone fell from 45.9% to 40.0% because depth now wins ties.
 
 ## Guardrails enforced in code
 

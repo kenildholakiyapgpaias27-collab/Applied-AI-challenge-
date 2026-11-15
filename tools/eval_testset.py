@@ -103,7 +103,8 @@ def shade_metrics(rows):
             "depth_err_mean": round(sum(err) / n, 2), "depth_mae": round(sum(abs(e) for e in err) / n, 2),
             "within_1": pct(sum(abs(e) <= 1 for e in err), n), "off_by_2plus": pct(sum(abs(e) >= 2 for e in err), n),
             "undertone_match": pct(sum(r["pred_und"] == r["true_und"] for r in rows), n),
-            "within_1_of_best": pct(sum(abs(r["pred_depth"] - r["best_depth"]) <= 1 for r in rows), n)}
+            "within_1_of_best": pct(sum(abs(r["pred_depth"] - r["best_depth"]) <= 1 for r in rows), n),
+            **({"best_among_shown": pct(sum(r["shown_hit"] for r in rows), n)} if rows and "shown_hit" in rows[0] else {})}
 
 
 def score(inputs, truth, labels, eng, cat):
@@ -134,13 +135,15 @@ def score(inputs, truth, labels, eng, cat):
                                 "true_tone": t["true_monk_tone"], "true_und": t["true_undertone"], "band": band_of(t["true_monk_tone"])})
         r = variants["tryon"][-1]
         assert r["cid"] == cid
+        r["shown_hit"] = r["exact"] or e.get("alt", -1) == best_i
+        r["unsure"] = str(inp[cid]["undertone_self"]).lower().startswith("don")
         worst.append({"customer_id": cid, "product": pid, "self_tone": inp[cid]["monk_tone_self"], "self_undertone": inp[cid]["undertone_self"],
                       "true_tone": t["true_monk_tone"], "true_undertone": t["true_undertone"],
                       "predicted": f"{pid}-S{r['pred']+1:02d} {shades[r['pred']][0]} (depth {shades[r['pred']][1]}, {shades[r['pred']][2]})",
                       "best": f"{pid}-S{best_i+1:02d} {shades[best_i][0]} (depth {shades[best_i][1]}, {shades[best_i][2]})",
                       "depth_error": shades[r["pred"]][1] - t["true_monk_tone"], "exact": r["exact"],
                       "pred_hex": shades[r["pred"]][3], "best_hex": shades[best_i][3], "pred_i": r["pred"], "best_i": best_i})
-    A = {}
+    A = {"unsure": shade_metrics([r for r in variants["tryon"] if r.get("unsure")])}
     for v, rows in variants.items():
         A[v] = {"overall": shade_metrics(rows), "bands": {b: shade_metrics([r for r in rows if r["band"] == b]) for b, _, _ in BANDS}}
         for k in ("exact_hit", "within_1", "undertone_match", "within_1_of_best"):
@@ -238,6 +241,11 @@ def write_reports(res, month):
             L.append(f"| {'All' if b == 'overall' else b} | {m['n']} | {m['exact_hit']}% | {m['depth_err_mean']:+} | {m['depth_mae']} | {m['within_1']}% | {m['off_by_2plus']}% | {m['undertone_match']}% | {m['within_1_of_best']}% |")
         g = A[v]["band_gap"]
         L += ["", f"Band gap (best minus worst): exact shade {g['exact_hit']} pts, within 1 step of true tone {g['within_1']} pts, within 1 of labelled best {g['within_1_of_best']} pts, undertone {g['undertone_match']} pts. Target: under 5 pts.", ""]
+    uns = [r for r in res["A"].get("_unsure_rows", [])]
+    if res["A"].get("unsure"):
+        u = res["A"]["unsure"]
+        L += [f"Customers who said \"don't know\" for undertone (n={u['n']}): exact {u['exact_hit']}%, best shade among the two shown (match + \"also try\") {u.get('best_among_shown', '–')}%, "
+              f"undertone matches measured {u['undertone_match']}%.", ""]
     L += ["**10 worst misses (try-on)**", "", "| Customer | Self tone / undertone | True tone / undertone | Predicted | Labelled best | Depth error |", "|---|---|---|---|---|---|"]
     for w in A["worst_misses"]:
         L.append(f"| {w['customer_id']} | {w['self_tone']} / {w['self_undertone']} | {w['true_tone']} / {w['true_undertone']} | {w['predicted']} | {w['best']} | {w['depth_error']:+} |")
@@ -263,10 +271,12 @@ def write_reports(res, month):
     L += ["", "## How profiles were mapped", "",
           "- Skin type, sensitive, fragrance, essential oils, pregnancy caution: straight from the answers, as the quiz sets them.",
           "- Known reaction: typed into the quiz's reaction box and matched with the engine's own REACTIONS patterns.",
-          "- Undertone \"don't know\": undertone not set (the quiz's \"Not sure\"), so matching assumes neutral.",
+          "- Undertone \"don't know\": the quiz's \"Not sure\", then \"Still not sure\" in the undertone helper (the test set has no helper answers). "
+          "Matching then uses the engine's default for unknown undertones and also shows a second shade.",
           "- Budget band: the largest Tune-your-plan option (₹400 / ₹700 / ₹1,200 / no limit) not above the band.",
           f"- Season: month {month} (0 = January), which the engine uses for winter dryness.",
-          "- Concerns the quiz doesn't offer were dropped: " + ", ".join(f"{k} ({v})" for k, v in res["mapping_notes"].items()) + "."]
+          "- Concerns: all test-set concerns map to quiz concerns (read from PROBLEMS in src/app.js)" + (
+              "; dropped: " + ", ".join(f"{k} ({v})" for k, v in res["mapping_notes"].items()) if res["mapping_notes"] else "") + "."]
     (REPORTS / "eval_testset.md").write_text("\n".join(L) + "\n", encoding="utf-8")
 
 
@@ -358,7 +368,7 @@ def main():
     if "--compare" in sys.argv:            # re-run an older engine + catalogue + try-on from git, for a before/after table
         ref = sys.argv[sys.argv.index("--compare") + 1]
         old = Path(tempfile.mkdtemp(prefix="aaina_eval_ref_"))
-        for f in ("src/engine.js", "src/tryon.js", "data/catalogue.json", "data/calibration.json"):
+        for f in ("src/engine.js", "src/tryon.js", "src/app.js", "data/catalogue.json", "data/calibration.json"):
             (old / f).parent.mkdir(parents=True, exist_ok=True)
             (old / f).write_bytes(subprocess.run(["git", "show", f"{ref}:{f}"], cwd=ROOT, capture_output=True, check=True).stdout)
         old_cat = {p["id"]: p for p in json.loads((old / "data/catalogue.json").read_text())}

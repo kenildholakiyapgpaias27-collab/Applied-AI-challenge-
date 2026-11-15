@@ -118,7 +118,10 @@ const TRYON=(()=>{
   function matchFor(p){
     if(!(p.s&&p.s.length)||typeof bestShade!=="function")return null;
     const tone=(typeof P!=="undefined"&&P.tone)||null;
-    if(tone){const m=bestShade(p,typeof matchTone==="function"?matchTone():tone,P.undertone||"neutral");/* matchTone corrects the known bias in self-picked tones */return m?{name:m.name,good:m.good,label:m.good?"Your match":"Closest to you",you:true}:null}
+    if(tone){const t=typeof matchTone==="function"?matchTone():tone,unsure=!P.undertone,ut=P.undertone||(typeof UNSURE_UNDERTONE!=="undefined"?UNSURE_UNDERTONE:"neutral");   /* matchTone corrects the known bias in self-picked tones */
+      const m=bestShade(p,t,ut);if(!m)return null;
+      const a=unsure&&typeof UNSURE_ALT!=="undefined"?bestShade(p,t,UNSURE_ALT):null;   /* not sure of undertone: also offer the warm match (most common) */
+      return{name:m.name,good:m.good,label:m.good?"Your match":"Closest to you",you:true,alt:a&&a.name!==m.name?a.name:null}}
     if(S.model){const m=bestShade(p,S.model.monk,S.model.undertone);return m?{name:m.name,good:m.good,label:"Matches this model",you:false}:null}
     return null}
   const hasPlan=()=>typeof PL!=="undefined"&&!!PL;
@@ -260,7 +263,9 @@ const TRYON=(()=>{
       ${demo?`<p class="to-demo">Demo colour, not real product data</p>`:""}
       ${S.compare?`<p class="to-cmphint">Tap shades to compare (${S.cmp.length}/4). The oldest is replaced after four.</p>`:""}
       <div class="to-shades" role="listbox" aria-label="Shades of ${e(p.n)}">${sh.map((s,i)=>{const isM=m&&m.name===s.name,on=S.compare?S.cmp.some(c=>c.p.id===p.id&&c.s.name===s.name):curName===s.name;
-        return`<button type="button" role="option" aria-selected="${on}" class="to-sw${on?" on":""}${isM?" match":""}" data-shade="${i}" title="${e(shadeInfo(s))}" aria-label="${e(shadeInfo(s))}${isM?`, ${e(m.label)}`:""}"><i style="background:${e(s.hex)}"></i></button>`}).join("")}</div>
+        const isA=m&&m.alt===s.name;
+        return`<button type="button" role="option" aria-selected="${on}" class="to-sw${on?" on":""}${isM?" match":""}${isA?" alt":""}" data-shade="${i}" title="${e(shadeInfo(s))}" aria-label="${e(shadeInfo(s))}${isM?`, ${e(m.label)}`:""}${isA?", also try: warm match":""}"><i style="background:${e(s.hex)}"></i></button>`}).join("")}</div>
+      ${m&&m.alt?`<p class="to-althint">Not sure of your undertone? This is a neutral match. The ringed dot is the warm match, the most common undertone: <b>${e(m.alt)}</b>.</p>`:""}
       <p class="to-swinfo" aria-live="polite"></p>`;
     swInfo();
   }

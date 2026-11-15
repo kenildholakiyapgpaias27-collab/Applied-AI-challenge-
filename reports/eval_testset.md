@@ -14,11 +14,11 @@ Engine: `src/engine.js` run in Node by `tools/eval_testset.py` on the 220 profil
 | Profiles with a MUST_NOT in a top 5 | 0.5% | 0.0% |
 | MUST_NOT blocked by check() | 96.4% | 98.1% |
 |   on labels the quiz can know | 98.2% | 100.0% |
-| GOOD in top 5 (hit rate) | 65.3% | 65.3% |
+| GOOD in top 5 (hit rate) | 65.5% | 65.5% |
 
 ## A. Try-on shade accuracy ("Your match")
 
-"Your match" in the try-on is `bestShade(product, matchTone(), self undertone or neutral)`: the self-picked tone corrected by `matchTone()`, the same call the plan page uses. Scored on each customer's BEST_SHADE foundation. Bands are by measured (true) tone.
+"Your match" in the try-on is `bestShade(product, self tone, self undertone or neutral)`, the same call the plan page uses. Scored on each customer's BEST_SHADE foundation. Bands are by measured (true) tone.
 
 **Try-on "Your match"**
 
@@ -52,6 +52,8 @@ Band gap (best minus worst): exact shade 47.6 pts, within 1 step of true tone 50
 | 8–10 | 26 | 100.0% | -1.85 | 1.85 | 50.0% | 50.0% | 46.2% | 100.0% |
 
 Band gap (best minus worst): exact shade 0.0 pts, within 1 step of true tone 50.0 pts, within 1 of labelled best 0.0 pts, undertone 22.9 pts. Target: under 5 pts.
+
+Customers who said "don't know" for undertone (n=38): exact 50.0%, best shade among the two shown (match + "also try") 60.5%, undertone matches measured 39.5%.
 
 **10 worst misses (try-on)**
 
@@ -111,18 +113,18 @@ MUST_NOT labels cover skincare only; the try-on shows makeup. Its 'Not suitable 
 
 ## C. Relevance
 
-GOOD hit rate in the top 5 (a customer-category counts as a hit if any GOOD product is in our top 5): **65.3%** over 415 customer-categories; 31.0% of all GOOD products appear in a top 5.
+GOOD hit rate in the top 5 (a customer-category counts as a hit if any GOOD product is in our top 5): **65.5%** over 415 customer-categories; 31.4% of all GOOD products appear in a top 5.
 
 | Category | Customer-categories | Hit rate | GOOD recall |
 |---|---|---|---|
 | Cleanser | 44 | 50.0% | 23.5% |
 | Exfoliant | 40 | 72.5% | 33.3% |
-| Eye cream | 37 | 83.8% | 36.0% |
+| Eye cream | 37 | 83.8% | 37.8% |
 | Face mask | 34 | 79.4% | 41.2% |
 | Face oil | 33 | 27.3% | 11.6% |
 | Lip care | 44 | 100.0% | 35.6% |
 | Moisturiser | 39 | 76.9% | 41.0% |
-| Serum | 35 | 57.1% | 26.7% |
+| Serum | 35 | 60.0% | 29.5% |
 | Spot treatment | 25 | 20.0% | 6.7% |
 | Sunscreen | 46 | 41.3% | 15.9% |
 | Toner | 38 | 92.1% | 62.3% |
@@ -131,7 +133,7 @@ GOOD hit rate in the top 5 (a customer-category counts as a hit if any GOOD prod
 
 - Skin type, sensitive, fragrance, essential oils, pregnancy caution: straight from the answers, as the quiz sets them.
 - Known reaction: typed into the quiz's reaction box and matched with the engine's own REACTIONS patterns.
-- Undertone "don't know": undertone not set (the quiz's "Not sure"), so matching assumes neutral.
+- Undertone "don't know": the quiz's "Not sure", then "Still not sure" in the undertone helper (the test set has no helper answers). Matching then uses the engine's default for unknown undertones and also shows a second shade.
 - Budget band: the largest Tune-your-plan option (₹400 / ₹700 / ₹1,200 / no limit) not above the band.
 - Season: month 10 (0 = January), which the engine uses for winter dryness.
-- Concerns the quiz doesn't offer were dropped: concerns the quiz can't take: dark circles (45), concerns the quiz can't take: fine lines (16), concerns the quiz can't take: fine lines, dark circles (2), concerns the quiz can't take: dark circles, fine lines (2).
+- Concerns: all test-set concerns map to quiz concerns (read from PROBLEMS in src/app.js).

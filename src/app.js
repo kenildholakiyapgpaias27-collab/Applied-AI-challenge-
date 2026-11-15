@@ -103,14 +103,15 @@ const PROBLEMS={
 const GOALS={routine:{label:"A skincare routine",sub:"Three products that work together",ic:"dropper"},sunscreen:{label:"Just a sunscreen",sub:"One great match for your skin and city",ic:"sun"},makeup:{label:"Foundation or base makeup",sub:"Your exact shade, matched to tone and undertone",ic:"spark"}};
 const GENDERS=[["woman","Woman"],["man","Man"],["nonbinary","Non-binary"],["unsaid","Prefer not to say"]];
 const CONCERN_KEYS=Object.keys(PROBLEMS).filter(k=>!PROBLEMS[k].goal);
-/* which questions to ask, from Q1's answers */
+/* which questions to ask, from Q1's answers; "Not sure" of undertone adds one helper question */
+const utHelpStep=()=>typeof P!=="undefined"&&P&&/^(unsure|helper)/.test(P.undertoneSource||"")?["utHelp"]:[];
 function stepsFor(goal,gender){
   if(goal==="sunscreen")return["about","follow","safety","location","skin"];                       // no shade or undertone for a sunscreen
-  if(goal==="makeup")return["about","follow","safety","skin","tone","undertone"];
-  return["about","concerns","safety","location","skin","tone",...(gender==="man"?[]:["undertone"])]; // undertone only matters for base makeup
+  if(goal==="makeup")return["about","follow","safety","skin","tone","undertone",...utHelpStep()];
+  return["about","concerns","safety","location","skin","tone",...(gender==="man"?[]:["undertone",...utHelpStep()])]; // undertone only matters for base makeup
 }
 const showBaseShades=()=>P.goal!=="sunscreen"&&P.goal!=="makeup"&&P.gender!=="man"&&STEPS.includes("undertone");
-const UNDERTONES=[["warm","Warm","Golden or peachy; gold jewellery suits you; veins look greenish"],["cool","Cool","Pink or rosy; silver suits you; veins look bluish or purple"],["neutral","Neutral","A mix of both; gold and silver both work"],["olive","Olive","Greenish or grey-beige; often looks warm and cool at once"],["unsure","Not sure","I'll pick shades that suit most undertones"]];
+const UNDERTONES=[["warm","Warm","Golden or peachy; gold jewellery suits you; veins look greenish"],["cool","Cool","Pink or rosy; silver suits you; veins look bluish or purple"],["neutral","Neutral","A mix of both; gold and silver both work"],["olive","Olive","Greenish or grey-beige; often looks warm and cool at once"],["unsure","Not sure","I'll ask one quick question to help"]];
 
 /* actives that belong to each problem; strong actives outside this list are kept out */
 const RELEVANT={sunscreen:/niacinamide|vitamin c|ascorb|hyaluronic/i,makeup:/niacinamide|hyaluronic/i,acne:/salicylic|azelaic|niacinamide|zinc|tea tree|melaleuca/i,pigmentation:/vitamin c|ascorb|niacinamide|tranexamic|arbutin|licorice|glycyrrhiza|azelaic/i,dullness:/vitamin c|ascorb|lactic|glycolic|niacinamide/i,dehydration:/hyaluronic|ceramide|squalane/i,oiliness:/niacinamide|zinc|salicylic/i,tanning:/vitamin c|ascorb|lactic|glycolic|niacinamide/i,redness:/centella|ceramide|azelaic|licorice|glycyrrhiza|niacinamide/i,"fine lines":/retinol|retinal|bakuchiol|peptide|hyaluronic/i,"dark circles":/caffeine|vitamin c|ascorb|niacinamide|peptide/i};
@@ -162,8 +163,13 @@ const STEP={
     show:()=>[GENDERS.find(g=>g[0]===P.gender)?.[1],GOALS[P.goal]?.label].filter(Boolean).join(" · ")||"–"},
   undertone:{title:"Your skin",side:"Undertone",q:()=>({ask:"What's your undertone?",help:P.undertoneSource==="selfie"&&P.undertone?`Your selfie suggests **${P.undertone}**. Tap it to confirm, or pick another. Undertone decides **which shade family** suits you.`:"Undertone is the colour **under** your skin tone, and it decides **which shade family** suits you. Look at your wrist in daylight.",
       opts:UNDERTONES.map(([value,label,sub])=>({label:label+(P.undertoneSource==="selfie"&&P.undertone===value?" (from your selfie)":""),sub,value}))}),
-    apply:v=>{P.undertone=v==="unsure"?null:v;P.undertoneSource=v==="unsure"?"unsure":"you picked"},
+    apply:v=>{P.undertone=v==="unsure"?null:v;P.undertoneSource=v==="unsure"?"unsure":"you picked";if(v!=="unsure")DONE.delete("utHelp");STEPS=stepsFor(P.goal,P.gender)},
     show:()=>P.undertone?cap(P.undertone):P.undertoneSource==="unsure"?"Not sure":"–"},
+  utHelp:{title:"Your skin",side:"Undertone helper",q:()=>({ask:"Which sounds more like you?",help:"Think of **jewellery that flatters you** and the **colour of the veins on your wrist** in daylight.",
+      opts:[{label:"Gold suits me; veins look greenish",sub:"Warm undertone",value:"warm"},{label:"Silver suits me; veins look blue or purple",sub:"Cool undertone",value:"cool"},
+            {label:"Both work; veins look blue-green",sub:"Neutral undertone",value:"neutral"},{label:"Still not sure",sub:"I'll pick a shade that suits most undertones and show a warm option too",value:"unsure"}]}),
+    apply:v=>{if(v==="unsure"){P.undertone=null;P.undertoneSource="unsure"}else{P.undertone=v;P.undertoneSource="helper"}},
+    show:()=>P.undertoneSource==="helper"?cap(P.undertone):"Still not sure"},
   problem:{title:"Your skin",side:"Main concern",q:()=>({ask:"What's bothering your skin the most right now?",help:"Pick **the one that bothers you most**. You can also describe it in your own words below.",
       opts:CONCERN_KEYS.map(k=>({label:PROBLEMS[k].label,sub:PROBLEMS[k].sub,value:k}))}),
     apply:v=>{PROB=v;SUB=null;PREF={boost:[]};P.concerns=[v];for(const k of["follow","extra"])DONE.delete(k)},show:()=>PROBLEMS[PROB]?.label||"–"},
@@ -839,7 +845,7 @@ function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
 
 /* ---------- your shade in base makeup: exact names from the shade library ---------- */
 function baseShadesHTML(){
-  if(!P.tone||!showBaseShades())return"";const ut=P.undertone||"neutral",out=[];
+  if(!P.tone||!showBaseShades())return"";const ut=P.undertone||UNSURE_UNDERTONE,out=[];
   for(const cat of["Foundation","BB / CC cream","Concealer","Compact powder"]){
     const cands=CAT.filter(p=>p.c===cat&&p.s&&p.s.length&&!p.sp&&check(p).ok&&(!P.budget||p.p<=P.budget*1.5));
     let best=null;for(const p of cands){const m=bestShade(p,matchTone(),ut);if(m&&(!best||m.score<best.m.score))best={p,m}}
@@ -907,7 +913,9 @@ function feedbackFormHTML(prefill=null){
 /* ---------- building the plan ---------- */
 const NUMW=["no","one","two","three","four","five"],numw=n=>NUMW[n]||String(n);
 // undertone "not sure" matches neutral shades, which suit the widest range
-const shadeFor=p=>P.tone?bestShade(p,matchTone(),P.undertone||"neutral"):null;
+const shadeFor=p=>P.tone?bestShade(p,matchTone(),P.undertone||UNSURE_UNDERTONE):null;
+/* not sure of undertone: the best warm shade (the most common undertone) as a second option, when it differs */
+const altShadeFor=p=>{if(!P.tone||P.undertone)return null;const a=bestShade(p,matchTone(),UNSURE_ALT),m=shadeFor(p);return a&&m&&a.name!==m.name?a:null};
 const shadeOK=p=>{const m=shadeFor(p);return!!(m&&m.good)};
 const hay=p=>p.n+" "+(p.a||"")+" "+(p.i||"");
 function slotScore(p,slot){
@@ -1043,7 +1051,8 @@ function cardHTML(i,s){
   </article>`;
 }
 function shadeLineHTML(p){const m=shadeFor(p);if(!m)return"";
-  return`<div class="shadeline"><span class="bsw" style="background:${esc(m.hex)}"></span><div><b>Your shade: ${esc(m.name)}</b><small>Tone ${m.depth} · ${esc(m.und||m.undertone||"")} undertone${m.cov?` · ${esc(m.cov)} coverage`:""}</small></div></div>`}
+  const alt=altShadeFor(p);
+  return`<div class="shadeline"><span class="bsw" style="background:${esc(m.hex)}"></span><div><b>Your shade: ${esc(m.name)}</b><small>Tone ${m.depth} · ${esc(m.und||m.undertone||"")} undertone${m.cov?` · ${esc(m.cov)} coverage`:""}</small>${alt?`<small class="shadealt">Not sure of your undertone? Also try <b>${esc(alt.name)}</b> (${esc(alt.und)}).</small>`:""}</div></div>`}
 function lineHTML(p,slot){let h=esc(oneLine(p,slot));const a=actives(p)[0];
   if(a)h=h.replace(esc(a.name),`<b>${esc(a.name)}</b>`);h=h.replace(/(SPF \d+)/,"<b>$1</b>");return h}
 function oneLine(p,slot){
