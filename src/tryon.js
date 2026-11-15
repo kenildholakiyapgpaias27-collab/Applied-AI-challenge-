@@ -636,15 +636,18 @@ void main(){vec2 t=vec2(uMirror>0.5?1.-uv.x:uv.x,uv.y);vec3 S=s2l(texture2D(uTex
     if(!root)build();
     if(!S.open){S.open=true;root.hidden=false;if(S.setSheet)S.setSheet(false);document.documentElement.classList.add("to-lock");
       if(location.hash!=="#try-on"){history.pushState(null,"",location.pathname+location.search+"#try-on");S.pushedHash=true}}
-    if(opts.pid&&typeof BY_ID!=="undefined"&&BY_ID[opts.pid]){const p=BY_ID[opts.pid];S.tab=TABS.find(t=>t[2].includes(p.c))[0];S.cat=p.c;pickProduct(p.id)}
+    if(opts.pid&&typeof BY_ID!=="undefined"&&BY_ID[opts.pid]){const p=BY_ID[opts.pid];S.tab=TABS.find(t=>t[2].includes(p.c))[0];S.cat=p.c;pickProduct(p.id);
+      if(opts.shade){const s=shadesOf(p).find(x=>x.name===opts.shade);if(s){S.look[SLOT[p.c]]={p,s};renderPanel()}}}
     else if(opts.base){S.tab="face";S.cat="Foundation";S.pid=null;renderPanel();const list=products("Foundation").filter(x=>x.st.ok);if(list[0])pickProduct(list[0].p.id)}
     else renderPanel();
+    if(opts.model==="closest"&&!S.src){const k=closestModel();if(k>=0){useModel(k);return}}
     if(!S.src)pane("start");else{layout();kick()}
     root.querySelector(".to-x").focus();
   }
   function close(){
-    if(!S.open)return;S.open=false;toggleCompare(false,true);stopCamera();stopLoop();root.hidden=true;document.documentElement.classList.remove("to-lock");
-    if(location.hash==="#try-on"){if(S.pushedHash){S.pushedHash=false;history.back()}else history.replaceState(null,"",location.pathname+location.search)}
+    if(!S.open)return;S.open=false;toggleCompare(false,true);stopCamera();
+    try{const b=S.look.base;window.dispatchEvent(new CustomEvent("tryon:close",{detail:{look:{base:b?{pid:b.p.id,name:b.s.name}:null}}}))}catch{}stopLoop();root.hidden=true;document.documentElement.classList.remove("to-lock");
+    if(location.hash==="#try-on"){if(S.pushedHash){S.pushedHash=false;window.__aainaTryonBack=true;history.back()}else history.replaceState(null,"",location.pathname+location.search)}
   }
   window.addEventListener("hashchange",()=>{if(location.hash==="#try-on"&&!S.open)open();else if(location.hash!=="#try-on"&&S.open){S.pushedHash=false;close()}});
   window.addEventListener("popstate",()=>{if(location.hash!=="#try-on"&&S.open){S.pushedHash=false;close()}});

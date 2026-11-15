@@ -236,6 +236,21 @@ def main():
         pg.fill("#nameInput", "Asha"); pg.keyboard.press("Enter"); pg.wait_for_timeout(400)
         Q.about(pg, "woman", "makeup"); Q.pick(pg, "Natural")
         Q.safety(pg, "false"); Q.skin(pg, "Comfortable"); Q.tone(pg, 6); Q.pick(pg, "Warm")
+        # shade preview step: keep, try on a face, use another shade
+        check("D: base-makeup quiz ends with the shade preview", Q.current(pg) == "preview" and pg.is_visible(".q:not(.answered) .pvcard"), Q.current(pg))
+        pv = pg.evaluate("(()=>{const x=previewPick();return{pid:x.p.id,name:x.m.name}})()")
+        pg.click(".q:not(.answered) [data-pv=try]"); pg.wait_for_timeout(600)
+        k = [m["id"] for m in MODELS].index("tan-warm")
+        st = pg.evaluate("({open:!document.querySelector('#tryon').hidden,mode:TRYON.state.mode,model:TRYON.state.model&&TRYON.state.model.id,base:TRYON.state.look.base&&{pid:TRYON.state.look.base.p.id,name:TRYON.state.look.base.s.name}})")
+        check("D: 'See it on a face' opens the try-on on the matched shade and the closest model face",
+              st["open"] and st["mode"] == "model" and st["model"] == "tan-warm" and st["base"] == pv, (st, pv))
+        other = pg.evaluate(f"(()=>{{const p=BY_ID['{pv['pid']}'];const i=p.s.findIndex(s=>s[0]==='{pv['name']}');return p.s[(i+1)%p.s.length][0]}})()")
+        i2 = pg.evaluate(f"BY_ID['{pv['pid']}'].s.findIndex(s=>s[0]==={json.dumps(other)})")
+        pg.click(f".to-sw[data-shade='{i2}']"); pg.click(".to-x"); pg.wait_for_timeout(400)
+        check("D: back in the quiz, it offers the shade you tried", pg.is_visible(".q:not(.answered) .pvback") and other in pg.inner_text(".q:not(.answered) .pvback"))
+        pg.click(".q:not(.answered) [data-pv=use]"); pg.wait_for_timeout(500)
+        res = pg.evaluate(f"(()=>{{const s=PL.slots.find(x=>x.slot.primary);return{{pid:s.p&&s.p.id,shade:shadeFor(s.p).name}}}})()")
+        check("D: the plan uses the shade picked in the preview", res == {"pid": pv["pid"], "shade": other} and "You picked this in the shade preview" in pg.inner_text(".plan:not(.old)"), res)
         check("D: makeup plan has a 'Try it on' button", pg.locator(".plan:not(.old) .tryon-btn").count() >= 2)
         pid = pg.evaluate("PL.slots.find(s=>s.p&&s.p.s).p.id")
         pg.click(f".plan:not(.old) .pcard [data-tryon='{pid}']")
@@ -246,8 +261,11 @@ def main():
         lab = sel.get_attribute("aria-label") if sel.count() == 1 else ""
         check("D: user's best shade is marked 'Your match'", sel.count() == 1 and match in lab and "Your match" in lab, lab)
         check("D: product list shows a 'Your match' chip", "Your match" in pg.inner_text(f".to-prod[data-pid='{pid}']"))
-        check("D: and it is pre-selected", pg.evaluate("TRYON.state.look.base&&TRYON.state.look.base.s.name") == match)
+        check("D: and the plan's shade (here, the one picked in the preview) is pre-selected",
+              pg.evaluate("TRYON.state.look.base&&TRYON.state.look.base.s.name") == pg.evaluate(f"shadeFor(BY_ID['{pid}']).name"))
         lip = pg.evaluate("TRYON._products('Lipstick').find(x=>x.st.ok&&!PL.extras?.some(e=>e.p.id===x.p.id)).p.id")
+        if not pg.is_visible(".to-start"):
+            pg.click(".to-tools [data-to=start]")
         pg.click(".to-model >> nth=0")
         pg.click(".tryon [data-tab='lips']"); pg.click(f".to-prod[data-pid='{lip}']")
         pg.click(".to-foot [data-to=addlook]")
@@ -272,6 +290,8 @@ def main():
             check(f"D2: 'Not sure' adds the undertone helper ({answer})", Q.current(pg) == "utHelp" and "veins" in pg.inner_text(".q:not(.answered)"), Q.current(pg))
             Q.pick(pg, answer)
             pg.wait_for_timeout(400)
+            if Q.current(pg) == "preview":
+                pg.locator(".q:not(.answered) [data-pv=keep]").click(); pg.wait_for_timeout(400)
             st = pg.evaluate("({ut:P.undertone,src:P.undertoneSource,plan:!!PL})")
             if want:
                 check("D2: a helper answer sets the undertone", st["ut"] == want and st["src"] == "helper" and st["plan"], st)

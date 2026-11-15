@@ -955,6 +955,12 @@ body{background:#fcfbfa;color:var(--ink);font:16px/1.55 var(--body);margin:0}
 .about .goalopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:10px;margin-top:6px}
 .about .goalopts .opt{text-align:left}.about .goalic svg{width:26px;height:26px}
 
+/* shade preview step (base makeup quiz) */
+.pv .pvcard{display:flex;gap:14px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--surface);max-width:560px}
+.pv .pvsw{flex:none;width:52px;height:52px;border-radius:50%;border:1px solid rgba(0,0,0,.1);box-shadow:0 0 0 3px var(--surface),0 0 0 4px var(--line)}
+.pv .pvtxt b{display:block;font-size:16px}.pv .pvtxt small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.pv .pvbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.pv .pvback{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--accent-soft);max-width:560px}.pv .pvback p{margin:0 0 8px}
 /* ---------- virtual try-on (Aaina tokens only) ---------- */
 html.to-lock,html.to-lock body{overflow:hidden}
 .tryon{position:fixed;inset:0;z-index:1000;background:var(--bg);color:var(--ink);font-family:var(--body);display:flex;flex-direction:column}

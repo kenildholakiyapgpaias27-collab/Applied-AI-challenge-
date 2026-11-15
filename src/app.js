@@ -107,7 +107,7 @@ const CONCERN_KEYS=Object.keys(PROBLEMS).filter(k=>!PROBLEMS[k].goal);
 const utHelpStep=()=>typeof P!=="undefined"&&P&&/^(unsure|helper)/.test(P.undertoneSource||"")?["utHelp"]:[];
 function stepsFor(goal,gender){
   if(goal==="sunscreen")return["about","follow","safety","location","skin"];                       // no shade or undertone for a sunscreen
-  if(goal==="makeup")return["about","follow","safety","skin","tone","undertone",...utHelpStep()];
+  if(goal==="makeup")return["about","follow","safety","skin","tone","undertone",...utHelpStep(),"preview"];   // preview: see the match on a face before the plan
   return["about","concerns","safety","location","skin","tone",...(gender==="man"?[]:["undertone",...utHelpStep()])]; // undertone only matters for base makeup
 }
 const showBaseShades=()=>P.goal!=="sunscreen"&&P.goal!=="makeup"&&P.gender!=="man"&&STEPS.includes("undertone");
@@ -170,6 +170,8 @@ const STEP={
             {label:"Both work; veins look blue-green",sub:"Neutral undertone",value:"neutral"},{label:"Still not sure",sub:"I'll pick a shade that suits most undertones and show a warm option too",value:"unsure"}]}),
     apply:v=>{if(v==="unsure"){P.undertone=null;P.undertoneSource="unsure"}else{P.undertone=v;P.undertoneSource="helper"}},
     show:()=>P.undertoneSource==="helper"?cap(P.undertone):"Still not sure"},
+  preview:{title:"Your shade",side:"Shade preview",q:()=>({ask:"Here's your foundation match",help:"See it on a face before you decide. **Optional**: keep it, try other shades, or skip.",preview:true}),
+    apply:v=>{P.shadePick=v&&v.pid?v:null},show:()=>P.shadePick?P.shadePick.name:"Kept the match"},
   problem:{title:"Your skin",side:"Main concern",q:()=>({ask:"What's bothering your skin the most right now?",help:"Pick **the one that bothers you most**. You can also describe it in your own words below.",
       opts:CONCERN_KEYS.map(k=>({label:PROBLEMS[k].label,sub:PROBLEMS[k].sub,value:k}))}),
     apply:v=>{PROB=v;SUB=null;PREF={boost:[]};P.concerns=[v];for(const k of["follow","extra"])DONE.delete(k)},show:()=>PROBLEMS[PROB]?.label||"–"},
@@ -371,7 +373,9 @@ document.addEventListener("mouseout",e=>{if(!e.relatedTarget&&e.clientY<=8)maybe
 // phones: the Back button. One extra history entry catches it; leaving still works on the next press.
 let EXIT_TRAP=false;
 function armExitTrap(){if(EXIT_TRAP)return;try{history.pushState({aaina:1},"");EXIT_TRAP=true}catch{}}
-window.addEventListener("popstate",()=>{if(!EXIT_TRAP)return;EXIT_TRAP=false;if(maybeExit())armExitTrap()});
+window.addEventListener("popstate",()=>{if(!EXIT_TRAP)return;
+  if(window.__aainaTryonBack||(typeof TRYON!=="undefined"&&TRYON&&TRYON.state.open)){window.__aainaTryonBack=false;return}   // leaving the try-on, not the quiz
+  EXIT_TRAP=false;if(maybeExit())armExitTrap()});
 function showWelcome(){
   const d=dayPart();$("greetText").textContent=d.hello;$("greetIc").innerHTML=d.ic;$("greetSub").textContent="Bespoke Skin & Complexion Consultation";
   $("welcome").hidden=false;$("advisor").hidden=true;renderResume();$("nameInput").value=NAME||"";$("nameGo").disabled=!cleanName(NAME||"");
@@ -424,7 +428,7 @@ function ask(key){
   const box=document.createElement("div");box.className="q";box.dataset.step=key;
   box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">Q${idx} of ${STEPS.length} · ${esc(s.title)}${STEPS.length-idx===0?" · last one":""}</span><p class="qgreet" hidden></p><h3 class="qtitle">${esc(Q.ask)}</h3>${Q.help?`<p class="qhelp">${fmt(Q.help)}</p>`:""}</div></div>`;
   const sl=PROB&&key!=="concerns"&&key!=="about"?shortlistPanel(key):null;SL_PANEL=sl;
-  box.appendChild(Q.about?aboutWidget():Q.location?locationWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():Q.safety?safetyWidget():Q.concerns?concernsWidget():optionsWidget(key,Q));
+  box.appendChild(Q.about?aboutWidget():Q.location?locationWidget():Q.preview?previewWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():Q.safety?safetyWidget():Q.concerns?concernsWidget():optionsWidget(key,Q));
   if(sl){box.classList.add("hassl");box.appendChild(sl)}else if(key==="concerns")SL_PREV=null;
   {const g=stepGreeting(key),el=box.querySelector(".qgreet");if(g&&el){el.innerHTML=`<span class="qgic">${SVG('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>')}</span><span>${g}</span>`;el.hidden=false}}
   const nav=document.createElement("div");nav.className="qnav";nav.innerHTML=`<button type="button" class="btn backcta">${SVG('<path d="M15 6l-6 6 6 6"/>')}Back</button><span class="qnav-step">Question ${idx} of ${STEPS.length}</span>`;
@@ -448,6 +452,36 @@ function aboutWidget(){
   w.querySelectorAll("[data-goal]").forEach(b=>b.onclick=()=>{goal=b.dataset.goal;update();if(gender)focusEl(go)});
   go.onclick=()=>answer("about",{gender,goal},`${GENDERS.find(g=>g[0]===gender)[1]} · ${GOALS[goal].label}`);
   update();return w;
+}
+/* shade preview (base makeup): the same pick the plan will make, shown before the plan, with a way to see it on a face */
+function previewPick(){
+  const slot=PROBLEMS.makeup.plan.find(x=>x.primary);const had=P.budget;
+  if(!P.budgetChosen&&P.budget==null)P.budget=DEFAULT_BUDGET;          // as buildPlan will
+  const list=rankSlot(slot,{used:new Set(),ret:false,acid:false,bp:false});P.budget=had;
+  const p=list.find(x=>x.s&&x.s.length);return p?{p,m:shadeFor(p)}:null}
+function previewWidget(){
+  const w=document.createElement("div");w.className="qbody pv";
+  const pick=previewPick();
+  if(!pick||!pick.m){w.innerHTML=`<p class="small muted">I couldn't find a close shade that passes your checks. Your plan will say what's missing.</p><div class="row"><button type="button" class="btn primary" data-pv="keep">Continue</button></div>`;
+    w.querySelector("[data-pv=keep]").onclick=()=>{meSay("Continue");answer("preview",null)};return w}
+  const{p,m}=pick,alt=altShadeFor(p);
+  w.innerHTML=`<div class="pvcard"><span class="pvsw" style="background:${esc(m.hex)}"></span><div class="pvtxt"><b>${esc(m.name)}</b>
+      <small>${esc(p.n)} · ${esc(p.c)} · ${rupee(p.p)}</small><small>Tone ${m.depth} · ${esc(m.und)} undertone${m.cov?` · ${esc(m.cov)} coverage`:""}${m.good?"":" · closest available"}</small>
+      ${alt?`<small>Not sure of your undertone? Also try <b>${esc(alt.name)}</b> (${esc(alt.und)}).</small>`:""}</div></div>
+    <div class="pvback" hidden></div>
+    <div class="row pvbtns"><button type="button" class="btn primary" data-pv="try">See it on a face</button><button type="button" class="btn" data-pv="keep">Keep this shade</button><button type="button" class="btn ghost" data-pv="skip">Skip</button></div>
+    <p class="small muted">Opens the try-on with your shade and the model face closest to your tone. Your camera or a photo works too, and nothing is uploaded.</p>`;
+  const done=(label,val)=>{window.removeEventListener("tryon:close",back);meSay(label);answer("preview",val)};
+  w.querySelector("[data-pv=keep]").onclick=()=>done("Keep this shade",null);
+  w.querySelector("[data-pv=skip]").onclick=()=>done("Skip",null);
+  w.querySelector("[data-pv=try]").onclick=()=>{if(typeof TRYON!=="undefined"&&TRYON)TRYON.open({pid:p.id,shade:m.name,model:"closest"})};
+  // back from the try-on: offer the shade they tried, if it differs and is suitable
+  const back=e=>{const b=e.detail&&e.detail.look&&e.detail.look.base;const box=w.querySelector(".pvback");if(!b||!box)return;
+    const bp=BY_ID[b.pid];if(!bp||(b.pid===p.id&&b.name===m.name)||!check(bp).ok||!PROBLEMS.makeup.plan.find(x=>x.primary).cats.includes(bp.c)){box.hidden=true;return}
+    box.hidden=false;box.innerHTML=`<p>You tried <b>${esc(b.name)}</b>${b.pid!==p.id?` in ${esc(bp.n)}`:""}. Use it in your plan?</p><div class="row"><button type="button" class="btn primary" data-pv="use">Use ${esc(b.name)}</button></div>`;
+    box.querySelector("[data-pv=use]").onclick=()=>done(`Use ${b.name}`,{pid:b.pid,name:b.name})};
+  window.addEventListener("tryon:close",back);
+  return w;
 }
 function optionsWidget(key,Q){
   const w=document.createElement("div");w.className="qbody";
@@ -913,9 +947,10 @@ function feedbackFormHTML(prefill=null){
 /* ---------- building the plan ---------- */
 const NUMW=["no","one","two","three","four","five"],numw=n=>NUMW[n]||String(n);
 // undertone "not sure" matches neutral shades, which suit the widest range
-const shadeFor=p=>P.tone?bestShade(p,matchTone(),P.undertone||UNSURE_UNDERTONE):null;
+const shadeFor=p=>{if(P.shadePick&&P.shadePick.pid===p.id){const s=(p.s||[]).find(x=>x[0]===P.shadePick.name);if(s)return{name:s[0],depth:s[1],und:s[2],hex:s[3],cov:s[4],good:true,picked:true}}
+  return P.tone?bestShade(p,matchTone(),P.undertone||UNSURE_UNDERTONE):null};
 /* not sure of undertone: the best warm shade (the most common undertone) as a second option, when it differs */
-const altShadeFor=p=>{if(!P.tone||P.undertone)return null;const a=bestShade(p,matchTone(),UNSURE_ALT),m=shadeFor(p);return a&&m&&a.name!==m.name?a:null};
+const altShadeFor=p=>{if(!P.tone||P.undertone||(P.shadePick&&P.shadePick.pid===p.id))return null;const a=bestShade(p,matchTone(),UNSURE_ALT),m=shadeFor(p);return a&&m&&a.name!==m.name?a:null};
 const shadeOK=p=>{const m=shadeFor(p);return!!(m&&m.good)};
 const hay=p=>p.n+" "+(p.a||"")+" "+(p.i||"");
 function slotScore(p,slot){
@@ -963,6 +998,7 @@ function buildPlan(silent){
   const ctx={used:new Set(),ret:safe.some(o=>o.ret),acid:safe.some(o=>o.acid),bp:safe.some(o=>o.bp)};const slots=[];const kept=new Set();
   const want=RESTORE_IDS;RESTORE_IDS=null;
   for(const i of order){const slot=def[i];const list=rankSlot(slot,ctx);
+    if(slot.shade&&slot.primary&&P.shadePick){const j=list.findIndex(x=>x.id===P.shadePick.pid);if(j>0)list.unshift(list.splice(j,1)[0])}
     const own=safe.find(o=>!kept.has(o.key)&&slot.cats.includes(o.cat)&&(!slot.primary||o.con.includes(PROB)));
     if(own&&(!want||want[i]==="keep")){kept.add(own.key);slots[i]={slot,list,idx:0,p:null,keep:own};continue}
     let p=list[0]||null;if(want&&want[i]&&want[i]!=="keep"){const j=list.findIndex(x=>x.id===want[i]);if(j>=0)p=list[j]}
@@ -1052,7 +1088,7 @@ function cardHTML(i,s){
 }
 function shadeLineHTML(p){const m=shadeFor(p);if(!m)return"";
   const alt=altShadeFor(p);
-  return`<div class="shadeline"><span class="bsw" style="background:${esc(m.hex)}"></span><div><b>Your shade: ${esc(m.name)}</b><small>Tone ${m.depth} · ${esc(m.und||m.undertone||"")} undertone${m.cov?` · ${esc(m.cov)} coverage`:""}</small>${alt?`<small class="shadealt">Not sure of your undertone? Also try <b>${esc(alt.name)}</b> (${esc(alt.und)}).</small>`:""}</div></div>`}
+  return`<div class="shadeline"><span class="bsw" style="background:${esc(m.hex)}"></span><div><b>Your shade: ${esc(m.name)}</b>${m.picked?`<small class="shadealt">You picked this in the shade preview.</small>`:""}<small>Tone ${m.depth} · ${esc(m.und||m.undertone||"")} undertone${m.cov?` · ${esc(m.cov)} coverage`:""}</small>${alt?`<small class="shadealt">Not sure of your undertone? Also try <b>${esc(alt.name)}</b> (${esc(alt.und)}).</small>`:""}</div></div>`}
 function lineHTML(p,slot){let h=esc(oneLine(p,slot));const a=actives(p)[0];
   if(a)h=h.replace(esc(a.name),`<b>${esc(a.name)}</b>`);h=h.replace(/(SPF \d+)/,"<b>$1</b>");return h}
 function oneLine(p,slot){
@@ -1257,7 +1293,7 @@ function explainHTML(){
 }
 
 /* ---------- side panel ---------- */
-const SHORT={about:"About you",undertone:"Undertone",concerns:"Concerns",safety:"Safety",shelf:"Routine",problem:"Concern",follow:"Details",extra:"Also",avoid:"Avoid",react:"Reactions",preg:"Pregnancy",location:"Location",skin:"Skin type",tone:"Skin tone",budget:"Budget"};
+const SHORT={about:"About you",undertone:"Undertone",utHelp:"Undertone help",preview:"Your shade",concerns:"Concerns",safety:"Safety",shelf:"Routine",problem:"Concern",follow:"Details",extra:"Also",avoid:"Avoid",react:"Reactions",preg:"Pregnancy",location:"Location",skin:"Skin type",tone:"Skin tone",budget:"Budget"};
 function renderSide(){
   const j=$("journey");if(!j)return;j.innerHTML="";
   const ol=document.createElement("ol");
