@@ -64,6 +64,21 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
   - **Where it lives:** **Try it on** on complexion product cards, on the base-makeup plan and in **Your shade in base makeup**, plus the `#try-on` link.
   - **On the device, offline-friendly:** face tracking is Google's MediaPipe Face Landmarker (`@mediapipe/tasks-vision@0.10.35`, pinned), loaded from jsDelivr only when the camera or a photo is used. The model faces ship with their landmarks, so they work fully offline. With no WebGL, no face found, a slow device or no network, it says so and shows the shades as swatches on your skin tone instead.
 
+## Accuracy
+
+Measured on 2026-11-15 against the organisers' labelled test set (220 synthetic customers, `data/eval/PS-14_recommendation_test_set.xlsx`), using only what each customer told the quiz. Full results: [reports/eval_testset.md](reports/eval_testset.md). Re-run with `python3 tools/eval_testset.py --visual`.
+
+| Measure | Result | Target |
+|---|---|---|
+| Try-on "Your match" = labelled best shade | 39.1% (naive depth-only baseline: 47.7%) | |
+| Shade depth within 1 step of measured tone | 71.4% (MAE 1.15) | |
+| Gap between tone bands (within 1 of labelled best) | 20.6 pts (1–3: 94.4%, 4–7: 75.6%, 8–10: 96.2%) | under 5 pts |
+| Profiles with a MUST_NOT product in a top 5 | 0.5% (1 of 220) | 0 |
+| MUST_NOT products blocked by `check()` | 96.4% (504 of 523); 98.2% on what the quiz can know | 100% |
+| GOOD product in the top 5 | 65.3% of customer-categories | |
+
+The shade matcher trails the naive baseline because it weighs an undertone mismatch like a full step of depth, and the app does not yet use the engine's self-report tone correction. Every safety leak traces to skin type: 10 labels use the measured skin type where the customer told the quiz something else, and 9 come from skin-type tags our catalogue clean-up added. For tones 8–10 the catalogue's deepest shades are often still too light.
+
 ## Guardrails enforced in code
 
 Every product passes a hard filter before it can be ranked (`check()` in `src/engine.js`):
@@ -112,7 +127,9 @@ aaina-skin-advisor/
 │   ├── migrations/     # schema, row-level security, erasure function, report views
 │   ├── seed.sql        # generated catalogue upsert (tools/seed_catalogue.py)
 │   └── tests/          # RLS tests + end-to-end browser test against a mocked API
+├── reports/            # test-set evaluation results (tools/eval_testset.py)
 └── tools/
+    ├── eval_testset.py # scores the real engine on the labelled test set (with eval_engine.js)
     ├── seed_catalogue.py
     └── tryon/          # make_faces.py (model faces), make_demo_colours.py, MediaPipe canonical mesh + licence
 ```
