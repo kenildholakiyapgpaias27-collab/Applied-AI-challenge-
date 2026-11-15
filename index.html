@@ -2715,6 +2715,16 @@ function planHeading(prob){
   if(P.goal==="makeup")return"Your base makeup, in your shade";
   return`${cap(numw(n))} steps for ${lbl}`;
 }
+// Routine subtitle built from the user's own concern, skin type and climate; any missing piece is dropped.
+function planLead(){
+  const concern=PROBLEMS[PROB]?.label,city=P.city?esc(P.city):"",w=P.weather,say=CLIMATE_SAY[P.climate]||P.climate;
+  let clim="";
+  if(w&&w.avg&&w.flags){const hl=esc(wxHeadline(w).toLowerCase());
+    clim=w.normal?(city?`${city}'s typically ${hl} ${esc(w.monthName||"season")}`:`a typically ${hl} ${esc(w.monthName||"season")}`):(city?`the ${hl} week ${city} has just had`:`this week's ${hl} weather`)}
+  else if(say)clim=city?`${city}, where it's mostly ${esc(say)}`:`a mostly ${esc(say)} climate`;
+  const parts=[P.skin&&`tailored to ${esc(P.skin)} skin`,clim&&`calibrated for ${clim}`].filter(Boolean);
+  return`A bespoke ${PL.slots.length>1?numw(PL.slots.length)+"-gesture ":""}routine${concern?` crafted for ${esc(concern.toLowerCase())}`:""}${parts.length?`, ${parts.join(" and ")}`:""}.`;
+}
 function renderPlan(){
   thread.querySelectorAll(".plan").forEach(r=>r.classList.add("old"));
   const box=document.createElement("div");box.className="plan";
@@ -2724,7 +2734,7 @@ function renderPlan(){
   let h=`<div class="phero">
     <div class="eyebrow">✦ Prescription № ${PL.slots.length} · ${NAME?esc(NAME):"Personalized"}</div>
     <h3>L'Ordonnance de Soin</h3>
-    <p class="lead">${SUB?`Calibrated for ${esc(SUB.toLowerCase())}. `:""}${PL.slots.length===1?"Checked against every diagnostic parameter, with bespoke alternatives one tap away.":P.goal==="makeup"?"Each shade is matched to your skin tone and undertone, and every formula passed your safety checks.":"A bespoke three-gesture routine crafted for post-inflammatory clarity and lipid balance, calibrated for coastal warmth and climate."}</p>
+    <p class="lead">${SUB?`Calibrated for ${esc(SUB.toLowerCase())}. `:""}${PL.slots.length===1?"Checked against every diagnostic parameter, with bespoke alternatives one tap away.":P.goal==="makeup"?"Each shade is matched to your skin tone and undertone, and every formula passed your safety checks.":planLead()}</p>
     <div class="vanity-tray" role="tablist" aria-label="Protocol timing">
       <button type="button" class="vanity-btn active" data-vanity="am">☀️ Morning Protocol</button>
       <button type="button" class="vanity-btn" data-vanity="pm">🌙 Evening Protocol</button>
