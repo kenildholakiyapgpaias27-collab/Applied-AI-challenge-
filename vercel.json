@@ -1,0 +1,11 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/deck", "destination": "/deck.html" },
+    { "source": "/deck.html", "destination": "/deck.html" },
+    { "source": "/assets/:match*", "destination": "/assets/:match*" },
+    { "source": "/src/:match*", "destination": "/src/:match*" },
+    { "source": "/data/:match*", "destination": "/data/:match*" },
+    { "source": "/", "destination": "/index.html" }
+  ]
+}
