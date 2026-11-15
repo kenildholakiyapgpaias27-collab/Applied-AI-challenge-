@@ -41,7 +41,8 @@ const E = ctx.E;
 const appSrc = fs.readFileSync(path.join(ROOT, "src/app.js"), "utf8");
 const probBlock = appSrc.slice(appSrc.indexOf("const PROBLEMS="), appSrc.indexOf("\n};", appSrc.indexOf("const PROBLEMS=")));
 const CONCERN_KEYS = new Set([...probBlock.matchAll(/\n  "?([a-z ]+)"?:\{label:"[^"]*"(.{0,200})/g)].filter(m => !/goal:true/.test(m[2])).map(m => m[1]));
-const BUDGET_OPTS = [400, 700, 1200, null];      // the Tune-your-plan options in src/app.js
+// the Tune-your-plan budget options, read from src/app.js
+const BUDGET_OPTS = JSON.parse(appSrc.match(/const BUDGET_OPTS=(\[.*?\]);/)[1].replace(/,"[^"]*"\]/g, "]")).map(o => o[0]);
 const bandMax = {"under ₹500": 500, "₹500–1,000": 1000, "₹1,000–2,000": 2000, "over ₹2,000": null};
 
 function toProfile(r, month) {

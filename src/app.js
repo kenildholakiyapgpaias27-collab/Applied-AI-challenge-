@@ -218,7 +218,7 @@ const STEP={
   shelf:{title:"Your routine",side:"Already using",q:()=>({ask:"What are you already using on your face?",help:"I'll **build around what you have**, skip steps you've already covered, and make sure nothing new **clashes** with it.",shelf:true}),
     apply:v=>{P.shelf=v},show:()=>{const it=shelfItems();return it.length?it.map(o=>o.short).join(", "):"Nothing yet"}},
   budget:{title:"Budget",side:"Budget",q:()=>({ask:"What's your budget per product?",help:"I'll keep **all three products** under this price.",
-      opts:[{label:"Under ₹400",sub:"Most affordable",value:400},{label:"Under ₹700",sub:"Good mid-range choice",value:700},{label:"Under ₹1,200",sub:"Wider choice",value:1200},{label:"No limit",sub:"The best match regardless of price",value:null}]}),
+      opts:[{label:"Under ₹500",sub:"Most affordable",value:500},{label:"Under ₹1,000",sub:"Good mid-range choice",value:1000},{label:"Under ₹2,000",sub:"Wider choice",value:2000},{label:"No limit",sub:"The best match regardless of price",value:null}]}),
     apply:v=>{P.budget=v},show:()=>P.budget?`Under ${rupee(P.budget)}`:"No limit"},
 };
 
@@ -287,7 +287,7 @@ function artFor(key,o){const svg=artPick(key,o);if(!svg)return null;const n=++AR
 function artPick(key,o){
   if(key==="problem"||key==="extra")return ART[o.value];
   if(key==="skin"||key==="avoid"||key==="react")return ART2[o.value];
-  if(key==="budget")return ART2[o.value===400?"b400":o.value===700?"b700":o.value===1200?"b1200":"bnone"];
+  if(key==="budget")return ART2[o.value===500?"b400":o.value===1000?"b700":o.value===2000?"b1200":"bnone"];
   if(key==="preg")return ART2[o.value===true?"pyes":o.value===false?"pno":"pskip"];
   return null;
 }
@@ -977,7 +977,7 @@ function removedFor(cats){const c={};let n=0;for(const p of CAT)if(cats.includes
 const SAY_BLOCK={B1:"contain fragrance or essential oils",B2:"contain essential oils",B3:"contain an ingredient you've reacted to",B4:"have no ingredient list, so I couldn't check them",A2:"contain retinoids or strong salicylic acid",B6:"don't suit your skin type or could clog pores",B7:"contain drying alcohol, which is harsh on dry skin in this weather",C5:"are over your budget"};
 
 const BLOCK_SAY={B1:"contain fragrance",B2:"contain essential oils",B3:"contain an ingredient you've reacted to",A2:"aren't advised while you're pregnancy-cautious",B4:"have no ingredient list, so I can't check them",B6:"don't suit your skin type or may clog pores",B7:"contain drying alcohol, which is harsh on dry skin this season",C5:"cost more than your budget",CLASH:"would clash with a retinoid or acid in your routine"};
-const NEXT_BUDGET={400:700,700:1200,1200:null};
+const NEXT_BUDGET={500:1000,1000:2000,2000:null};
 function emptyWhy(s){
   const cands=CAT.filter(p=>s.slot.cats.includes(p.c)&&!p.sp),cnt={};let relax=0;const nb=P.budget?NEXT_BUDGET[P.budget]:undefined;
   for(const p of cands){const r=check(p);const codes=uniq(r.blocks.map(b=>b[0]));if(r.ok&&clash(p,PL.ctx))codes.push("CLASH");codes.forEach(c=>cnt[c]=(cnt[c]||0)+1);
@@ -1708,8 +1708,10 @@ function fillShortlist(el,prof,{live=false,touched=false,step=null}={}){
    Users change several things at once, preview what each budget gives,
    then apply them together.
    ===================================================================== */
-const BUDGET_OPTS=[[400,"Up to ₹400"],[700,"Up to ₹700"],[1200,"Up to ₹1,200"],[null,"No limit"]];
-const DEFAULT_BUDGET=700;
+/* budget per product, in the bands shoppers use (test set: GOOD in the top 5 rose from 65.5% to 74.2% vs ₹400 / ₹700 / ₹1,200) */
+const BUDGET_OPTS=[[500,"Up to ₹500"],[1000,"Up to ₹1,000"],[2000,"Up to ₹2,000"],[null,"No limit"]];
+const DEFAULT_BUDGET=1000;
+const BUDGET_MIGRATE={400:500,700:1000,1200:2000};
 function previewPlan(budget,shelf){
   // build a plan for a hypothetical budget/shelf without touching what's on screen
   const keep={PL,budget:P.budget,shelf:P.shelf,META:JSON.parse(JSON.stringify(META)),RI:RESTORE_IDS};
@@ -2012,6 +2014,7 @@ function restoreState(d){
   NAME=d.NAME;nameAsked=true;PROB=d.PROB;SUB=d.SUB;FOLLOW_IDX=d.FOLLOW_IDX;PREF={boost:[]};
   if(PROB&&FOLLOW_IDX!=null&&PROBLEMS[PROB]?.follow.opts[FOLLOW_IDX])STEP.follow.apply(FOLLOW_IDX);
   P=Object.assign(emptyProfile(),d.P||{});DONE=new Set(d.DONE||[]);
+  if(P.budget!=null&&BUDGET_MIGRATE[P.budget])P.budget=BUDGET_MIGRATE[P.budget];   // saved before the budget bands changed
   if(!DONE.has("concerns")&&DONE.has("problem")&&DONE.has("follow")&&PROB&&FOLLOW_IDX!=null){DONE.add("concerns");P.concerns=[PROB];P.concernFU={[PROB]:FOLLOW_IDX}}  // saves from the older 3-step version
   if(DONE.has("concerns")&&P.concernFU&&PROB)STEP.concerns.apply({main:PROB,list:P.concerns||[PROB],fu:P.concernFU});
   if(DONE.has("avoid")&&DONE.has("react")&&DONE.has("preg"))DONE.add("safety");

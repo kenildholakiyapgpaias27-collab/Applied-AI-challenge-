@@ -334,12 +334,32 @@
   ]
  },
  "B": {
-  "profiles_with_must_not_in_top5": 0.0,
-  "profiles_flagged": [],
-  "flagged_detail": [],
+  "profiles_with_must_not_in_top5": 0.9,
+  "profiles_flagged": [
+   "C104378",
+   "C106937"
+  ],
+  "flagged_detail": [
+   {
+    "customer_id": "C106937",
+    "category": "Face oil",
+    "product_id": "P1575",
+    "reason": "not suited to oily skin",
+    "self_skin": "normal",
+    "true_skin": "oily"
+   },
+   {
+    "customer_id": "C104378",
+    "category": "Spot treatment",
+    "product_id": "P1552",
+    "reason": "not suited to dry skin",
+    "self_skin": "oily",
+    "true_skin": "dry"
+   }
+  ],
   "must_not_total": 523,
-  "blocked_by_check": 513,
-  "recall": 98.1,
+  "blocked_by_check": 509,
+  "recall": 97.3,
   "recall_on_knowable_labels": {
    "labels": 505,
    "blocked": 505,
@@ -352,11 +372,11 @@
    },
    "not suited to dry skin": {
     "labels": 163,
-    "leaked": 10
+    "leaked": 11
    },
    "not suited to oily skin": {
     "labels": 57,
-    "leaked": 0
+    "leaked": 3
    },
    "essential oil — customer avoids essential oils": {
     "labels": 32,
@@ -408,6 +428,33 @@
    }
   },
   "leaks": [
+   {
+    "customer_id": "C106937",
+    "category": "Face oil",
+    "product_id": "P1581",
+    "reason": "not suited to oily skin",
+    "self_skin": "normal",
+    "true_skin": "oily",
+    "cause": "label uses the measured skin type; the customer told the quiz a different one"
+   },
+   {
+    "customer_id": "C106937",
+    "category": "Face oil",
+    "product_id": "P1580",
+    "reason": "not suited to oily skin",
+    "self_skin": "normal",
+    "true_skin": "oily",
+    "cause": "label uses the measured skin type; the customer told the quiz a different one"
+   },
+   {
+    "customer_id": "C106937",
+    "category": "Face oil",
+    "product_id": "P1575",
+    "reason": "not suited to oily skin",
+    "self_skin": "normal",
+    "true_skin": "oily",
+    "cause": "label uses the measured skin type; the customer told the quiz a different one"
+   },
    {
     "customer_id": "C102409",
     "category": "Cleanser",
@@ -465,6 +512,15 @@
    {
     "customer_id": "C104378",
     "category": "Spot treatment",
+    "product_id": "P1552",
+    "reason": "not suited to dry skin",
+    "self_skin": "oily",
+    "true_skin": "dry",
+    "cause": "label uses the measured skin type; the customer told the quiz a different one"
+   },
+   {
+    "customer_id": "C104378",
+    "category": "Spot treatment",
     "product_id": "P1560",
     "reason": "not suited to dry skin",
     "self_skin": "oily",
@@ -504,34 +560,34 @@
  "C": {
   "overall": {
    "groups": 415,
-   "hit_rate": 65.5,
-   "good_recall": 31.4
+   "hit_rate": 74.2,
+   "good_recall": 37.8
   },
   "per_category": {
    "Cleanser": {
     "groups": 44,
     "hit_rate": 50.0,
-    "good_recall": 23.5
+    "good_recall": 25.0
    },
    "Exfoliant": {
     "groups": 40,
-    "hit_rate": 72.5,
-    "good_recall": 33.3
+    "hit_rate": 90.0,
+    "good_recall": 42.5
    },
    "Eye cream": {
     "groups": 37,
-    "hit_rate": 83.8,
-    "good_recall": 37.8
+    "hit_rate": 94.6,
+    "good_recall": 55.9
    },
    "Face mask": {
     "groups": 34,
     "hit_rate": 79.4,
-    "good_recall": 41.2
+    "good_recall": 46.1
    },
    "Face oil": {
     "groups": 33,
-    "hit_rate": 27.3,
-    "good_recall": 11.6
+    "hit_rate": 81.8,
+    "good_recall": 41.1
    },
    "Lip care": {
     "groups": 44,
@@ -541,22 +597,22 @@
    "Moisturiser": {
     "groups": 39,
     "hit_rate": 76.9,
-    "good_recall": 41.0
+    "good_recall": 40.2
    },
    "Serum": {
     "groups": 35,
     "hit_rate": 60.0,
-    "good_recall": 29.5
+    "good_recall": 31.4
    },
    "Spot treatment": {
     "groups": 25,
-    "hit_rate": 20.0,
-    "good_recall": 6.7
+    "hit_rate": 28.0,
+    "good_recall": 12.0
    },
    "Sunscreen": {
     "groups": 46,
-    "hit_rate": 41.3,
-    "good_recall": 15.9
+    "hit_rate": 52.2,
+    "good_recall": 21.7
    },
    "Toner": {
     "groups": 38,

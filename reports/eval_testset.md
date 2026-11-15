@@ -11,10 +11,10 @@ Engine: `src/engine.js` run in Node by `tools/eval_testset.py` on the 220 profil
 | Depth MAE | 1.15 | 0.86 |
 | Band gap, within 1 of labelled best | 20.6 pts | 7.3 pts |
 | Band gap, exact shade | 43.9 pts | 45.7 pts |
-| Profiles with a MUST_NOT in a top 5 | 0.5% | 0.0% |
-| MUST_NOT blocked by check() | 96.4% | 98.1% |
+| Profiles with a MUST_NOT in a top 5 | 0.5% | 0.9% |
+| MUST_NOT blocked by check() | 96.4% | 97.3% |
 |   on labels the quiz can know | 98.2% | 100.0% |
-| GOOD in top 5 (hit rate) | 65.5% | 65.5% |
+| GOOD in top 5 (hit rate) | 65.5% | 74.2% |
 
 ## A. Try-on shade accuracy ("Your match")
 
@@ -72,15 +72,17 @@ Customers who said "don't know" for undertone (n=38): exact 50.0%, best shade am
 
 ## B. Safety
 
-- Profiles with any MUST_NOT product in the top 5 of any category: **0.0%** (0 of 220). Target 0.
-- MUST_NOT products blocked by `check()`: **513 of 523 (98.1%)**. Target 100%.
+- Profiles with any MUST_NOT product in the top 5 of any category: **0.9%** (2 of 220). Target 0.
+- MUST_NOT products blocked by `check()`: **509 of 523 (97.3%)**. Target 100%.
 - On labels the quiz can know (all except skin-type labels where the customer's own answer differs from the measured skin type): **505 of 505 (100.0%)**.
+- In a top 5: C106937 · Face oil · P1575: not suited to oily skin (told us normal, measured oily).
+- In a top 5: C104378 · Spot treatment · P1552: not suited to dry skin (told us oily, measured dry).
 
 | MUST_NOT reason | Labels | Leaked |
 |---|---|---|
 | fragrance — customer avoids fragrance | 209 | 0 |
-| not suited to dry skin | 163 | 10 |
-| not suited to oily skin | 57 | 0 |
+| not suited to dry skin | 163 | 11 |
+| not suited to oily skin | 57 | 3 |
 | essential oil — customer avoids essential oils | 32 | 0 |
 | contains <ingredient> — known reaction | 18 | 0 |
 | retinoid/strong BHA — pregnancy caution opted in | 14 | 0 |
@@ -98,12 +100,16 @@ Leaks:
 
 | Customer | Category | Product | Reason | Self / true skin | Cause |
 |---|---|---|---|---|---|
+| C106937 | Face oil | P1581 | not suited to oily skin | normal / oily | label uses the measured skin type; the customer told the quiz a different one |
+| C106937 | Face oil | P1580 | not suited to oily skin | normal / oily | label uses the measured skin type; the customer told the quiz a different one |
+| C106937 | Face oil | P1575 | not suited to oily skin | normal / oily | label uses the measured skin type; the customer told the quiz a different one |
 | C102409 | Cleanser | P1073 | not suited to dry skin | oily / dry | label uses the measured skin type; the customer told the quiz a different one |
 | C102409 | Cleanser | P1050 | not suited to dry skin | oily / dry | label uses the measured skin type; the customer told the quiz a different one |
 | C102409 | Sunscreen | P1376 | not suited to dry skin | oily / dry | label uses the measured skin type; the customer told the quiz a different one |
 | C102409 | Sunscreen | P1362 | not suited to dry skin | oily / dry | label uses the measured skin type; the customer told the quiz a different one |
 | C102409 | Sunscreen | P1361 | not suited to dry skin | oily / dry | label uses the measured skin type; the customer told the quiz a different one |
 | C104378 | Spot treatment | P1550 | not suited to dry skin | oily / dry | label uses the measured skin type; the customer told the quiz a different one |
+| C104378 | Spot treatment | P1552 | not suited to dry skin | oily / dry | label uses the measured skin type; the customer told the quiz a different one |
 | C104378 | Spot treatment | P1560 | not suited to dry skin | oily / dry | label uses the measured skin type; the customer told the quiz a different one |
 | C104227 | Toner | P1102 | not suited to dry skin | normal / dry | label uses the measured skin type; the customer told the quiz a different one |
 | C104227 | Toner | P1098 | not suited to dry skin | normal / dry | label uses the measured skin type; the customer told the quiz a different one |
@@ -113,20 +119,20 @@ MUST_NOT labels cover skincare only; the try-on shows makeup. Its 'Not suitable 
 
 ## C. Relevance
 
-GOOD hit rate in the top 5 (a customer-category counts as a hit if any GOOD product is in our top 5): **65.5%** over 415 customer-categories; 31.4% of all GOOD products appear in a top 5.
+GOOD hit rate in the top 5 (a customer-category counts as a hit if any GOOD product is in our top 5): **74.2%** over 415 customer-categories; 37.8% of all GOOD products appear in a top 5.
 
 | Category | Customer-categories | Hit rate | GOOD recall |
 |---|---|---|---|
-| Cleanser | 44 | 50.0% | 23.5% |
-| Exfoliant | 40 | 72.5% | 33.3% |
-| Eye cream | 37 | 83.8% | 37.8% |
-| Face mask | 34 | 79.4% | 41.2% |
-| Face oil | 33 | 27.3% | 11.6% |
+| Cleanser | 44 | 50.0% | 25.0% |
+| Exfoliant | 40 | 90.0% | 42.5% |
+| Eye cream | 37 | 94.6% | 55.9% |
+| Face mask | 34 | 79.4% | 46.1% |
+| Face oil | 33 | 81.8% | 41.1% |
 | Lip care | 44 | 100.0% | 35.6% |
-| Moisturiser | 39 | 76.9% | 41.0% |
-| Serum | 35 | 60.0% | 29.5% |
-| Spot treatment | 25 | 20.0% | 6.7% |
-| Sunscreen | 46 | 41.3% | 15.9% |
+| Moisturiser | 39 | 76.9% | 40.2% |
+| Serum | 35 | 60.0% | 31.4% |
+| Spot treatment | 25 | 28.0% | 12.0% |
+| Sunscreen | 46 | 52.2% | 21.7% |
 | Toner | 38 | 92.1% | 62.3% |
 
 ## How profiles were mapped
