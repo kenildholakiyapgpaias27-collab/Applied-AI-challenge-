@@ -500,63 +500,99 @@
             </section>
 
             <!-- ==========================================
-                 SLIDE 2: THE BREAKTHROUGH (Before vs After Screenshots)
+                 SLIDE 2: THE BREAKTHROUGH (User Before/After + Manasvi Try-On)
                  ========================================== -->
             <section class="slide" data-slide="1">
                 <div class="slide-inner">
                     <header class="reveal" style="display: flex; justify-content: space-between; align-items: flex-end;">
                         <div>
-                            <span class="eyebrow">✦ REAL-WORLD COMPUTER VISION BREAKTHROUGH</span>
-                            <h2 class="display-title">The White Paper Fix: <em>4 Shades Corrected</em></h2>
+                            <span class="eyebrow">✦ REAL-WORLD COMPUTER VISION &amp; VIRTUAL TRY-ON</span>
+                            <h2 class="display-title">Optical Ground Truth &amp; <em>Virtual Try-On</em></h2>
                         </div>
                         <span class="pill pill-emerald" style="font-size: 13px; padding: 6px 16px;">
-                            ✦ ONE-SHOT VON KRIES D65 CALIBRATION
+                            ✦ D65 VON KRIES CALIBRATION &rarr; SHADE MATCH
                         </span>
                     </header>
 
                     <p class="subtitle reveal" style="margin-top: 2px;">
-                        Evidence from live testing on our platform: holding a simple sheet of white paper under the chin provides a physical reflectance anchor, instantly eliminating yellow ambient room drift.
+                        Holding a white paper under the chin eliminates 4 shades of warm room lighting drift. That identical calibrated tone directly powers personalized virtual try-on and safe product selection.
                     </p>
 
-                    <!-- Real User Screenshots Comparison Grid -->
-                    <div class="grid-2col" style="margin-top: 14px;">
+                    <!-- User Comparison + Manasvi Try-On Layout -->
+                    <div style="display: grid; grid-template-columns: 1.05fr 1.15fr; gap: 32px; align-items: stretch; margin-top: 14px;">
                         
-                        <!-- BEFORE: UNCALIBRATED -->
-                        <div class="ss-frame drifted reveal">
-                            <div style="position: absolute; top: 14px; left: 14px; z-index: 10;">
-                                <span class="pill pill-red">BEFORE · UNCALIBRATED CAMERA</span>
+                        <!-- LEFT COLUMN: USER'S BEFORE & AFTER COMPARISON -->
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; height: 380px;">
+                                
+                                <!-- USER BEFORE -->
+                                <div class="ss-frame drifted reveal" style="height: 100%;">
+                                    <div style="position: absolute; top: 10px; left: 10px; z-index: 10;">
+                                        <span class="pill pill-red" style="font-size: 10px; padding: 3px 8px;">BEFORE · UNCALIBRATED</span>
+                                    </div>
+                                    <div class="ss-image-wrap">
+                                        <img src="/assets/before_whitepaper.jpg" alt="Before White Paper Screenshot: Monk 07 Distortion">
+                                    </div>
+                                    <div class="ss-meta-bar" style="padding: 10px 14px;">
+                                        <div>
+                                            <div style="font-size: 10px; font-family: var(--font-mono); color: #f87171;">DETECTED TONE</div>
+                                            <div style="font-size: 16px; font-weight: 700; color: #ffffff;">Monk 07 · Tan Deep</div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="font-size: 10px; font-family: var(--font-mono); color: #94a3b8;">ERROR MARGIN</div>
+                                            <div style="font-size: 12px; font-weight: 600; color: #ef4444;">+4 Shades Darker</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- USER AFTER -->
+                                <div class="ss-frame calibrated reveal" style="height: 100%;">
+                                    <div style="position: absolute; top: 10px; left: 10px; z-index: 10;">
+                                        <span class="pill pill-emerald" style="font-size: 10px; padding: 3px 8px;">AFTER · D65 CALIBRATED</span>
+                                    </div>
+                                    <div class="ss-image-wrap">
+                                        <img src="/assets/after_whitepaper.jpg" alt="After White Paper Screenshot: Monk 03 True Daylight">
+                                    </div>
+                                    <div class="ss-meta-bar" style="padding: 10px 14px;">
+                                        <div>
+                                            <div style="font-size: 10px; font-family: var(--font-mono); color: #34d399;">GROUND TRUTH</div>
+                                            <div style="font-size: 16px; font-weight: 700; color: #ffffff;">Monk 03 · Light Light</div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="font-size: 10px; font-family: var(--font-mono); color: #94a3b8;">PRECISION</div>
+                                            <div style="font-size: 12px; font-weight: 600; color: #10b981;">96% Daylight Fidelity</div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
-                            <div class="ss-image-wrap">
-                                <img src="/assets/before_whitepaper.jpg" alt="Before White Paper Screenshot: Monk 07 Distortion">
-                            </div>
-                            <div class="ss-meta-bar">
+
+                            <!-- Delta comparison banner -->
+                            <div class="tech-card reveal" style="padding: 14px 18px; flex-direction: row; align-items: center; justify-content: space-between; border-left: 4px solid var(--emerald-calib);">
                                 <div>
-                                    <div style="font-size: 11px; font-family: var(--font-mono); color: #f87171;">DETECTED TONE (WARM LIGHT DRIFT)</div>
-                                    <div style="font-size: 20px; font-weight: 700; color: #ffffff;">Monk 07 · Tan Deep</div>
+                                    <span class="eyebrow" style="margin-bottom: 2px; font-size: 10px;">OPTICAL GROUND TRUTH</span>
+                                    <div style="font-size: 13px; font-weight: 600; color: #ffffff;">Sub-chin white paper acts as a physical reflectance anchor, canceling yellow lamp drift.</div>
                                 </div>
-                                <div style="text-align: right;">
-                                    <div style="font-size: 11px; font-family: var(--font-mono); color: #94a3b8;">ERROR MARGIN</div>
-                                    <div style="font-size: 14px; font-weight: 600; color: #ef4444;">+4 Shades Artificially Darker</div>
-                                </div>
+                                <span class="pill pill-emerald" style="font-size: 10px;">4-SHADE ERROR FIXED</span>
                             </div>
                         </div>
 
-                        <!-- AFTER: CALIBRATED -->
-                        <div class="ss-frame calibrated reveal">
-                            <div style="position: absolute; top: 14px; left: 14px; z-index: 10;">
-                                <span class="pill pill-emerald">AFTER · STUDIO CALIBRATED (D65)</span>
+                        <!-- RIGHT COLUMN: FRIEND MANASVI'S VIRTUAL TRY-ON -->
+                        <div class="ss-frame reveal" style="height: 460px; border-color: rgba(56, 189, 248, 0.4); box-shadow: 0 16px 40px rgba(56, 189, 248, 0.15);">
+                            <div style="position: absolute; top: 12px; left: 14px; z-index: 10;">
+                                <span class="pill pill-blue">VIRTUAL TRY-ON · SHADE-TRUE MATCHING</span>
                             </div>
                             <div class="ss-image-wrap">
-                                <img src="/assets/after_whitepaper.jpg" alt="After White Paper Screenshot: Monk 03 True Daylight">
+                                <img src="/assets/manasvi_tryon.png" alt="Manasvi Virtual Try-On Screenshot: Tone 5 Match">
                             </div>
-                            <div class="ss-meta-bar">
+                            <div class="ss-meta-bar" style="padding: 12px 18px;">
                                 <div>
-                                    <div style="font-size: 11px; font-family: var(--font-mono); color: #34d399;">GROUND TRUTH (NORMALIZED D65)</div>
-                                    <div style="font-size: 20px; font-weight: 700; color: #ffffff;">Monk 03 · Light Light (99% Confidence)</div>
+                                    <div style="font-size: 10px; font-family: var(--font-mono); color: var(--blue-accent);">REAL-WORLD APPLICATION (MANASVI)</div>
+                                    <div style="font-size: 16px; font-weight: 700; color: #ffffff;">Tone 5 Calibrated Match Drives Real-Time Split Try-On</div>
                                 </div>
                                 <div style="text-align: right;">
-                                    <div style="font-size: 11px; font-family: var(--font-mono); color: #94a3b8;">CLINICAL PRECISION</div>
-                                    <div style="font-size: 14px; font-weight: 600; color: #10b981;">96% Daylight Fidelity</div>
+                                    <div style="font-size: 10px; font-family: var(--font-mono); color: #94a3b8;">PRODUCT MATCH</div>
+                                    <div style="font-size: 12px; font-weight: 600; color: #38bdf8;">Dewdrop Labs Pressed Powder</div>
                                 </div>
                             </div>
                         </div>
@@ -564,8 +600,8 @@
                     </div>
 
                     <footer class="reveal" style="font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px;">
-                        <span>HARDWARE COST: $0.00 (ANY STANDARD WHITE PAPER)</span>
-                        <span>CIE STANDARD ILLUMINANT D65 DAYLIGHT CONVERGENCE</span>
+                        <span>CALIBRATION COST: $0.00 (ANY STANDARD WHITE PAPER)</span>
+                        <span>SHADE MATCHING ACCELERATES TRY-ON CONFIDENCE</span>
                     </footer>
                 </div>
             </section>
@@ -639,14 +675,14 @@
             </section>
 
             <!-- ==========================================
-                 SLIDE 4: THE SOLUTION (The 3-Step Anti-Routine & Climate)
+                 SLIDE 4: WHAT WE DELIVER & HOW WE DELIVER IT
                  ========================================== -->
             <section class="slide" data-slide="3">
                 <div class="slide-inner">
                     <header class="reveal" style="display: flex; justify-content: space-between; align-items: flex-end;">
                         <div>
-                            <span class="eyebrow">✦ THE FORMULATION OUTCOME</span>
-                            <h2 class="display-title">The Anti-Routine: <em>Three Steps, Climate-Tuned</em></h2>
+                            <span class="eyebrow">✦ CUSTOMER VALUE &amp; DELIVERY ARCHITECTURE</span>
+                            <h2 class="display-title">What We Deliver &amp; <em>How We Deliver It</em></h2>
                         </div>
                         <!-- City Climate Switcher -->
                         <div class="reveal" style="display: flex; gap: 8px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 30px;">
@@ -657,45 +693,51 @@
                     </header>
 
                     <p class="subtitle reveal" style="margin-top: 2px;">
-                        AAINA delivers exactly what the user needs: Cleanse, Treat, and Shield. Formulations dynamically auto-tune their textures based on real-time environmental telemetry.
+                        AAINA replaces generic quiz guesswork with clinical guardrails. We deliver guaranteed ingredient safety, shade-true matching, and micro-climate adapted textures.
                     </p>
 
-                    <!-- The 3 Prescribed Gestures -->
+                    <!-- The 3 Prescribed Gestures & How We Deliver -->
                     <div class="grid-3col" style="margin-top: 16px;">
                         
-                        <!-- Gesture 01 -->
+                        <!-- Value 01 -->
                         <div class="tech-card reveal" style="border-top: 4px solid var(--blue-accent);">
-                            <span class="card-num" id="g1Num">GESTURE 01 · PURIFY</span>
-                            <h3 class="card-head" id="g1Title">Low-Foam Gel Cleanser</h3>
-                            <p class="card-p" id="g1Desc">
-                                Physiological pH 5.5 surfactant complex that dissolves sweat and sebum without stripping intercellular lipid bilayers.
-                            </p>
-                            <div style="margin-top: 20px; font-family: var(--font-mono); font-size: 12px; color: var(--blue-accent);" id="g1Tag">
-                                Non-Stripping · Acid Mantle Safe
+                            <div>
+                                <span class="card-num">WHAT WE PROVIDE 01</span>
+                                <h3 class="card-head" id="g1Title">Low-Foam Gel Cleanser</h3>
+                                <p class="card-p" id="g1Desc">
+                                    Physiological pH 5.5 surfactant complex that dissolves sweat and sebum without stripping intercellular lipid bilayers.
+                                </p>
+                            </div>
+                            <div style="margin-top: 20px; padding: 12px 14px; background: rgba(56, 189, 248, 0.08); border-radius: 8px; font-size: 12px; color: #bae6fd;">
+                                <strong style="color: var(--blue-accent);">HOW WE DELIVER IT:</strong> 420+ INCI biochemical collision rules verify every active ingredient for pH compatibility before prescribing.
                             </div>
                         </div>
 
-                        <!-- Gesture 02 -->
+                        <!-- Value 02 -->
                         <div class="tech-card reveal" style="border-top: 4px solid var(--emerald-calib);">
-                            <span class="card-num" id="g2Num">GESTURE 02 · TREAT</span>
-                            <h3 class="card-head" id="g2Title">5% Niacinamide Water-Gel</h3>
-                            <p class="card-p" id="g2Desc">
-                                Calibrated active targeting sebum oxidation and dark spots without triggering melanocyte excitation.
-                            </p>
-                            <div style="margin-top: 20px; font-family: var(--font-mono); font-size: 12px; color: var(--emerald-calib);" id="g2Tag">
-                                Zero-Clash · Lightweight Fluid
+                            <div>
+                                <span class="card-num">WHAT WE PROVIDE 02</span>
+                                <h3 class="card-head" id="g2Title">5% Niacinamide Water-Gel</h3>
+                                <p class="card-p" id="g2Desc">
+                                    Calibrated active targeting sebum oxidation and dark spots without triggering melanocyte excitation.
+                                </p>
+                            </div>
+                            <div style="margin-top: 20px; padding: 12px 14px; background: rgba(16, 185, 129, 0.08); border-radius: 8px; font-size: 12px; color: #a7f3d0;">
+                                <strong style="color: var(--emerald-calib);">HOW WE DELIVER IT:</strong> Sub-chin white-paper calibration normalizes indoor lighting to CIE D65 daylight, eliminating shade errors and white-cast.
                             </div>
                         </div>
 
-                        <!-- Gesture 03 -->
+                        <!-- Value 03 -->
                         <div class="tech-card reveal" style="border-top: 4px solid var(--amber-warn);">
-                            <span class="card-num" id="g3Num">GESTURE 03 · SHIELD</span>
-                            <h3 class="card-head" id="g3Title">Invisible Hybrid SPF 50</h3>
-                            <p class="card-p" id="g3Desc">
-                                Broad-spectrum PA++++ photoprotection with transparent organic UV filters guaranteeing 100% zero white chalk residue.
-                            </p>
-                            <div style="margin-top: 20px; font-family: var(--font-mono); font-size: 12px; color: var(--amber-warn);" id="g3Tag">
-                                Non-Comedogenic · Zero White-Cast
+                            <div>
+                                <span class="card-num">WHAT WE PROVIDE 03</span>
+                                <h3 class="card-head" id="g3Title">Invisible Hybrid SPF 50</h3>
+                                <p class="card-p" id="g3Desc">
+                                    Broad-spectrum PA++++ photoprotection with transparent organic UV filters guaranteeing 100% zero white chalk residue.
+                                </p>
+                            </div>
+                            <div style="margin-top: 20px; padding: 12px 14px; background: rgba(245, 158, 11, 0.08); border-radius: 8px; font-size: 12px; color: #fde68a;">
+                                <strong style="color: var(--amber-warn);">HOW WE DELIVER IT:</strong> Connected environmental telemetry auto-tunes product textures for live humidity, UV index, and air quality.
                             </div>
                         </div>
 
@@ -703,9 +745,11 @@
 
                     <footer class="reveal" style="font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
                         <div>
-                            <strong style="color: #ffffff;">AAINA AI ENGINE</strong> · 0 Chemical Collisions · 0 Biometric Storage (DPDP Act 2023 Compliant)
+                            <strong style="color: #ffffff;">WHAT WE PROVIDE:</strong> Safe 3-Step Regimen · Zero White-Cast · Climate-Tuned Textures
                         </div>
-                        <span class="pill pill-blue">READY FOR PRODUCT CHECKOUT</span>
+                        <div style="font-family: var(--font-mono); font-size: 12px; color: var(--blue-accent);">
+                            HOW WE DELIVER: White Paper D65 Normalization · 420+ INCI Rules · DPDP Act 2023 Compliant
+                        </div>
                     </footer>
                 </div>
             </section>
