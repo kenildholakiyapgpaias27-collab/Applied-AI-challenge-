@@ -82,6 +82,13 @@ const DB=(()=>{
     const r=await req(`/auth/v1/otp?redirect_to=${back}`,{method:"POST",body:{email,create_user:true},asUser:false});
     return r.ok?{ok:true}:{ok:false,error:r.status===429?"Too many requests. Please wait a minute and try again.":"I couldn't send the link right now. Please try again."};
   }
+  // Same redirect-back-with-#access_token flow as the magic link, just via Google instead
+  // of an emailed OTP; readRedirect() above picks up the tokens whichever provider sent them.
+  function signInWithGoogle(){
+    if(!enabled)return;
+    const back=encodeURIComponent(location.origin+location.pathname);
+    location.href=`${BASE}/auth/v1/authorize?provider=google&redirect_to=${back}`;
+  }
   async function signOut(){if(session)await req("/auth/v1/logout?scope=local",{method:"POST"});dropSession()}
 
   /* ---------- consent ---------- */
@@ -193,7 +200,7 @@ const DB=(()=>{
     emit();
     return{...(back||{}),profile};
   }
-  return{enabled,CONSENT_VERSION,init,sendLink,signOut,setPendingConsent,pendingConsent,pullProfile,pushState,flush,savePlan,saveCheckin,saveReactions,deleteAll,fetchCatalogue,track,
+  return{enabled,CONSENT_VERSION,init,sendLink,signInWithGoogle,signOut,setPendingConsent,pendingConsent,pullProfile,pushState,flush,savePlan,saveCheckin,saveReactions,deleteAll,fetchCatalogue,track,
     user:()=>session?.user||null,consented:()=>consented,lastError:()=>lastError,onChange:f=>{listeners.add(f);return()=>listeners.delete(f)},
     _toProduct:toProduct};
 })();

@@ -1804,6 +1804,13 @@ const DB=(()=>{
     const r=await req(`/auth/v1/otp?redirect_to=${back}`,{method:"POST",body:{email,create_user:true},asUser:false});
     return r.ok?{ok:true}:{ok:false,error:r.status===429?"Too many requests. Please wait a minute and try again.":"I couldn't send the link right now. Please try again."};
   }
+  // Same redirect-back-with-#access_token flow as the magic link, just via Google instead
+  // of an emailed OTP; readRedirect() above picks up the tokens whichever provider sent them.
+  function signInWithGoogle(){
+    if(!enabled)return;
+    const back=encodeURIComponent(location.origin+location.pathname);
+    location.href=`${BASE}/auth/v1/authorize?provider=google&redirect_to=${back}`;
+  }
   async function signOut(){if(session)await req("/auth/v1/logout?scope=local",{method:"POST"});dropSession()}
 
   /* ---------- consent ---------- */
@@ -1915,7 +1922,7 @@ const DB=(()=>{
     emit();
     return{...(back||{}),profile};
   }
-  return{enabled,CONSENT_VERSION,init,sendLink,signOut,setPendingConsent,pendingConsent,pullProfile,pushState,flush,savePlan,saveCheckin,saveReactions,deleteAll,fetchCatalogue,track,
+  return{enabled,CONSENT_VERSION,init,sendLink,signInWithGoogle,signOut,setPendingConsent,pendingConsent,pullProfile,pushState,flush,savePlan,saveCheckin,saveReactions,deleteAll,fetchCatalogue,track,
     user:()=>session?.user||null,consented:()=>consented,lastError:()=>lastError,onChange:f=>{listeners.add(f);return()=>listeners.delete(f)},
     _toProduct:toProduct};
 })();
@@ -4143,6 +4150,7 @@ function checkinSaved(stage,results,newReactions){
   }
 }
 const CONSENT_TEXT="I agree to Aaina storing my answers, plans and check-ins in my account, including pregnancy status and reactions if I've shared them. My selfie is never uploaded. I can delete everything at any time.";
+const GOOGLE_ICON=`<svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>`;
 function accountCard(){
   if(!DB.enabled)return null;
   const u=DB.user(),box=document.createElement("div");box.className="acct";
@@ -4151,19 +4159,20 @@ function accountCard(){
   }else if(!u&&ACCT_SENT){
     box.innerHTML=`<div class="acct-row"><span class="acct-ic">${SVG('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>')}</span><div class="acct-tx"><b>Check your inbox</b><span>I've emailed a sign-in link to <b>${esc(ACCT_SENT)}</b>. Open it on this device and your plan will be saved to your account.</span></div><button type="button" class="link small" data-again>Use another email</button></div>`;
   }else{
-    box.innerHTML=`<div class="acct-tx"><b>${u?"Save this plan to your account":"Keep your plan on any device"}</b><span>${u?`Signed in as ${esc(u.email||"")}.`:"I'll email you a sign-in link. No password."}</span></div>
+    box.innerHTML=`<div class="acct-tx"><b>${u?"Save this plan to your account":"Keep your plan on any device"}</b><span>${u?`Signed in as ${esc(u.email||"")}.`:"Sign in with Google, or I'll email you a link. No password."}</span></div>
       ${u?"":`<input type="email" class="acct-email" placeholder="you@example.com" autocomplete="email" aria-label="Email address" maxlength="120">`}
       <label class="agree"><input type="checkbox" data-consent> <span>${CONSENT_TEXT}</span></label>
-      <div class="acct-act"><button type="button" class="btn primary" data-go disabled>${u?"Save to my account":"Email me a sign-in link"}</button>${u?`<button type="button" class="link small" data-out>Sign out</button>`:""}</div>
+      <div class="acct-act">${u?`<button type="button" class="btn primary" data-go disabled>Save to my account</button><button type="button" class="link small" data-out>Sign out</button>`
+        :`<button type="button" class="btn" data-google disabled>${GOOGLE_ICON}Continue with Google</button><button type="button" class="btn primary" data-go disabled>Email me a sign-in link</button>`}</div>
       <p class="acct-err" data-err role="alert" hidden></p>`;
   }
   const $$=s=>box.querySelector(s),err=m=>{const e=$$("[data-err]");if(e){e.hidden=!m;e.textContent=m||""}};
-  const em=$$(".acct-email"),cb=$$("[data-consent]"),go=$$("[data-go]");
-  const ready=()=>{if(go)go.disabled=!(cb?.checked&&(!em||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim())))};
+  const em=$$(".acct-email"),cb=$$("[data-consent]"),go=$$("[data-go]"),gbtn=$$("[data-google]");
+  const ready=()=>{if(go)go.disabled=!(cb?.checked&&(!em||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim())));if(gbtn)gbtn.disabled=!cb?.checked};
   cb?.addEventListener("change",ready);em?.addEventListener("input",()=>{err("");ready()});
   em?.addEventListener("keydown",e=>{if(e.key==="Enter"&&go&&!go.disabled){e.preventDefault();go.click()}});
   if(go)go.onclick=async()=>{
-    go.disabled=true;err("");DB.setPendingConsent(true);
+    go.disabled=true;if(gbtn)gbtn.disabled=true;err("");DB.setPendingConsent(true);
     if(u){go.textContent="Saving…";saveState();await DB.flush();
       if(DB.consented()){savePlanToAccount();syncReactions();refreshAccountCards()}
       else{err("I couldn't save to your account just now. Your plan is still safe on this device; please try again.");go.textContent="Save to my account";go.disabled=false}
@@ -4172,6 +4181,7 @@ function accountCard(){
     if(r.ok){ACCT_SENT=em.value.trim();refreshAccountCards()}
     else{DB.setPendingConsent(false);err(r.error);go.textContent="Email me a sign-in link";ready()}
   };
+  if(gbtn)gbtn.onclick=()=>{gbtn.disabled=true;if(go)go.disabled=true;err("");DB.setPendingConsent(true);saveState();DB.signInWithGoogle()};
   const out=$$("[data-out]");if(out)out.onclick=async()=>{out.disabled=true;await DB.flush();await DB.signOut();ACCT_SENT=null;
     botSay("You're signed out. Your answers are still saved on this device; use <b>Delete my answers</b> at the bottom to remove them here too.");refreshAccountCards()};
   const again=$$("[data-again]");if(again)again.onclick=()=>{ACCT_SENT=null;DB.setPendingConsent(false);refreshAccountCards()};
@@ -4193,7 +4203,8 @@ function renderAcctLine(){
   if(u){el.innerHTML=`<span>Signed in as <b>${esc(u.email||"")}</b>${DB.consented()?"":" (nothing saved to your account yet)"}</span><button type="button" class="link small" data-wout>Sign out</button>`;
     el.querySelector("[data-wout]").onclick=async()=>{await DB.flush();await DB.signOut();renderAcctLine()};return}
   if(ACCT_SENT){el.innerHTML=`<span>Sign-in link sent to <b>${esc(ACCT_SENT)}</b>. Open it on this device.</span>`;return}
-  el.innerHTML=`<span>Saved a plan before?</span><button type="button" class="link small" data-win>Sign in with email</button>`;
+  el.innerHTML=`<span>Saved a plan before?</span><button type="button" class="link small" data-wgoogle>Continue with Google</button><button type="button" class="link small" data-win>Sign in with email</button>`;
+  el.querySelector("[data-wgoogle]").onclick=()=>DB.signInWithGoogle();
   el.querySelector("[data-win]").onclick=()=>{
     el.innerHTML=`<input type="email" class="acct-email" placeholder="you@example.com" autocomplete="email" aria-label="Email address" maxlength="120"><button type="button" class="btn" data-wsend>Email me a link</button><span class="acct-err" data-werr role="alert" hidden></span>`;
     const em=el.querySelector("input"),b=el.querySelector("[data-wsend]"),er=el.querySelector("[data-werr]");em.focus();

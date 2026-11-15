@@ -148,7 +148,7 @@ The app works with no database at all: leave `data/supabase.json` empty and ever
 | What | Stored when | Who can read it |
 |---|---|---|
 | **Catalogue** (`products`, `shades`) | Always; seeded from `data/catalogue.json` | Anyone (read-only). Pages load it only when the database version differs from the one they were built with, so a price or ingredient fix goes live without a rebuild. |
-| **Saved answers and plans** (`profiles`, `plans`) | Only after the user signs in by email link **and** ticks the consent box | The signed-in owner only (row-level security) |
+| **Saved answers and plans** (`profiles`, `plans`) | Only after the user signs in with Google or an email link **and** ticks the consent box | The signed-in owner only (row-level security) |
 | **Check-ins and reactions** (`checkins`, `reactions`) | Same as above | The owner only |
 | **Anonymous analytics** (`events`) | Plans shown, swaps, tuning, set-aside counts, check-in outcomes | Nobody through the API; you query it in the dashboard |
 
@@ -163,6 +163,7 @@ Analytics never include a name, email, city, pregnancy status or reaction answer
 1. Create a project at [supabase.com](https://supabase.com) (the free tier is enough).
 2. In **SQL Editor**, run `supabase/migrations/20261112000000_init.sql`, then `supabase/seed.sql`. Or from a terminal: `psql "$DATABASE_URL" -f supabase/migrations/20261112000000_init.sql -f supabase/seed.sql`.
 3. In **Authentication → URL Configuration**, set **Site URL** to your GitHub Pages address (for example `https://<user>.github.io/<repo>/`) and add it, plus `http://localhost:8000/**` for testing, under **Redirect URLs**. Email sign-in is on by default.
+3b. For Google sign-in: in [Google Cloud Console](https://console.cloud.google.com/apis/credentials), create an **OAuth client ID** (type **Web application**) and add `https://<project-ref>.supabase.co/auth/v1/callback` under **Authorized redirect URIs**. Then in Supabase, go to **Authentication → Providers → Google**, turn it on, and paste that client's **Client ID** and **Client secret**. No code change needed on this end — the app's "Continue with Google" button calls the same `/auth/v1/authorize` endpoint Supabase exposes for every enabled provider.
 4. In **Project Settings → API**, copy the **Project URL** and the **anon public** key into `data/supabase.json`:
    ```json
    { "url": "https://abcdefgh.supabase.co", "anonKey": "eyJhbGciOi..." }
