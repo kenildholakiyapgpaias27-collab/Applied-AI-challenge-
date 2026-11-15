@@ -8,51 +8,51 @@
   "tryon": {
    "overall": {
     "n": 220,
-    "exact_hit": 39.1,
-    "depth_err_mean": -0.89,
-    "depth_mae": 1.15,
-    "within_1": 71.4,
-    "off_by_2plus": 28.6,
-    "undertone_match": 45.9,
-    "within_1_of_best": 79.5
+    "exact_hit": 52.3,
+    "depth_err_mean": -0.34,
+    "depth_mae": 0.86,
+    "within_1": 84.1,
+    "off_by_2plus": 15.9,
+    "undertone_match": 40.0,
+    "within_1_of_best": 90.0
    },
    "bands": {
     "1–3": {
      "n": 18,
-     "exact_hit": 44.4,
-     "depth_err_mean": -0.28,
-     "depth_mae": 0.72,
+     "exact_hit": 50.0,
+     "depth_err_mean": 0.33,
+     "depth_mae": 0.67,
      "within_1": 94.4,
      "off_by_2plus": 5.6,
-     "undertone_match": 38.9,
-     "within_1_of_best": 94.4
+     "undertone_match": 44.4,
+     "within_1_of_best": 88.9
     },
     "4–7": {
      "n": 176,
-     "exact_hit": 33.0,
-     "depth_err_mean": -0.8,
-     "depth_mae": 1.07,
-     "within_1": 72.7,
-     "off_by_2plus": 27.3,
-     "undertone_match": 46.0,
-     "within_1_of_best": 75.6
+     "exact_hit": 46.6,
+     "depth_err_mean": -0.2,
+     "depth_mae": 0.73,
+     "within_1": 88.1,
+     "off_by_2plus": 11.9,
+     "undertone_match": 38.6,
+     "within_1_of_best": 89.2
     },
     "8–10": {
      "n": 26,
-     "exact_hit": 76.9,
-     "depth_err_mean": -1.92,
-     "depth_mae": 2.0,
-     "within_1": 46.2,
-     "off_by_2plus": 53.8,
-     "undertone_match": 50.0,
+     "exact_hit": 92.3,
+     "depth_err_mean": -1.77,
+     "depth_mae": 1.85,
+     "within_1": 50.0,
+     "off_by_2plus": 50.0,
+     "undertone_match": 46.2,
      "within_1_of_best": 96.2
     }
    },
    "band_gap": {
-    "exact_hit": 43.9,
-    "within_1": 48.2,
-    "undertone_match": 11.1,
-    "within_1_of_best": 20.6
+    "exact_hit": 45.7,
+    "within_1": 44.4,
+    "undertone_match": 7.6,
+    "within_1_of_best": 7.3
    }
   },
   "baseline": {
@@ -103,56 +103,6 @@
     "within_1": 50.0,
     "undertone_match": 0.4,
     "within_1_of_best": 16.7
-   }
-  },
-  "corrected": {
-   "overall": {
-    "n": 220,
-    "exact_hit": 49.1,
-    "depth_err_mean": -0.38,
-    "depth_mae": 0.9,
-    "within_1": 81.8,
-    "off_by_2plus": 18.2,
-    "undertone_match": 45.0,
-    "within_1_of_best": 88.6
-   },
-   "bands": {
-    "1–3": {
-     "n": 18,
-     "exact_hit": 44.4,
-     "depth_err_mean": 0.28,
-     "depth_mae": 0.72,
-     "within_1": 88.9,
-     "off_by_2plus": 11.1,
-     "undertone_match": 50.0,
-     "within_1_of_best": 88.9
-    },
-    "4–7": {
-     "n": 176,
-     "exact_hit": 44.9,
-     "depth_err_mean": -0.23,
-     "depth_mae": 0.76,
-     "within_1": 86.4,
-     "off_by_2plus": 13.6,
-     "undertone_match": 43.2,
-     "within_1_of_best": 87.5
-    },
-    "8–10": {
-     "n": 26,
-     "exact_hit": 80.8,
-     "depth_err_mean": -1.88,
-     "depth_mae": 1.96,
-     "within_1": 46.2,
-     "off_by_2plus": 53.8,
-     "undertone_match": 53.8,
-     "within_1_of_best": 96.2
-    }
-   },
-   "band_gap": {
-    "exact_hit": 36.4,
-    "within_1": 42.7,
-    "undertone_match": 10.6,
-    "within_1_of_best": 8.7
    }
   },
   "labelled_best": {
@@ -207,54 +157,6 @@
   },
   "worst_misses": [
    {
-    "customer_id": "C102051",
-    "product": "P1637",
-    "self_tone": 7,
-    "self_undertone": "cool",
-    "true_tone": 9,
-    "true_undertone": "cool",
-    "predicted": "P1637-S05 154 Neutral Light (depth 4, neutral)",
-    "best": "P1637-S07 175 Warm Light Medium (depth 5, warm)",
-    "depth_error": -5,
-    "exact": false,
-    "pred_hex": "#eadaba",
-    "best_hex": "#dfbf8c",
-    "pred_i": 4,
-    "best_i": 6
-   },
-   {
-    "customer_id": "C100025",
-    "product": "P1622",
-    "self_tone": 3,
-    "self_undertone": "warm",
-    "true_tone": 6,
-    "true_undertone": "warm",
-    "predicted": "P1622-S04 142 Warm Ivory (depth 2, warm)",
-    "best": "P1622-S09 195 Warm Light Medium (depth 5, warm)",
-    "depth_error": -4,
-    "exact": false,
-    "pred_hex": "#fbe9d1",
-    "best_hex": "#dfbf8c",
-    "pred_i": 3,
-    "best_i": 8
-   },
-   {
-    "customer_id": "C101660",
-    "product": "P1619",
-    "self_tone": 10,
-    "self_undertone": "warm",
-    "true_tone": 10,
-    "true_undertone": "warm",
-    "predicted": "P1619-S06 166 Warm Medium (depth 6, warm)",
-    "best": "P1619-S08 187 Cool Tan (depth 7, cool)",
-    "depth_error": -4,
-    "exact": false,
-    "pred_hex": "#a8804c",
-    "best_hex": "#885647",
-    "pred_i": 5,
-    "best_i": 7
-   },
-   {
     "customer_id": "C100988",
     "product": "P1624",
     "self_tone": 9,
@@ -285,6 +187,22 @@
     "best_hex": "#d7bd96",
     "pred_i": 12,
     "best_i": 12
+   },
+   {
+    "customer_id": "C102051",
+    "product": "P1637",
+    "self_tone": 7,
+    "self_undertone": "cool",
+    "true_tone": 9,
+    "true_undertone": "cool",
+    "predicted": "P1637-S07 175 Warm Light Medium (depth 5, warm)",
+    "best": "P1637-S07 175 Warm Light Medium (depth 5, warm)",
+    "depth_error": -4,
+    "exact": true,
+    "pred_hex": "#dfbf8c",
+    "best_hex": "#dfbf8c",
+    "pred_i": 6,
+    "best_i": 6
    },
    {
     "customer_id": "C103679",
@@ -319,77 +237,98 @@
     "best_i": 7
    },
    {
-    "customer_id": "C100321",
-    "product": "P1629",
-    "self_tone": 5,
-    "self_undertone": "don't know",
-    "true_tone": 8,
+    "customer_id": "C104333",
+    "product": "P1637",
+    "self_tone": 2,
+    "self_undertone": "cool",
+    "true_tone": 5,
     "true_undertone": "cool",
-    "predicted": "P1629-S06 165 Warm Light Medium (depth 5, warm)",
-    "best": "P1629-S07 176 Cool Medium (depth 6, cool)",
+    "predicted": "P1637-S01 112 Cool Ivory (depth 2, cool)",
+    "best": "P1637-S07 175 Warm Light Medium (depth 5, warm)",
     "depth_error": -3,
     "exact": false,
-    "pred_hex": "#dfbf8c",
-    "best_hex": "#a6785a",
-    "pred_i": 5,
+    "pred_hex": "#f9e1df",
+    "best_hex": "#dfbf8c",
+    "pred_i": 0,
     "best_i": 6
    },
    {
-    "customer_id": "C100625",
-    "product": "P1625",
-    "self_tone": 3,
-    "self_undertone": "neutral",
+    "customer_id": "C107072",
+    "product": "P1638",
+    "self_tone": 7,
+    "self_undertone": "warm",
     "true_tone": 5,
-    "true_undertone": "neutral",
-    "predicted": "P1625-S04 142 Neutral Ivory (depth 2, neutral)",
+    "true_undertone": "warm",
+    "predicted": "P1638-S14 248 Warm Deep (depth 8, warm)",
+    "best": "P1638-S10 205 Warm Light Medium (depth 5, warm)",
+    "depth_error": 3,
+    "exact": false,
+    "pred_hex": "#68432a",
+    "best_hex": "#dfbf8c",
+    "pred_i": 13,
+    "best_i": 9
+   },
+   {
+    "customer_id": "C100481",
+    "product": "P1625",
+    "self_tone": 8,
+    "self_undertone": "warm",
+    "true_tone": 7,
+    "true_undertone": "warm",
+    "predicted": "P1625-S08 184 Warm Light (depth 4, warm)",
     "best": "P1625-S08 184 Warm Light (depth 4, warm)",
     "depth_error": -3,
-    "exact": false,
-    "pred_hex": "#f3e7db",
+    "exact": true,
+    "pred_hex": "#f2dcb0",
     "best_hex": "#f2dcb0",
-    "pred_i": 3,
+    "pred_i": 7,
     "best_i": 7
    },
    {
-    "customer_id": "C101060",
-    "product": "P1626",
-    "self_tone": 5,
-    "self_undertone": "cool",
-    "true_tone": 7,
+    "customer_id": "C101660",
+    "product": "P1619",
+    "self_tone": 10,
+    "self_undertone": "warm",
+    "true_tone": 10,
     "true_undertone": "warm",
-    "predicted": "P1626-S06 164 Cool Light (depth 4, cool)",
-    "best": "P1626-S10 207 Warm Tan (depth 7, warm)",
+    "predicted": "P1619-S08 187 Cool Tan (depth 7, cool)",
+    "best": "P1619-S08 187 Cool Tan (depth 7, cool)",
     "depth_error": -3,
-    "exact": false,
-    "pred_hex": "#f0d4be",
-    "best_hex": "#8a5e39",
-    "pred_i": 5,
-    "best_i": 9
+    "exact": true,
+    "pred_hex": "#885647",
+    "best_hex": "#885647",
+    "pred_i": 7,
+    "best_i": 7
+   },
+   {
+    "customer_id": "C103418",
+    "product": "P1629",
+    "self_tone": 7,
+    "self_undertone": "cool",
+    "true_tone": 9,
+    "true_undertone": "cool",
+    "predicted": "P1629-S07 176 Cool Medium (depth 6, cool)",
+    "best": "P1629-S07 176 Cool Medium (depth 6, cool)",
+    "depth_error": -3,
+    "exact": true,
+    "pred_hex": "#a6785a",
+    "best_hex": "#a6785a",
+    "pred_i": 6,
+    "best_i": 6
    }
   ]
  },
  "B": {
-  "profiles_with_must_not_in_top5": 0.5,
-  "profiles_flagged": [
-   "C103916"
-  ],
-  "flagged_detail": [
-   {
-    "customer_id": "C103916",
-    "category": "Toner",
-    "product_id": "P1098",
-    "reason": "not suited to dry skin",
-    "self_skin": "dry",
-    "true_skin": "dry"
-   }
-  ],
+  "profiles_with_must_not_in_top5": 0.0,
+  "profiles_flagged": [],
+  "flagged_detail": [],
   "must_not_total": 523,
-  "blocked_by_check": 504,
-  "recall": 96.4,
+  "blocked_by_check": 513,
+  "recall": 98.1,
   "recall_on_knowable_labels": {
    "labels": 505,
-   "blocked": 496,
-   "recall": 98.2
+   "blocked": 505,
+   "recall": 100.0
   },
   "by_reason": {
    "fragrance — customer avoids fragrance": {
@@ -398,11 +337,11 @@
    },
    "not suited to dry skin": {
     "labels": 163,
-    "leaked": 18
+    "leaked": 10
    },
    "not suited to oily skin": {
     "labels": 57,
-    "leaked": 1
+    "leaked": 0
    },
    "essential oil — customer avoids essential oils": {
     "labels": 32,
@@ -455,51 +394,6 @@
   },
   "leaks": [
    {
-    "customer_id": "C103916",
-    "category": "Toner",
-    "product_id": "P1098",
-    "reason": "not suited to dry skin",
-    "self_skin": "dry",
-    "true_skin": "dry",
-    "cause": "our catalogue tags it for dry skin; the organisers' catalogue doesn't (added by tools/catalogue_check.py --fix)"
-   },
-   {
-    "customer_id": "C107568",
-    "category": "Toner",
-    "product_id": "P1090",
-    "reason": "not suited to dry skin",
-    "self_skin": "dry",
-    "true_skin": "dry",
-    "cause": "our catalogue tags it for dry skin; the organisers' catalogue doesn't (added by tools/catalogue_check.py --fix)"
-   },
-   {
-    "customer_id": "C107568",
-    "category": "Toner",
-    "product_id": "P1119",
-    "reason": "not suited to dry skin",
-    "self_skin": "dry",
-    "true_skin": "dry",
-    "cause": "our catalogue tags it for dry skin; the organisers' catalogue doesn't (added by tools/catalogue_check.py --fix)"
-   },
-   {
-    "customer_id": "C100885",
-    "category": "Moisturiser",
-    "product_id": "P1320",
-    "reason": "not suited to oily skin",
-    "self_skin": "oily",
-    "true_skin": "oily",
-    "cause": "our catalogue tags it for oily skin; the organisers' catalogue doesn't (added by tools/catalogue_check.py --fix)"
-   },
-   {
-    "customer_id": "C105783",
-    "category": "Toner",
-    "product_id": "P1098",
-    "reason": "not suited to dry skin",
-    "self_skin": "dry",
-    "true_skin": "dry",
-    "cause": "our catalogue tags it for dry skin; the organisers' catalogue doesn't (added by tools/catalogue_check.py --fix)"
-   },
-   {
     "customer_id": "C102409",
     "category": "Cleanser",
     "product_id": "P1073",
@@ -545,15 +439,6 @@
     "cause": "label uses the measured skin type; the customer told the quiz a different one"
    },
    {
-    "customer_id": "C100988",
-    "category": "Toner",
-    "product_id": "P1090",
-    "reason": "not suited to dry skin",
-    "self_skin": "dry",
-    "true_skin": "dry",
-    "cause": "our catalogue tags it for dry skin; the organisers' catalogue doesn't (added by tools/catalogue_check.py --fix)"
-   },
-   {
     "customer_id": "C104378",
     "category": "Spot treatment",
     "product_id": "P1550",
@@ -597,33 +482,6 @@
     "self_skin": "normal",
     "true_skin": "dry",
     "cause": "label uses the measured skin type; the customer told the quiz a different one"
-   },
-   {
-    "customer_id": "C102051",
-    "category": "Toner",
-    "product_id": "P1098",
-    "reason": "not suited to dry skin",
-    "self_skin": "dry",
-    "true_skin": "dry",
-    "cause": "our catalogue tags it for dry skin; the organisers' catalogue doesn't (added by tools/catalogue_check.py --fix)"
-   },
-   {
-    "customer_id": "C102051",
-    "category": "Toner",
-    "product_id": "P1090",
-    "reason": "not suited to dry skin",
-    "self_skin": "dry",
-    "true_skin": "dry",
-    "cause": "our catalogue tags it for dry skin; the organisers' catalogue doesn't (added by tools/catalogue_check.py --fix)"
-   },
-   {
-    "customer_id": "C106783",
-    "category": "Cleanser",
-    "product_id": "P1062",
-    "reason": "not suited to dry skin",
-    "self_skin": "dry",
-    "true_skin": "dry",
-    "cause": "our catalogue tags it for dry skin; the organisers' catalogue doesn't (added by tools/catalogue_check.py --fix)"
    }
   ],
   "tryon_note": "MUST_NOT labels cover skincare only; the try-on shows makeup. Its 'Not suitable for you' uses the same check(), and 'Add look to my plan' only adds products that pass check()."
@@ -632,7 +490,7 @@
   "overall": {
    "groups": 415,
    "hit_rate": 65.3,
-   "good_recall": 30.9
+   "good_recall": 31.0
   },
   "per_category": {
    "Cleanser": {
@@ -688,7 +546,7 @@
    "Toner": {
     "groups": 38,
     "hit_rate": 92.1,
-    "good_recall": 61.4
+    "good_recall": 62.3
    }
   }
  },
@@ -698,13 +556,85 @@
   "concerns the quiz can't take: fine lines, dark circles": 2,
   "concerns the quiz can't take: dark circles, fine lines": 2
  },
+ "tryon_call": "matchTone",
+ "compare": {
+  "ref": "80c2665",
+  "before": {
+   "A": {
+    "tryon": {
+     "overall": {
+      "n": 220,
+      "exact_hit": 39.1,
+      "depth_err_mean": -0.89,
+      "depth_mae": 1.15,
+      "within_1": 71.4,
+      "off_by_2plus": 28.6,
+      "undertone_match": 45.9,
+      "within_1_of_best": 79.5
+     },
+     "bands": {
+      "1–3": {
+       "n": 18,
+       "exact_hit": 44.4,
+       "depth_err_mean": -0.28,
+       "depth_mae": 0.72,
+       "within_1": 94.4,
+       "off_by_2plus": 5.6,
+       "undertone_match": 38.9,
+       "within_1_of_best": 94.4
+      },
+      "4–7": {
+       "n": 176,
+       "exact_hit": 33.0,
+       "depth_err_mean": -0.8,
+       "depth_mae": 1.07,
+       "within_1": 72.7,
+       "off_by_2plus": 27.3,
+       "undertone_match": 46.0,
+       "within_1_of_best": 75.6
+      },
+      "8–10": {
+       "n": 26,
+       "exact_hit": 76.9,
+       "depth_err_mean": -1.92,
+       "depth_mae": 2.0,
+       "within_1": 46.2,
+       "off_by_2plus": 53.8,
+       "undertone_match": 50.0,
+       "within_1_of_best": 96.2
+      }
+     },
+     "band_gap": {
+      "exact_hit": 43.9,
+      "within_1": 48.2,
+      "undertone_match": 11.1,
+      "within_1_of_best": 20.6
+     }
+    }
+   },
+   "B": {
+    "profiles_with_must_not_in_top5": 0.5,
+    "recall": 96.4,
+    "recall_on_knowable_labels": {
+     "labels": 505,
+     "blocked": 496,
+     "recall": 98.2
+    }
+   },
+   "C": {
+    "groups": 415,
+    "hit_rate": 65.3,
+    "good_recall": 30.9
+   }
+  }
+ },
  "visual_check": [
   {
-   "customer_id": "C106214",
+   "customer_id": "C107318",
    "face": "fair-cool",
-   "predicted": "P1636-S01 111 Warm Porcelain (depth 1, warm)",
-   "best": "P1636-S02 122 Olive Ivory (depth 2, olive)",
-   "depth_error": -2
+   "predicted": "P1615-S10 205 Warm Light Medium (depth 5, warm)",
+   "best": "P1615-S04 143 Warm Fair (depth 3, warm)",
+   "depth_error": 2
   },
   {
    "customer_id": "C101965",
@@ -716,9 +646,9 @@
   {
    "customer_id": "C104159",
    "face": "fair-cool",
-   "predicted": "P1627-S01 111 Cool Porcelain (depth 1, cool)",
+   "predicted": "P1627-S02 123 Warm Fair (depth 3, warm)",
    "best": "P1627-S02 123 Warm Fair (depth 3, warm)",
-   "depth_error": -1
+   "depth_error": 1
   },
   {
    "customer_id": "C104346",
@@ -728,25 +658,18 @@
    "depth_error": -1
   },
   {
-   "customer_id": "C100025",
-   "face": "tan-warm",
-   "predicted": "P1622-S04 142 Warm Ivory (depth 2, warm)",
-   "best": "P1622-S09 195 Warm Light Medium (depth 5, warm)",
-   "depth_error": -4
-  },
-  {
-   "customer_id": "C100625",
+   "customer_id": "C104333",
    "face": "medium-olive",
-   "predicted": "P1625-S04 142 Neutral Ivory (depth 2, neutral)",
-   "best": "P1625-S08 184 Warm Light (depth 4, warm)",
+   "predicted": "P1637-S01 112 Cool Ivory (depth 2, cool)",
+   "best": "P1637-S07 175 Warm Light Medium (depth 5, warm)",
    "depth_error": -3
   },
   {
-   "customer_id": "C101060",
-   "face": "deep-warm",
-   "predicted": "P1626-S06 164 Cool Light (depth 4, cool)",
-   "best": "P1626-S10 207 Warm Tan (depth 7, warm)",
-   "depth_error": -3
+   "customer_id": "C107072",
+   "face": "medium-olive",
+   "predicted": "P1638-S14 248 Warm Deep (depth 8, warm)",
+   "best": "P1638-S10 205 Warm Light Medium (depth 5, warm)",
+   "depth_error": 3
   },
   {
    "customer_id": "C100481",
@@ -756,18 +679,11 @@
    "depth_error": -3
   },
   {
-   "customer_id": "C102051",
-   "face": "very-deep",
-   "predicted": "P1637-S05 154 Neutral Light (depth 4, neutral)",
-   "best": "P1637-S07 175 Warm Light Medium (depth 5, warm)",
-   "depth_error": -5
-  },
-  {
-   "customer_id": "C101660",
-   "face": "very-deep",
-   "predicted": "P1619-S06 166 Warm Medium (depth 6, warm)",
-   "best": "P1619-S08 187 Cool Tan (depth 7, cool)",
-   "depth_error": -4
+   "customer_id": "C106966",
+   "face": "deep-warm",
+   "predicted": "P1625-S08 184 Warm Light (depth 4, warm)",
+   "best": "P1625-S08 184 Warm Light (depth 4, warm)",
+   "depth_error": -3
   },
   {
    "customer_id": "C100988",
@@ -781,6 +697,20 @@
    "face": "very-deep",
    "predicted": "P1616-S13 235 Neutral Light Medium (depth 5, neutral)",
    "best": "P1616-S13 235 Neutral Light Medium (depth 5, neutral)",
+   "depth_error": -4
+  },
+  {
+   "customer_id": "C102051",
+   "face": "very-deep",
+   "predicted": "P1637-S07 175 Warm Light Medium (depth 5, warm)",
+   "best": "P1637-S07 175 Warm Light Medium (depth 5, warm)",
+   "depth_error": -4
+  },
+  {
+   "customer_id": "C103679",
+   "face": "deep-warm",
+   "predicted": "P1625-S08 184 Warm Light (depth 4, warm)",
+   "best": "P1625-S08 184 Warm Light (depth 4, warm)",
    "depth_error": -4
   }
  ]

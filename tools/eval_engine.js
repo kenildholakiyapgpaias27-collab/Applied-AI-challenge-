@@ -9,12 +9,11 @@ with "true_" reaches this script, it stops: ground truth is for scoring only and
 For each profile it maps the answers to the profile object P exactly as the quiz does, then records:
   - top-5 ranked products per category (engine rank(), which only returns products passing check())
   - every product that passes check() (the try-on shows the rest as "Not suitable for you")
-  - for every foundation: the try-on's "Your match" (bestShade with the self-reported tone and
-    undertone, as matchFor() in src/tryon.js calls it), plus the same call with the engine's own
-    self-report tone correction (correctedTone, defined in engine.js but not used by the app today)
+  - for every foundation: the try-on's "Your match", calling bestShade exactly as matchFor() in
+    src/tryon.js does (with matchTone(), the self-report correction, when the try-on uses it)
 */
 const fs = require("fs"), path = require("path"), vm = require("vm");
-const ROOT = path.join(__dirname, "..");
+const ROOT = process.env.AAINA_EVAL_ROOT || path.join(__dirname, "..");     // AAINA_EVAL_ROOT: an older copy of the sources, for before/after runs
 const [, , inPath, outPath, monthArg] = process.argv;
 const input = JSON.parse(fs.readFileSync(inPath, "utf8"));
 
@@ -23,7 +22,9 @@ for (const row of input.profiles) for (const k of Object.keys(row)) if (/^true_/
 
 // guard: the try-on must still compute "Your match" the way this harness calls it
 const tryon = fs.readFileSync(path.join(ROOT, "src/tryon.js"), "utf8");
-if (!tryon.includes('bestShade(p,tone,P.undertone||"neutral")')) { console.error("src/tryon.js matchFor() changed: update the harness"); process.exit(3) }
+const TRYON_CALL = tryon.includes('bestShade(p,typeof matchTone==="function"?matchTone():tone,P.undertone||"neutral")') ? "matchTone"
+  : tryon.includes('bestShade(p,tone,P.undertone||"neutral")') ? "rawTone" : null;
+if (!TRYON_CALL) { console.error("src/tryon.js matchFor() changed: update the harness"); process.exit(3) }
 
 const ctx = {console, Math, JSON, Number, String, Object, Array, Set, Map, RegExp, Date, parseFloat, parseInt, isNaN};
 ctx.CAT = JSON.parse(fs.readFileSync(path.join(ROOT, "data/catalogue.json"), "utf8"));
@@ -31,7 +32,7 @@ const cal = path.join(ROOT, "data/calibration.json");
 ctx.AAINA_CAL = fs.existsSync(cal) ? JSON.parse(fs.readFileSync(cal, "utf8")) : null;
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(ROOT, "src/engine.js"), "utf8") +
-  "\nthis.E={emptyProfile,check,rank,bestShade,correctedTone,REACTIONS,setP:v=>{P=v},getP:()=>P};", ctx);
+  "\nthis.E={emptyProfile,check,rank,bestShade,correctedTone,matchTone:typeof matchTone==='function'?matchTone:null,REACTIONS,setP:v=>{P=v},getP:()=>P};", ctx);
 const E = ctx.E;
 
 const CONCERN_KEYS = new Set(["acne", "pigmentation", "dullness", "dehydration", "oiliness", "tanning", "redness"]);
@@ -66,7 +67,7 @@ function toProfile(r, month) {
 const month = monthArg != null ? +monthArg : new Date().getMonth();
 const cats = input.categories;
 const foundations = ctx.CAT.filter(p => p.c === "Foundation" && p.s && p.s.length).map(p => p.id);
-const out = {month, profiles: []};
+const out = {month, tryon_call: TRYON_CALL, profiles: []};
 for (const r of input.profiles) {
   const {P, notes} = toProfile(r, month);
   E.setP(P);
@@ -79,9 +80,9 @@ for (const r of input.profiles) {
   for (const id of foundations) {
     const p = ctx.CAT.find(x => x.id === id);
     const idx = m => m ? p.s.findIndex(s => s[0] === m.name && s[3] === m.hex) : -1;
-    const tryon = E.bestShade(p, P.tone, P.undertone || "neutral");          // == matchFor() in src/tryon.js
-    const corr = E.bestShade(p, E.correctedTone(P.tone), P.undertone || "neutral");
-    match[id] = {tryon: idx(tryon), tryon_good: !!(tryon && tryon.good), corrected: idx(corr)};
+    const tone = TRYON_CALL === "matchTone" ? E.matchTone() : P.tone;      // exactly what matchFor() in src/tryon.js passes
+    const tryon = E.bestShade(p, tone, P.undertone || "neutral");
+    match[id] = {tryon: idx(tryon), tryon_good: !!(tryon && tryon.good)};
   }
   out.profiles.push({customer_id: r.customer_id, P: JSON.parse(JSON.stringify(P)), notes, top5, passing, blocked, match});
 }

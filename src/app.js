@@ -842,7 +842,7 @@ function baseShadesHTML(){
   if(!P.tone||!showBaseShades())return"";const ut=P.undertone||"neutral",out=[];
   for(const cat of["Foundation","BB / CC cream","Concealer","Compact powder"]){
     const cands=CAT.filter(p=>p.c===cat&&p.s&&p.s.length&&!p.sp&&check(p).ok&&(!P.budget||p.p<=P.budget*1.5));
-    let best=null;for(const p of cands){const m=bestShade(p,P.tone,ut);if(m&&(!best||m.score<best.m.score))best={p,m}}
+    let best=null;for(const p of cands){const m=bestShade(p,matchTone(),ut);if(m&&(!best||m.score<best.m.score))best={p,m}}
     out.push({cat,best:best&&best.m.good?best:null})}
   if(!out.some(x=>x.best))return"";
   return`<div class="baseshades"><h4>Your shade in base makeup</h4><p class="small muted">Matched to skin tone ${P.tone} (${esc(TONE_NAME[P.tone])})${P.toneRead&&P.toneRead.lab&&P.toneRead.tone===P.tone?" using the colour measured from your selfie":""}. Not part of your three-step routine. <button type="button" class="tryon-btn" data-tryon="base">Try these on</button></p>
@@ -907,7 +907,7 @@ function feedbackFormHTML(prefill=null){
 /* ---------- building the plan ---------- */
 const NUMW=["no","one","two","three","four","five"],numw=n=>NUMW[n]||String(n);
 // undertone "not sure" matches neutral shades, which suit the widest range
-const shadeFor=p=>P.tone?bestShade(p,P.tone,P.undertone||"neutral"):null;
+const shadeFor=p=>P.tone?bestShade(p,matchTone(),P.undertone||"neutral"):null;
 const shadeOK=p=>{const m=shadeFor(p);return!!(m&&m.good)};
 const hay=p=>p.n+" "+(p.a||"")+" "+(p.i||"");
 function slotScore(p,slot){

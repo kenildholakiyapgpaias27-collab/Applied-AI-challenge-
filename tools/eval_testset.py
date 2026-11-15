@@ -60,14 +60,15 @@ def load():
     return inputs, truth, labels
 
 
-def run_engine(inputs, categories, month):
+def run_engine(inputs, categories, month, src_root=None):
     node = shutil.which("node")
     if not node:
         sys.exit("node is required (the engine runs in Node)")
     tmp = Path(tempfile.mkdtemp(prefix="aaina_eval_"))
     (tmp / "in.json").write_text(json.dumps({"profiles": inputs, "categories": categories}, ensure_ascii=False))
     args = [node, str(ROOT / "tools/eval_engine.js"), str(tmp / "in.json"), str(tmp / "out.json")] + ([str(month)] if month is not None else [])
-    r = subprocess.run(args, capture_output=True, text=True)
+    env = dict(__import__("os").environ, **({"AAINA_EVAL_ROOT": str(src_root)} if src_root else {}))
+    r = subprocess.run(args, capture_output=True, text=True, env=env)
     print(r.stdout.strip())
     if r.returncode:
         sys.exit(f"engine run failed: {r.stderr}")
@@ -111,7 +112,7 @@ def score(inputs, truth, labels, eng, cat):
     res = {}
 
     # ---------- A. shade accuracy ----------
-    variants = {"tryon": [], "baseline": [], "corrected": [], "labelled_best": []}
+    variants = {"tryon": [], "baseline": [], "labelled_best": []}
     worst = []
     for l in labels:
         if l["label"] != "BEST_SHADE":
@@ -122,7 +123,7 @@ def score(inputs, truth, labels, eng, cat):
         shades = cat[pid]["s"]
         t = truth[cid]
         e = by_cust[cid]["match"][pid]
-        picks = {"tryon": e["tryon"], "corrected": e["corrected"],
+        picks = {"tryon": e["tryon"],
                  "baseline": naive_baseline(shades, inp[cid]["monk_tone_self"], inp[cid]["undertone_self"])}
         picks["labelled_best"] = best_i
         for v, i in picks.items():
@@ -221,11 +222,13 @@ def write_reports(res, month):
     L = [f"# Test-set evaluation ({meta['date']})", "",
          f"Engine: `src/engine.js` run in Node by `tools/eval_testset.py` on the 220 profiles of `{XLSX.name}` (synthetic, from the challenge organisers), "
          "using only the self-reported answers. Ground truth is used for scoring only.", "",
+         *(before_after(res) if res.get("compare") else []),
          "## A. Try-on shade accuracy (\"Your match\")", "",
-         "\"Your match\" in the try-on is `bestShade(product, self tone, self undertone or neutral)`, the same call the plan page uses. "
+         ("\"Your match\" in the try-on is `bestShade(product, matchTone(), self undertone or neutral)`: the self-picked tone corrected by "
+          "`matchTone()`, the same call the plan page uses. " if res.get("tryon_call") == "matchTone" else
+          "\"Your match\" in the try-on is `bestShade(product, self tone, self undertone or neutral)`, the same call the plan page uses. ") +
          "Scored on each customer's BEST_SHADE foundation. Bands are by measured (true) tone.", ""]
-    for v, title in (("tryon", "Try-on today"), ("baseline", "Naive baseline: depth = self tone, same undertone"),
-                     ("corrected", "With the engine's self-report correction (correctedTone, not used by the app today)"),
+    for v, title in (("tryon", "Try-on \"Your match\""), ("baseline", "Naive baseline: depth = self tone, same undertone"),
                      ("labelled_best", "Ceiling: the labelled best shade itself (how close the catalogue can get)")):
         L += [f"**{title}**", "", "| Band | n | Exact shade | Depth error vs true tone (mean) | MAE | Within 1 | Off by 2+ | Undertone match | Within 1 of labelled best |", "|---|---|---|---|---|---|---|---|---|"]
         for b in ["overall"] + [x for x, _, _ in BANDS]:
@@ -265,6 +268,21 @@ def write_reports(res, month):
           f"- Season: month {month} (0 = January), which the engine uses for winter dryness.",
           "- Concerns the quiz doesn't offer were dropped: " + ", ".join(f"{k} ({v})" for k, v in res["mapping_notes"].items()) + "."]
     (REPORTS / "eval_testset.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+
+
+def before_after(res):
+    b, A, B, C = res["compare"]["before"], res["A"], res["B"], res["C"]
+    bt, at = b["A"]["tryon"], A["tryon"]
+    rows = [("\"Your match\" = labelled best shade", f"{bt['overall']['exact_hit']}%", f"{at['overall']['exact_hit']}%"),
+            ("Within 1 step of measured tone", f"{bt['overall']['within_1']}%", f"{at['overall']['within_1']}%"),
+            ("Depth MAE", f"{bt['overall']['depth_mae']}", f"{at['overall']['depth_mae']}"),
+            ("Band gap, within 1 of labelled best", f"{bt['band_gap']['within_1_of_best']} pts", f"{at['band_gap']['within_1_of_best']} pts"),
+            ("Band gap, exact shade", f"{bt['band_gap']['exact_hit']} pts", f"{at['band_gap']['exact_hit']} pts"),
+            ("Profiles with a MUST_NOT in a top 5", f"{b['B']['profiles_with_must_not_in_top5']}%", f"{B['profiles_with_must_not_in_top5']}%"),
+            ("MUST_NOT blocked by check()", f"{b['B']['recall']}%", f"{B['recall']}%"),
+            ("  on labels the quiz can know", f"{b['B']['recall_on_knowable_labels']['recall']}%", f"{B['recall_on_knowable_labels']['recall']}%"),
+            ("GOOD in top 5 (hit rate)", f"{b['C']['hit_rate']}%", f"{C['overall']['hit_rate']}%")]
+    return [f"## Before and after (vs `{res['compare']['ref']}`)", "", "| Measure | Before | After |", "|---|---|---|"] + [f"| {r[0]} | {r[1]} | {r[2]} |" for r in rows] + [""]
 
 
 def visual(res, truth, cat):
@@ -336,6 +354,17 @@ def main():
     categories = sorted({l["category"] for l in labels if l["label"] != "BEST_SHADE"})
     eng = run_engine(inputs, categories, month)
     res = score(inputs, truth, labels, eng, cat)
+    res["tryon_call"] = eng.get("tryon_call")
+    if "--compare" in sys.argv:            # re-run an older engine + catalogue + try-on from git, for a before/after table
+        ref = sys.argv[sys.argv.index("--compare") + 1]
+        old = Path(tempfile.mkdtemp(prefix="aaina_eval_ref_"))
+        for f in ("src/engine.js", "src/tryon.js", "data/catalogue.json", "data/calibration.json"):
+            (old / f).parent.mkdir(parents=True, exist_ok=True)
+            (old / f).write_bytes(subprocess.run(["git", "show", f"{ref}:{f}"], cwd=ROOT, capture_output=True, check=True).stdout)
+        old_cat = {p["id"]: p for p in json.loads((old / "data/catalogue.json").read_text())}
+        before = score(inputs, truth, labels, run_engine(inputs, categories, month, old), old_cat)
+        res["compare"] = {"ref": ref, "before": {"A": {k: before["A"][k] for k in ("tryon",)}, "B": {k: before["B"][k] for k in
+                          ("profiles_with_must_not_in_top5", "recall", "recall_on_knowable_labels")}, "C": before["C"]["overall"]}}
     write_reports(res, eng["month"])
     res["A"]["_all"] = sorted_all(inputs, truth, labels, eng, cat)       # every customer's pick, for the visual check
     if "--visual" in sys.argv:
@@ -345,7 +374,7 @@ def main():
         (REPORTS / "eval_testset.json").write_text(json.dumps(j, indent=1, ensure_ascii=False))
     A, B, C = res["A"], res["B"], res["C"]
     print(json.dumps({"tryon": A["tryon"]["overall"], "gap": A["tryon"]["band_gap"], "baseline": A["baseline"]["overall"],
-                      "corrected": A["corrected"]["overall"], "safety_top5": B["profiles_with_must_not_in_top5"], "recall": B["recall"],
+                      "safety_top5": B["profiles_with_must_not_in_top5"], "recall": B["recall"],
                       "relevance": C["overall"]}, ensure_ascii=False))
 
 

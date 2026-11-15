@@ -66,18 +66,18 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
 
 ## Accuracy
 
-Measured on 2026-11-15 against the organisers' labelled test set (220 synthetic customers, `data/eval/PS-14_recommendation_test_set.xlsx`), using only what each customer told the quiz. Full results: [reports/eval_testset.md](reports/eval_testset.md). Re-run with `python3 tools/eval_testset.py --visual`.
+Measured on 2026-11-15 against the organisers' labelled test set (220 synthetic customers, `data/eval/PS-14_recommendation_test_set.xlsx`), using only what each customer told the quiz. Full results: [reports/eval_testset.md](reports/eval_testset.md). Re-run with `python3 tools/eval_testset.py --visual` (add `--compare <git ref>` for a before/after table).
 
-| Measure | Result | Target |
-|---|---|---|
-| Try-on "Your match" = labelled best shade | 39.1% (naive depth-only baseline: 47.7%) | |
-| Shade depth within 1 step of measured tone | 71.4% (MAE 1.15) | |
-| Gap between tone bands (within 1 of labelled best) | 20.6 pts (1–3: 94.4%, 4–7: 75.6%, 8–10: 96.2%) | under 5 pts |
-| Profiles with a MUST_NOT product in a top 5 | 0.5% (1 of 220) | 0 |
-| MUST_NOT products blocked by `check()` | 96.4% (504 of 523); 98.2% on what the quiz can know | 100% |
-| GOOD product in the top 5 | 65.3% of customer-categories | |
+| Measure | Before fixes | Now | Target |
+|---|---|---|---|
+| Try-on "Your match" = labelled best shade | 39.1% | **52.3%** (naive baseline: 47.7%) | |
+| Shade depth within 1 step of measured tone | 71.4% (MAE 1.15) | **84.1%** (MAE 0.86) | |
+| Gap between tone bands (within 1 of labelled best) | 20.6 pts | **7.3 pts** (1–3: 88.9%, 4–7: 89.2%, 8–10: 96.2%) | under 5 pts |
+| Profiles with a MUST_NOT product in a top 5 | 0.5% | **0%** | 0 |
+| MUST_NOT products blocked by `check()` | 96.4% | **98.1%**; 100% on what the quiz can know | 100% |
+| GOOD product in the top 5 | 65.3% | 65.3% | |
 
-The shade matcher trails the naive baseline because it weighs an undertone mismatch like a full step of depth, and the app does not yet use the engine's self-report tone correction. Every safety leak traces to skin type: 10 labels use the measured skin type where the customer told the quiz something else, and 9 come from skin-type tags our catalogue clean-up added. For tones 8–10 the catalogue's deepest shades are often still too light.
+What changed: "Your match" and the plan's shades now use the engine's correction for self-picked tones (`matchTone()`), and shade matching weighs depth above undertone. The 14 skin-type tags an earlier catalogue clean-up added were restored to the organisers' values, and `tools/catalogue_check.py` now only reports such cases. Still open: the 10 remaining MUST_NOT misses use the measured skin type where the customer told the quiz something else; tones 8–10 often have no shade deep enough in the catalogue; and agreement with the measured undertone fell from 45.9% to 40.0% because depth now wins ties.
 
 ## Guardrails enforced in code
 

@@ -118,7 +118,7 @@ const TRYON=(()=>{
   function matchFor(p){
     if(!(p.s&&p.s.length)||typeof bestShade!=="function")return null;
     const tone=(typeof P!=="undefined"&&P.tone)||null;
-    if(tone){const m=bestShade(p,tone,P.undertone||"neutral");return m?{name:m.name,good:m.good,label:m.good?"Your match":"Closest to you",you:true}:null}
+    if(tone){const m=bestShade(p,typeof matchTone==="function"?matchTone():tone,P.undertone||"neutral");/* matchTone corrects the known bias in self-picked tones */return m?{name:m.name,good:m.good,label:m.good?"Your match":"Closest to you",you:true}:null}
     if(S.model){const m=bestShade(p,S.model.monk,S.model.undertone);return m?{name:m.name,good:m.good,label:"Matches this model",you:false}:null}
     return null}
   const hasPlan=()=>typeof PL!=="undefined"&&!!PL;

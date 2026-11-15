@@ -16,11 +16,32 @@
    "get INCI from the brand"
   ],
   [
+   "P1062",
+   "Neem & Nectar Ceramides Cream Cleanser",
+   "skin types",
+   "hydration product not tagged for dry skin",
+   "confirm with the brand before adding 'dry'"
+  ],
+  [
+   "P1090",
+   "Petal & Pore Licorice Balancing Toner",
+   "skin types",
+   "hydration product not tagged for dry skin",
+   "confirm with the brand before adding 'dry'"
+  ],
+  [
    "P1090",
    "Petal & Pore Licorice Balancing Toner",
    "ingredients",
    "ingredient list missing (blocked for anyone with a safety constraint)",
    "get INCI from the brand"
+  ],
+  [
+   "P1098",
+   "Aqualume Hyaluronic Calming Toner",
+   "skin types",
+   "hydration product not tagged for dry skin",
+   "confirm with the brand before adding 'dry'"
   ],
   [
    "P1107",
@@ -30,6 +51,13 @@
    "get INCI from the brand"
   ],
   [
+   "P1119",
+   "Dewdrop Labs Lactic Hydrating Toner",
+   "skin types",
+   "hydration product not tagged for dry skin",
+   "confirm with the brand before adding 'dry'"
+  ],
+  [
    "P1197",
    "Coastline Care Bakuchiol Renewal Serum",
    "ingredients",
@@ -37,11 +65,81 @@
    "get INCI from the brand"
   ],
   [
+   "P1248",
+   "Glacier Skin Niacinamide Night Moisturiser",
+   "skin types",
+   "acne / oil-control product not tagged for oily skin",
+   "confirm with the brand before adding 'oily'"
+  ],
+  [
+   "P1279",
+   "Glacier Skin Peptides Daily Moisturiser",
+   "skin types",
+   "acne / oil-control product not tagged for oily skin",
+   "confirm with the brand before adding 'oily'"
+  ],
+  [
+   "P1299",
+   "Saffron Street Niacinamide Oil-free Moisturiser",
+   "skin types",
+   "acne / oil-control product not tagged for oily skin",
+   "confirm with the brand before adding 'oily'"
+  ],
+  [
+   "P1313",
+   "Sundari Naturals Rich Moisturiser",
+   "skin types",
+   "acne / oil-control product not tagged for oily skin",
+   "confirm with the brand before adding 'oily'"
+  ],
+  [
+   "P1316",
+   "Coastline Care Daily Moisturiser",
+   "skin types",
+   "acne / oil-control product not tagged for oily skin",
+   "confirm with the brand before adding 'oily'"
+  ],
+  [
+   "P1320",
+   "Tulsi Tree Retinol Night Moisturiser",
+   "skin types",
+   "acne / oil-control product not tagged for oily skin",
+   "confirm with the brand before adding 'oily'"
+  ],
+  [
    "P1324",
    "Monsoon Rose Daily Moisturiser",
    "ingredients",
    "ingredient list missing (blocked for anyone with a safety constraint)",
    "get INCI from the brand"
+  ],
+  [
+   "P1332",
+   "Nordic Ray Niacinamide Daily Moisturiser",
+   "skin types",
+   "acne / oil-control product not tagged for oily skin",
+   "confirm with the brand before adding 'oily'"
+  ],
+  [
+   "P1340",
+   "Dermacraft Niacinamide Oil-free Moisturiser",
+   "skin types",
+   "acne / oil-control product not tagged for oily skin",
+   "confirm with the brand before adding 'oily'"
+  ],
+  [
+   "P1341",
+   "Mira Matte Gel Moisturiser",
+   "skin types",
+   "acne / oil-control product not tagged for oily skin",
+   "confirm with the brand before adding 'oily'"
+  ],
+  [
+   "P1361",
+   "Urban Ritual Hybrid Sunscreen",
+   "skin types",
+   "hydration product not tagged for dry skin",
+   "confirm with the brand before adding 'dry'"
   ],
   [
    "P1446",
