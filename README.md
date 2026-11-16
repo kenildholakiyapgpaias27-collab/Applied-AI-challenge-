@@ -168,13 +168,23 @@ The app works with no database at all: leave `data/supabase.json` empty and ever
 | What | Stored when | Who can read it |
 |---|---|---|
 | **Catalogue** (`products`, `shades`) | Always; seeded from `data/catalogue.json` | Anyone (read-only). Pages load it only when the database version differs from the one they were built with, so a price or ingredient fix goes live without a rebuild. |
-| **Saved answers and plans** (`profiles`, `plans`) | Only after the user signs in by email link **and** ticks the consent box | The signed-in owner only (row-level security) |
+| **Saved answers and plans** (`profiles`, `plans`) | Only after the user signs in (Google or email link) **and** ticks the consent box | The signed-in owner only (row-level security) |
 | **Check-ins and reactions** (`checkins`, `reactions`) | Same as above | The owner only |
 | **Anonymous analytics** (`events`) | Plans shown, swaps, tuning, set-aside counts, check-in outcomes | Nobody through the API; you query it in the dashboard |
 
 Analytics never include a name, email, city, pregnancy status or reaction answers, and the "set aside" counts drop the pregnancy and reaction rules (A2, B3, B4) because a count of those would reveal the answer. Events are sent with the public key, not the login, so they can't be linked to an account. Browsers with Do Not Track or Global Privacy Control send none. Selfies are never uploaded.
 
-**Delete my answers** asks for confirmation, then erases this device's copy and, if signed in, every account row and the login itself (`delete_my_data()`). Typing "delete my data" in the chat now opens the same confirmation instead of deleting straight away, because ordinary questions such as "how do I remove tan… in this photo" also matched.
+### Sign-in methods
+
+- **Continue with Google** (OAuth, PKCE flow, no library). The consent box comes first; the button stays off until it is ticked. The page sends a one-time S256 code challenge to Supabase, Supabase talks to Google, and the browser returns with `?code=`, which is swapped for a session together with the one-time verifier and then removed from the address bar and history. `redirect_to` is always this page. Scopes: `openid email profile`. The Google client secret lives only in the Supabase dashboard.
+- **Email me a sign-in link** (magic link), unchanged.
+- The same verified email lands in the same account whichever method is used (Supabase links the identities).
+- From Google, Aaina keeps only the account id and email. The name it stores is the one the shopper types. `supabase/migrations/20261116000000_google_minimal_profile.sql` removes the Google name and photo URL that Supabase Auth would otherwise copy into its own tables.
+- If a plan made before signing in differs from one already in the account, the app asks which to keep ("Save this plan to your account?") and never replaces the account's plan silently.
+
+Setup (Google Cloud and Supabase dashboard steps): [docs/oauth-setup.md](docs/oauth-setup.md).
+
+**Delete my answers** asks for confirmation, then erases this device's copy and, if signed in, every account row and the login itself (`delete_my_data()`). Deleting the login also removes its Google and email identities and sessions (Supabase cascades them). Typing "delete my data" in the chat now opens the same confirmation instead of deleting straight away, because ordinary questions such as "how do I remove tan… in this photo" also matched.
 
 **Live project:** `aaina-skin-advisor` (Supabase, Mumbai `ap-south-1`) is set up with this schema and the full catalogue (806 products, 597 shades, version `f1d460ebf65d`), and `data/supabase.json` points at it. To finish sign-in, set the site's public address under **Authentication → URL Configuration** (step 3 below) once it is hosted.
 
@@ -202,6 +212,7 @@ Supabase's built-in email sender is limited to a few emails an hour, which is fi
 python3 tests/tryon_unit_test.py     # try-on data + colour/blend maths (Node for the JS part)
 python3 tests/tryon_test.py          # try-on in Chrome: model, upload, fake camera, compare, safety, plan
 python3 tests/quiz_flow_test.py      # the adaptive quiz
+node tests/oauth_unit_test.js        # Continue with Google: PKCE helpers, callback, URL cleanup (no browser)
 supabase/tests/run_db_tests.sh
 ```
 
@@ -209,16 +220,17 @@ The try-on browser test needs `pip install playwright pillow`, Chrome, and inter
 
 Starts a throwaway local Postgres, loads the schema and seed, then runs:
 - **36 row-level security tests** (`rls_test.sql`), under Supabase's default grants. For example: one user can't read or change another's data, nothing is accepted before consent, analytics are write-only, and `TRUNCATE` is blocked. Supabase's defaults would otherwise allow `TRUNCATE`, and row-level security doesn't apply to it.
-- **34 end-to-end checks** (`e2e_test.py`): the real page in Chrome against the real schema, through a small mock of Supabase's API (`mock_supabase.py`). They cover:
+- **63 end-to-end checks** (`e2e_test.py`): the real page in Chrome against the real schema, through a small mock of Supabase's API (`mock_supabase.py`). They cover:
   - catalogue refresh, sign-in, consent, plan and check-in sync
   - a second device, isolation from another user, and anonymous analytics
   - deletion, offline fallback and no-config mode
+  - Continue with Google against a mocked `/authorize` and `/token`: consent required, cancel, round trip, plan saved, reused code refused, route restored, one account for Google + email link, plan-merge question, sign out, delete (identities included), nothing from Google kept, no tokens in the console
 
 Needs PostgreSQL server binaries, `pip install psycopg playwright`, and Chrome.
 
 ## Privacy note
 
-The selfie consent screen tells users their photo is stored for **18 months**. This demo does **not** store photos: they are analysed in the browser and discarded, and the database layer never uploads them. Answers are stored in an account only with explicit consent (recorded with a version and timestamp) and can be erased in one step. A production version would still need a full review against India's Digital Personal Data Protection Act, 2023.
+The selfie consent screen tells users their photo is stored for **18 months**. This demo does **not** store photos: they are analysed in the browser and discarded, and the database layer never uploads them. Signing in with Google gives Aaina your Google account id and email; the name and photo Google sends are discarded. Answers are stored in an account only with explicit consent (recorded with a version and timestamp) and can be erased in one step. A production version would still need a full review against India's Digital Personal Data Protection Act, 2023.
 
 **Virtual try-on:** camera frames and uploaded photos are processed in the browser and never uploaded or stored. Snapshots are saved only as a download on the user's device. The face tracker's code and model file are downloaded from public CDNs (jsDelivr and Google's model storage); no image goes with those requests.
 

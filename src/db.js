@@ -84,6 +84,69 @@ const DB=(()=>{
   }
   async function signOut(){if(session)await req("/auth/v1/logout?scope=local",{method:"POST"});dropSession()}
 
+  /* ---------- auth: Continue with Google (OAuth, PKCE flow) ----------
+     1. startGoogle(): make a one-time code_verifier, keep it in sessionStorage, send its
+        S256 challenge to Supabase's /authorize. Supabase talks to Google; the Google client
+        secret lives only in the Supabase dashboard, never in this page.
+     2. Google -> Supabase -> back here with ?code=…  readCallback() swaps the code plus the
+        verifier for a session at /token?grant_type=pkce, then removes ?code from the address
+        bar (and history) and puts back the #route the user was on.
+     The verifier is deleted before it is used, so a code can't be redeemed twice from here. */
+  const PKCE_KEY="aaina.pkce.v1",ROUTE_KEY="aaina.oauth.route";
+  const CALLBACK_PARAMS=["code","state","error","error_code","error_description"];
+  const b64url=bytes=>{let s="";for(const b of bytes)s+=String.fromCharCode(b);return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")};
+  function makeVerifier(n=64){   // RFC 7636: 43-128 chars from [A-Za-z0-9-._~]; 64 random bytes -> 86 chars
+    const a=new Uint8Array(n);crypto.getRandomValues(a);return b64url(a);
+  }
+  async function challengeFor(verifier){
+    const d=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(verifier));return b64url(new Uint8Array(d));
+  }
+  const selfURL=()=>location.origin+location.pathname;   // redirect_to is always this page, never a value read from the URL
+  async function startGoogle(){
+    if(!enabled)return{ok:false,error:"Sign-in isn't available right now."};
+    if(!(crypto&&crypto.subtle&&crypto.getRandomValues))return{ok:false,error:"This browser can't do secure sign-in. Please use the email link instead."};
+    const verifier=makeVerifier(),challenge=await challengeFor(verifier);
+    setJ("sessionStorage",PKCE_KEY,{v:verifier,at:Date.now()});
+    const route=/^#[A-Za-z][\w-]*$/.test(location.hash||"")?location.hash:"";   // a plain route like #try-on; never a token
+    setJ("sessionStorage",ROUTE_KEY,route||null);
+    if(!getJ("sessionStorage",PKCE_KEY))return{ok:false,error:"Your browser is blocking storage that sign-in needs. Please use the email link instead."};
+    const q=new URLSearchParams({provider:"google",redirect_to:selfURL(),code_challenge:challenge,code_challenge_method:"s256",scopes:"openid email profile"});
+    location.assign(`${BASE}/auth/v1/authorize?${q}`);
+    return{ok:true};
+  }
+  // remove ?code / ?error from the address bar and this history entry; keep other params and restore the saved #route
+  function cleanCallbackURL(){
+    const u=new URL(location.href);for(const k of CALLBACK_PARAMS)u.searchParams.delete(k);
+    const saved=getJ("sessionStorage",ROUTE_KEY);setJ("sessionStorage",ROUTE_KEY,null);
+    let hash=u.hash;if(/access_token=|error/.test(hash))hash="";
+    if(saved&&/^#[A-Za-z][\w-]*$/.test(saved))hash=saved;
+    try{history.replaceState(history.state,"",u.pathname+u.search+hash)}catch{}
+  }
+  async function readCallback(){
+    const qs=new URLSearchParams(location.search);
+    const hq=new URLSearchParams((location.hash||"").replace(/^#/,""));
+    const pending=getJ("sessionStorage",PKCE_KEY);
+    // an error in the #hash belongs to the email link (readRedirect) unless a Google sign-in is under way
+    const code=qs.get("code"),err=qs.get("error")||(pending&&!hq.get("access_token")&&hq.get("error"));
+    if(!code&&!err)return null;
+    const stored=pending;setJ("sessionStorage",PKCE_KEY,null);   // one use only
+    cleanCallbackURL();
+    if(err){
+      const cancelled=/access_denied/i.test(err);
+      return{error:cancelled?"Google sign-in was cancelled. You're still signed out, and nothing has changed.":"Google sign-in didn't work this time. You're still signed out; please try again or use the email link.",provider:"google"};
+    }
+    if(!stored||!stored.v||Date.now()-(stored.at||0)>15*60*1000)return{error:"That sign-in has expired or was already used. Please tap Continue with Google again.",provider:"google"};
+    const r=await req("/auth/v1/token?grant_type=pkce",{method:"POST",body:{auth_code:code,code_verifier:stored.v},asUser:false});
+    if(!r.ok||!r.data?.access_token)return{error:"That sign-in has expired or was already used. Please tap Continue with Google again.",provider:"google"};
+    const d=r.data;
+    session={access_token:d.access_token,refresh_token:d.refresh_token,expires_at:d.expires_at||Math.floor(Date.now()/1000)+(d.expires_in||3600),user:null};
+    let user=d.user&&d.user.id?d.user:null;
+    if(!user){const u=await req("/auth/v1/user");user=u.ok&&u.data?.id?u.data:null}
+    if(!user){dropSession();return{error:"Google sign-in didn't work this time. Please try again.",provider:"google"}}
+    session.user={id:user.id,email:user.email};   // nothing else from Google: no avatar, no name, no profile data
+    setJ("localStorage",AUTH_KEY,session);return{signedIn:true,provider:"google"};
+  }
+
   /* ---------- consent ---------- */
   // Consent is ticked before the sign-in email is sent, then confirmed on return.
   const setPendingConsent=on=>setJ("localStorage",PENDING_KEY,on?{v:CONSENT_VERSION,at:new Date().toISOString()}:null);
@@ -188,12 +251,12 @@ const DB=(()=>{
 
   async function init(){
     if(!enabled)return{};
-    const back=await readRedirect();let profile=null;
+    const back=(await readCallback())||(await readRedirect());let profile=null;
     if(session){await ensureFresh();if(session)profile=await pullProfile()}
     emit();
     return{...(back||{}),profile};
   }
-  return{enabled,CONSENT_VERSION,init,sendLink,signOut,setPendingConsent,pendingConsent,pullProfile,pushState,flush,savePlan,saveCheckin,saveReactions,deleteAll,fetchCatalogue,track,
+  return{enabled,CONSENT_VERSION,init,sendLink,startGoogle,signOut,setPendingConsent,pendingConsent,pullProfile,pushState,flush,savePlan,saveCheckin,saveReactions,deleteAll,fetchCatalogue,track,
     user:()=>session?.user||null,consented:()=>consented,lastError:()=>lastError,onChange:f=>{listeners.add(f);return()=>listeners.delete(f)},
-    _toProduct:toProduct};
+    _toProduct:toProduct,_pkce:{makeVerifier,challengeFor,readCallback,cleanCallbackURL,PKCE_KEY,ROUTE_KEY}};
 })();

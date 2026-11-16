@@ -16,7 +16,7 @@ fi
 dropdb --if-exists aaina_test && createdb aaina_test
 load(){ psql -q -v ON_ERROR_STOP=1 -d aaina_test -f "$1" 2>&1 | grep -v NOTICE || true; }
 load supabase/tests/supabase_shim.sql
-load supabase/migrations/20261112000000_init.sql
+for m in supabase/migrations/*.sql; do load "$m"; done
 load supabase/seed.sql
 echo "== migration + seed loaded: $(psql -tAc 'select count(*) from products' -d aaina_test) products, $(psql -tAc 'select count(*) from shades' -d aaina_test) shades"
 echo "== row-level security"
