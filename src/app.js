@@ -2268,6 +2268,9 @@ function checkinSaved(stage,results,newReactions){
     if(newReactions?.length){newReactions.forEach(r=>SYNCED_REACTIONS.add(r));DB.saveReactions(newReactions,"checkin")}
   }
 }
+// Google's own "G" mark and approved wording; colours and sizes follow Google's sign-in branding guidelines
+const GOOGLE_G=`<svg class="gsi-g" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
+const GOOGLE_BTN=`<button type="button" class="gsi-btn" data-google disabled>${GOOGLE_G}<span>Continue with Google</span></button>`;
 const CONSENT_TEXT="I agree to Aaina storing my answers, plans and check-ins in my account, including pregnancy status and reactions if I've shared them. My selfie is never uploaded. I can delete everything at any time.";
 function accountCard(){
   if(!DB.enabled)return null;
@@ -2276,17 +2279,35 @@ function accountCard(){
     box.innerHTML=`<div class="acct-row"><span class="acct-ic">${SVG('<path d="M5 12l4 4 10-10"/>')}</span><div class="acct-tx"><b>Saved to your account</b><span>${esc(u.email||"")}. Your plan and check-ins are there on any device you sign in on.</span></div><button type="button" class="link small" data-out>Sign out</button></div>`;
   }else if(!u&&ACCT_SENT){
     box.innerHTML=`<div class="acct-row"><span class="acct-ic">${SVG('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>')}</span><div class="acct-tx"><b>Check your inbox</b><span>I've emailed a sign-in link to <b>${esc(ACCT_SENT)}</b>. Open it on this device and your plan will be saved to your account.</span></div><button type="button" class="link small" data-again>Use another email</button></div>`;
-  }else{
-    box.innerHTML=`<div class="acct-tx"><b>${u?"Save this plan to your account":"Keep your plan on any device"}</b><span>${u?`Signed in as ${esc(u.email||"")}.`:"I'll email you a sign-in link. No password."}</span></div>
-      ${u?"":`<input type="email" class="acct-email" placeholder="you@example.com" autocomplete="email" aria-label="Email address" maxlength="120">`}
+  }else if(u){
+    box.innerHTML=`<div class="acct-tx"><b>Save this plan to your account</b><span>Signed in as ${esc(u.email||"")}.</span></div>
       <label class="agree"><input type="checkbox" data-consent> <span>${CONSENT_TEXT}</span></label>
-      <div class="acct-act"><button type="button" class="btn primary" data-go disabled>${u?"Save to my account":"Email me a sign-in link"}</button>${u?`<button type="button" class="link small" data-out>Sign out</button>`:""}</div>
+      <div class="acct-act"><button type="button" class="btn primary" data-go disabled>Save to my account</button><button type="button" class="link small" data-out>Sign out</button></div>
+      <p class="acct-err" data-err role="alert" hidden></p>`;
+  }else{
+    // sign-in panel: consent first, then Google, then the email link
+    box.innerHTML=`<div class="acct-tx"><b>Keep your plan on any device</b><span>Sign in to save it. No password.</span></div>
+      <label class="agree"><input type="checkbox" data-consent> <span>${CONSENT_TEXT}</span></label>
+      <div class="acct-ways">
+        ${GOOGLE_BTN}
+        <p class="acct-gnote">We only get your name and email from Google.</p>
+        <div class="acct-or" aria-hidden="true"><span>or</span></div>
+        <div class="acct-mail"><input type="email" class="acct-email" placeholder="you@example.com" autocomplete="email" aria-label="Email address" maxlength="120"><button type="button" class="btn" data-go disabled>Email me a sign-in link</button></div>
+      </div>
+      <p class="acct-hint small muted" data-hint>Tick the box above to continue.</p>
       <p class="acct-err" data-err role="alert" hidden></p>`;
   }
   const $$=s=>box.querySelector(s),err=m=>{const e=$$("[data-err]");if(e){e.hidden=!m;e.textContent=m||""}};
-  const em=$$(".acct-email"),cb=$$("[data-consent]"),go=$$("[data-go]");
-  const ready=()=>{if(go)go.disabled=!(cb?.checked&&(!em||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim())))};
+  const em=$$(".acct-email"),cb=$$("[data-consent]"),go=$$("[data-go]"),gg=$$("[data-google]"),hint=$$("[data-hint]");
+  const ready=()=>{if(go)go.disabled=!(cb?.checked&&(!em||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim())));
+    if(gg)gg.disabled=!cb?.checked;if(hint)hint.hidden=!!cb?.checked};
   cb?.addEventListener("change",ready);em?.addEventListener("input",()=>{err("");ready()});
+  if(gg)gg.onclick=async()=>{
+    if(!cb?.checked)return;   // consent is ticked before we leave for Google, exactly as before the email link
+    gg.disabled=true;err("");DB.setPendingConsent(true);saveState();await DB.flush();
+    const r=await DB.startGoogle();
+    if(!r.ok){DB.setPendingConsent(false);err(r.error);ready()}
+  };
   em?.addEventListener("keydown",e=>{if(e.key==="Enter"&&go&&!go.disabled){e.preventDefault();go.click()}});
   if(go)go.onclick=async()=>{
     go.disabled=true;err("");DB.setPendingConsent(true);
@@ -2319,7 +2340,11 @@ function renderAcctLine(){
   if(u){el.innerHTML=`<span>Signed in as <b>${esc(u.email||"")}</b>${DB.consented()?"":" (nothing saved to your account yet)"}</span><button type="button" class="link small" data-wout>Sign out</button>`;
     el.querySelector("[data-wout]").onclick=async()=>{await DB.flush();await DB.signOut();renderAcctLine()};return}
   if(ACCT_SENT){el.innerHTML=`<span>Sign-in link sent to <b>${esc(ACCT_SENT)}</b>. Open it on this device.</span>`;return}
-  el.innerHTML=`<span>Saved a plan before?</span><button type="button" class="link small" data-win>Sign in with email</button>`;
+  // signing in here only brings a saved plan back; nothing new is stored until consent is ticked under a plan
+  el.innerHTML=`<span>Saved a plan before?</span>${GOOGLE_BTN.replace(" disabled","").replace('class="gsi-btn"','class="gsi-btn gsi-sm"')}<button type="button" class="link small" data-win>Sign in with email</button><span class="acct-err" data-gerr role="alert" hidden></span>`;
+  const wg=el.querySelector("[data-google]");
+  wg.onclick=async()=>{wg.disabled=true;const r=await DB.startGoogle();
+    if(!r.ok){const er=el.querySelector("[data-gerr]");er.hidden=false;er.textContent=r.error;wg.disabled=false}};
   el.querySelector("[data-win]").onclick=()=>{
     el.innerHTML=`<input type="email" class="acct-email" placeholder="you@example.com" autocomplete="email" aria-label="Email address" maxlength="120"><button type="button" class="btn" data-wsend>Email me a link</button><span class="acct-err" data-werr role="alert" hidden></span>`;
     const em=el.querySelector("input"),b=el.querySelector("[data-wsend]"),er=el.querySelector("[data-werr]");em.focus();
@@ -2348,6 +2373,23 @@ function confirmDelete(){
   };
   m.querySelector("[data-no]").focus();
 }
+// a plan on this device and a different one in the account: the shopper decides which to keep
+function planChoice(local,remote,which){
+  const when=s=>s.META?.planAt?agoText(s.META.planAt):"earlier";
+  const lp=PROBLEMS[local.PROB]?.label.toLowerCase()||"your concern",rp=PROBLEMS[remote.PROB]?.label.toLowerCase()||"your concern";
+  const m=document.createElement("div");m.className="exitm acct-merge";m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");m.setAttribute("aria-labelledby","mrgT");
+  m.innerHTML=`<div class="exbox"><h3 id="mrgT">${which==="local-newer"?"Save this plan to your account?":"Your account has a newer plan"}</h3>
+    <p>On this device: a plan for <b>${esc(lp)}</b>, made ${esc(when(local))}.<br>In your account: a plan for <b>${esc(rp)}</b>, made ${esc(when(remote))}.</p>
+    <p class="small muted">Both plans stay in your account's history. This only sets which one you see as your current plan.</p>
+    <div class="qactions"><button type="button" class="btn primary" data-keep="local">${which==="local-newer"?"Save this plan to my account":"Keep the plan on this device"}</button><button type="button" class="btn" data-keep="remote">Use my account's plan</button></div></div>`;
+  document.body.appendChild(m);
+  m.querySelector('[data-keep="local"]').onclick=async()=>{m.remove();DB.pushState(local,local.NAME);await DB.flush();
+    if(DB.consented())DB.savePlan({madeAt:local.META.planAt,concern:local.PROB,productIds:local.planIds.map(x=>x||"none"),extras:local.META.extraIds||[]});
+    acctNotice("Done. This plan is now the one saved in your account.")};
+  m.querySelector('[data-keep="remote"]').onclick=()=>{m.remove();try{store()?.setItem(STORE_KEY,JSON.stringify(remote))}catch{}
+    if(!$("welcome").hidden){renderResume();acctNotice("Your account's plan is ready.")}else resumeFrom(remote)};
+  m.querySelector('[data-keep="local"]').focus();
+}
 async function dbBoot(){
   if(!DB.enabled)return;
   DB.onChange(refreshAccountCards);
@@ -2358,15 +2400,22 @@ async function dbBoot(){
   }).catch(()=>{});
   const r=await DB.init();
   if(r.error)acctNotice(esc(r.error));
+  if(r.error&&r.provider==="google"&&!DB.user())DB.setPendingConsent(false);   // a cancelled Google sign-in leaves no consent waiting
   if(DB.user()){
     const saved=loadState(),local=saved&&(saved.DONE||[]).length?saved:null;   // an untouched local state never beats a saved plan
     const row=r.profile,idle=!$("welcome").hidden&&!PL;
     if(row){
       (row.state?.P?.reactions||[]).forEach(x=>SYNCED_REACTIONS.add(x));
-      const remote=row.state;
-      if(remote&&remote.v===1&&remote.NAME!==undefined&&(!local||(remote.updated||0)>(local.updated||0))){
-        if(idle){try{store()?.setItem(STORE_KEY,JSON.stringify(remote))}catch{}renderResume();if(r.signedIn)acctNotice(`Welcome back! Your saved plan is ready.`)}
-      }else if(local)DB.pushState(local,local.NAME);
+      const remote=row.state,remoteOK=remote&&remote.v===1&&remote.NAME!==undefined;
+      const hasPlan=s=>!!(s&&s.META?.planAt&&s.planIds);
+      const samePlan=remoteOK&&local&&remote.META?.planAt===local.META?.planAt&&String(remote.planIds)===String(local.planIds);
+      if(remoteOK&&(!local||(remote.updated||0)>(local.updated||0))){
+        if(hasPlan(local)&&hasPlan(remote)&&!samePlan)planChoice(local,remote,"remote-newer");   // two different plans: ask
+        else if(idle){try{store()?.setItem(STORE_KEY,JSON.stringify(remote))}catch{}renderResume();if(r.signedIn)acctNotice(`Welcome back! Your saved plan is ready.`)}
+      }else if(local){
+        if(hasPlan(local)&&hasPlan(remote)&&!samePlan)planChoice(local,remote,"local-newer");   // never replace the account's plan without asking
+        else DB.pushState(local,local.NAME);
+      }
     }else if(DB.pendingConsent()){
       // back from the sign-in email with consent already ticked: save what's on this device
       DB.pushState(local||{v:1},local?.NAME);await DB.flush();

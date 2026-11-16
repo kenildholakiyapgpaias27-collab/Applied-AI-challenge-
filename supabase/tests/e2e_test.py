@@ -80,6 +80,113 @@ def sql(q, *a):
         return cur.fetchall() if cur.description else []
 
 
+def google_journey(b, mock, base, new_page, errors):
+    """Google sign-in round trip: consent -> /authorize -> ?code -> /token (pkce) -> signed in -> plan saved -> sign out -> delete."""
+    sql("delete from auth.users")
+    logs = []
+    ctx = b.new_context(); pg = new_page(ctx); pg.on("console", lambda m: logs.append(m.text))
+    pg.goto(base + "?redirect_to=https%3A%2F%2Fevil.example%2Fsteal"); pg.wait_for_timeout(1200)   # a hostile redirect_to in the URL must be ignored
+    journey(pg)
+    card = pg.locator(".plan:not(.old) .acct"); gbtn = card.locator("[data-google]")
+    txt = card.inner_text()
+    check("google: panel has Google button, email option and the privacy note",
+          gbtn.count() == 1 and "Continue with Google" in gbtn.inner_text() and card.locator(".acct-email").count() == 1
+          and "We only get your name and email from Google." in txt, txt[:200])
+    check("google: consent box comes before both sign-in options",
+          pg.evaluate("""()=>{const c=document.querySelector('.plan:not(.old) .acct [data-consent]'),g=document.querySelector('.plan:not(.old) .acct [data-google]'),
+            e=document.querySelector('.plan:not(.old) .acct .acct-email');return !!(c.compareDocumentPosition(g)&4)&&!!(c.compareDocumentPosition(e)&4)}"""))
+    check("google: button off until consent is ticked", gbtn.is_disabled())
+    n0 = len(mock.authorize_calls)
+    pg.evaluate("document.querySelector('.plan:not(.old) .acct [data-google]').click()"); pg.wait_for_timeout(400)
+    check("google: no redirect without consent", len(mock.authorize_calls) == n0 and "127.0.0.1" in pg.url)
+
+    # user cancels on Google's screen
+    mock.google = {"email": "asha@example.com", "cancel": True}
+    card.locator("[data-consent]").check(); gbtn.click(); pg.wait_for_timeout(2500)
+    body = pg.locator("body").inner_text()
+    check("google cancel: calm message, still signed out", "cancelled" in body and pg.evaluate("DB.user()===null"), body[:160])
+    check("google cancel: error removed from the address bar", "error" not in pg.url and "code=" not in pg.url, pg.url)
+    check("google cancel: consent not left pending, nothing stored", pg.evaluate("DB.pendingConsent()===null") and sql("select count(*) from profiles")[0][0] == 0)
+
+    # success
+    mock.google = {"email": "asha@example.com", "cancel": False}
+    pg.locator("#resume button.primary").first.click(); pg.wait_for_timeout(1500)
+    card = pg.locator(".plan:not(.old) .acct"); card.locator("[data-consent]").check()
+    card.locator("[data-google]").click(); pg.wait_for_timeout(3000)
+    a = mock.authorize_calls[-1]
+    check("google: redirect_to is this page, not the URL's ?redirect_to", a.get("redirect_to") == base, a.get("redirect_to"))
+    check("google: PKCE S256 challenge and scopes openid email profile",
+          a.get("code_challenge_method") == "s256" and len(a.get("code_challenge", "")) == 43 and a.get("scopes") == "openid email profile", a)
+    check("google: code removed from the address bar", "code=" not in pg.url and "state=" not in pg.url, pg.url)
+    check("google: signed in as the Google email", pg.evaluate("DB.user()&&DB.user().email") == "asha@example.com")
+    sess = pg.evaluate("JSON.parse(localStorage.getItem('aaina.auth.v1'))")
+    check("google: session saved in the same shape as the email link",
+          sorted(sess) == ["access_token", "expires_at", "refresh_token", "user"] and sorted(sess["user"]) == ["email", "id"], sess and sorted(sess))
+    check("google: verifier deleted after use", pg.evaluate("sessionStorage.getItem('aaina.pkce.v1')") is None)
+    prof = sql("select display_name, consent_at is not null, state::text from profiles")
+    check("google: plan and profile saved after consent", len(prof) == 1 and prof[0][1] and sql("select count(*) from plans")[0][0] == 1, prof[:1])
+    check("google: nothing extra from Google stored (name is the one typed, no avatar)",
+          prof and prof[0][0] == "Manasvi" and "Google Name" not in prof[0][2] and "avatar" not in prof[0][2])
+    meta = sql("select u.raw_user_meta_data::text || i.identity_data::text from auth.users u join auth.identities i on i.user_id=u.id where u.email='asha@example.com'")
+    check("google: no Google name or photo kept in the auth tables (sub, email kept for linking)",
+          meta and not any(k in meta[0][0] for k in ["Google Name", "picture", "avatar_url", "full_name"]) and '"sub"' in meta[0][0], meta[:1])
+    pg.go_back(); pg.wait_for_timeout(800)
+    check("google: no code in the previous history entry either", "code=" not in pg.url, pg.url)
+    pg.go_forward(); pg.wait_for_timeout(1200)
+
+    # the same code again (e.g. a reload of an old URL, or a stolen code): refused, no token request
+    used = mock.token_calls[-1]
+    n_tok = len(mock.token_calls)
+    pg.goto(base + "?code=" + str(used)); pg.wait_for_timeout(2000)
+    check("google: reused code refused without a verifier, no token request",
+          len(mock.token_calls) == n_tok and "expired or was already used" in pg.locator("body").inner_text(), len(mock.token_calls) - n_tok)
+
+    # route restore: start on #try-on, come back to #try-on
+    pg.goto(base + "#try-on"); pg.wait_for_timeout(1500)
+    pg.evaluate("DB.startGoogle()"); pg.wait_for_timeout(3000)
+    check("google: returns to the #route the user was on", pg.url.endswith("#try-on") and "code=" not in pg.url, pg.url)
+
+    # same person, two methods: the email link for the Google address lands in the same account
+    ctx2 = b.new_context(); pg2 = new_page(ctx2); pg2.goto(base); pg2.wait_for_timeout(1200)
+    pg2.locator("#acctLine [data-win]").click(); pg2.locator("#acctLine .acct-email").fill("asha@example.com")
+    pg2.locator("#acctLine [data-wsend]").click(); pg2.wait_for_timeout(600)
+    pg2.evaluate("u=>location.href=u", mock.outbox[-1][1]); pg2.wait_for_timeout(2500)
+    ids = sql("select u.id, array_agg(i.provider order by i.provider) from auth.users u join auth.identities i on i.user_id=u.id where u.email='asha@example.com' group by u.id")
+    check("google + email link: one account with both sign-in methods", len(ids) == 1 and ids[0][1] == ["email", "google"], ids)
+    check("google + email link: same user id in the browser", pg2.evaluate("DB.user().id") == pg.evaluate("DB.user().id"))
+    check("google + email link: the Google-saved plan comes back", "Welcome back, Manasvi" in pg2.locator("#resume").inner_text())
+    ctx2.close()
+
+    # a guest plan on a new device, and a different plan already in the account: ask, never overwrite silently
+    acct = lambda: sql("select state::text from profiles")
+    before = acct()
+    ctx3 = b.new_context(); pg3 = new_page(ctx3); pg3.goto(base); pg3.wait_for_timeout(1200); journey(pg3)
+    card3 = pg3.locator(".plan:not(.old) .acct"); card3.locator("[data-consent]").check(); card3.locator("[data-google]").click(); pg3.wait_for_timeout(3000)
+    dlg = pg3.locator(".acct-merge")
+    check("guest plan + account plan: asks 'Save this plan to your account?'", dlg.count() == 1 and "Save this plan to your account?" in dlg.inner_text(),
+          dlg.inner_text()[:80] if dlg.count() else "no dialog")
+    check("guest plan + account plan: account untouched while asking", acct() == before)
+    dlg.locator('[data-keep="remote"]').click(); pg3.wait_for_timeout(2000)
+    check("guest plan + account plan: 'Use my account's plan' leaves the account as it was", acct() == before)
+    ctx3.close()
+
+    # sign out
+    pg.goto(base); pg.wait_for_timeout(1500)
+    pg.locator("#acctLine [data-wout]").click(); pg.wait_for_timeout(800)
+    check("google: sign out clears the session", pg.evaluate("localStorage.getItem('aaina.auth.v1')===null&&DB.user()===null"))
+
+    # sign back in with Google from the welcome page (no consent needed to sign in; account already has consent), then delete
+    pg.locator("#acctLine [data-google]").click(); pg.wait_for_timeout(3000)
+    check("google from welcome: signed in again", pg.evaluate("DB.user()&&DB.user().email") == "asha@example.com")
+    pg.locator("#deleteBtn").click(); pg.wait_for_timeout(300); pg.locator(".exitm [data-yes]").click(); pg.wait_for_timeout(1500)
+    left = sql("select (select count(*) from auth.users where email='asha@example.com')+(select count(*) from auth.identities where email='asha@example.com')+(select count(*) from profiles)+(select count(*) from plans)")[0][0]
+    check("google: delete removes account rows, the login and both identities", left == 0, left)
+    toks = [t for t in list(mock.tokens) + list(mock.refresh)]
+    leaked = [l for l in logs if any(t in l for t in toks) or "code_" in l or "code_verifier" in l]
+    check("google: no tokens, codes or verifiers in the console", not leaked, leaked[:2])
+    ctx.close()
+
+
 def main():
     mock = MockSupabase(DSN)
     site = build_page(API, "anon-test-key-0123456789abcdef")
@@ -89,6 +196,9 @@ def main():
 
     def route(r):
         req = r.request
+        if "/auth/v1/authorize" in req.url:      # the browser leaves for "Google" and comes straight back
+            r.fulfill(status=200, content_type="text/html", body=f"<script>location.replace({json.dumps(mock.authorize(req.url))})</script>")
+            return
         st, out = mock.handle(req.method, req.url, req.headers, req.post_data)
         r.fulfill(status=st, body="" if out is None else json.dumps(out), content_type="application/json",
                   headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*", "Access-Control-Allow-Methods": "*"})
@@ -144,7 +254,7 @@ def main():
         pg.locator("#resume button.primary").first.click(); pg.wait_for_timeout(1500)
         check("signed-in card on the plan", "Saved to your account" in pg.locator(".plan:not(.old) .acct").inner_text())
         before = sql("select product_ids from plans")[0][0]
-        pg.locator("button:visible:has-text('Show another')").first.click(); pg.wait_for_timeout(2500)
+        pg.locator("button.swap:visible").first.click(); pg.wait_for_timeout(2500)
         after = sql("select product_ids from plans")
         check("swap updates the same plan row", len(after) == 1 and after[0][0] != before, (before, after))
         st_ids = sql("select state->'planIds' from profiles")[0][0]
@@ -189,7 +299,8 @@ def main():
         check("analytics: no name, email, city, pregnancy or reaction rules", not bad, bad)
 
         # 7. the chat delete trap now asks first
-        pg.fill("#askInput", "how do I remove tan from my face? I can share a photo"); pg.keyboard.press("Enter"); pg.wait_for_timeout(600)
+        # the chat box is hidden in the current design; send the text through the same handler its form uses
+        pg.evaluate("handleTyped('how do I remove tan from my face? I can share a photo')"); pg.wait_for_timeout(600)
         dlg = pg.locator(".exitm")
         check("chat 'remove tan... photo' opens a confirm, deletes nothing", dlg.count() == 1 and pg.evaluate("!!PL") and sql("select count(*) from profiles")[0][0] == 1)
         dlg.locator("[data-no]").click(); pg.wait_for_timeout(300)
@@ -203,6 +314,9 @@ def main():
         check("delete: this device cleared and signed out", pg.evaluate("localStorage.getItem('aaina.advisor.v1')===null&&localStorage.getItem('aaina.auth.v1')===null"))
         check("delete: events kept (they were never linked to the account)", sql("select count(*) from events")[0][0] > 0)
         ctx.close()
+
+        # 8b. Continue with Google (PKCE), same mocked Supabase
+        google_journey(b, mock, base, new_page, errors)
 
         # 9. database unreachable -> app still works
         ctx = b.new_context(); pg = ctx.new_page(); pg.on("pageerror", lambda e: errors.append(str(e)))

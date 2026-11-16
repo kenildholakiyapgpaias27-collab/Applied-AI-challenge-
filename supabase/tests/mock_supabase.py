@@ -5,6 +5,8 @@ Only the calls src/db.js makes are implemented. Every REST request runs as the
 exactly like Supabase, so the migration's row-level security is what decides.
 Used by supabase/tests/e2e_test.py; not for production.
 """
+import base64
+import hashlib
 import json
 import re
 import secrets
@@ -24,6 +26,9 @@ class MockSupabase:
         self.refresh = {}   # refresh_token -> user_id
         self.outbox = []    # magic links "sent" by email: (email, url)
         self.log = []       # (method, path, status)
+        self.google = {"email": "g.user@example.com", "cancel": False}   # what the fake Google consent screen returns
+        self.codes = {}     # PKCE auth code -> (code_challenge, email); removed when redeemed
+        self.authorize_calls, self.token_calls = [], []
 
     # ---------- helpers ----------
     def _conn(self):
@@ -66,13 +71,55 @@ class MockSupabase:
         self.log.append((method, u.path + ("?" + u.query if u.query else ""), st))
         return st, out
 
+    # ---------- identities: one login per verified email, like Supabase's automatic linking ----------
+    def _user_for(self, email, provider):
+        """Find the user with this (verified) email or create one, and record the identity.
+        Supabase links a new identity to an existing user when the email is verified on both
+        sides (Google emails are verified; an email link proves the address)."""
+        # like Supabase, a Google sign-in writes the Google profile into the auth tables
+        prof = {"sub": "g-" + email, "email": email, "email_verified": True}
+        if provider == "google":
+            prof.update({"name": "Google Name", "full_name": "Google Name", "picture": "https://example.test/a.png", "avatar_url": "https://example.test/a.png"})
+        with self._conn() as c:
+            row = c.execute("select id from auth.users where email=%s", (email,)).fetchone()
+            uid = row[0] if row else c.execute("insert into auth.users(email) values (%s) returning id", (email,)).fetchone()[0]
+            c.execute("update auth.users set raw_user_meta_data = raw_user_meta_data || %s::jsonb where id=%s", (json.dumps(prof), uid))
+            c.execute("insert into auth.identities(user_id, provider, email, identity_data) values (%s,%s,%s,%s::jsonb) "
+                      "on conflict (user_id, provider) do update set identity_data = excluded.identity_data", (uid, provider, email, json.dumps(prof)))
+        return str(uid)
+
+    def authorize(self, url):
+        """GET /auth/v1/authorize?provider=google&redirect_to=…&code_challenge=…  ->  where 'Google' sends the browser back."""
+        q = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(url).query))
+        self.authorize_calls.append(q)
+        back = q.get("redirect_to", "")
+        if self.google.get("cancel"):
+            return back + "?" + urllib.parse.urlencode({"error": "access_denied", "error_code": "provider_error",
+                                                         "error_description": "The user denied the request"})
+        if q.get("provider") != "google" or q.get("code_challenge_method", "").lower() != "s256" or not q.get("code_challenge"):
+            return back + "?" + urllib.parse.urlencode({"error": "invalid_request", "error_description": "PKCE required"})
+        email = self.google["email"].lower()
+        code = "code_" + secrets.token_hex(8)
+        self.codes[code] = (q["code_challenge"], email)
+        return back + "?" + urllib.parse.urlencode({"code": code})
+
     # ---------- auth ----------
     def _auth(self, method, path, q, headers, data):
+        if path == "token" and q.get("grant_type") == "pkce" and method == "POST":
+            code, verifier = (data or {}).get("auth_code"), (data or {}).get("code_verifier", "")
+            self.token_calls.append(code)
+            entry = self.codes.pop(code, None)            # a code works once
+            if not entry:
+                return 400, {"error": "invalid_grant", "error_description": "Invalid or used auth code"}
+            digest = hashlib.sha256(verifier.encode()).digest()
+            if base64.urlsafe_b64encode(digest).rstrip(b"=").decode() != entry[0]:
+                return 400, {"error": "invalid_grant", "error_description": "code challenge does not match"}
+            uid = self._user_for(entry[1], "google")
+            return 200, {**self._issue(uid, entry[1]), "user": {"id": uid, "email": entry[1],
+                         "user_metadata": {"full_name": "Google Name", "avatar_url": "https://example.test/a.png"}}}
         if path == "otp" and method == "POST":
             email = (data or {}).get("email", "").lower()
-            with self._conn() as c:
-                row = c.execute("select id from auth.users where email=%s", (email,)).fetchone()
-                uid = row[0] if row else c.execute("insert into auth.users(email) values (%s) returning id", (email,)).fetchone()[0]
+            uid = self._user_for(email, "email")
             t = self._issue(str(uid), email)
             frag = urllib.parse.urlencode({**t, "type": "magiclink"})
             self.outbox.append((email, q.get("redirect_to", "") + "#" + frag))
