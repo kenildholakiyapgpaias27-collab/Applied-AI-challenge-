@@ -92,6 +92,10 @@ const TRYON=(()=>{
   const MP_MODEL="https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
   const DEMO=(typeof TRYON_DEMO!=="undefined"&&TRYON_DEMO&&TRYON_DEMO.products)||{};
   const MODELS=(typeof TRYON_MODELS!=="undefined"&&TRYON_MODELS&&TRYON_MODELS.models)||[];
+  /* round thumbnail framed on the face itself, from its landmarks (photos differ in framing) */
+  function thumbStyle(m){const L=m.landmarks;if(!L||!L.length)return"";const xs=L.map(p=>p[0]),ys=L.map(p=>p[1]);
+    const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),w=82/Math.max(0.05,x1-x0),ar=(TRYON_MODELS.size?TRYON_MODELS.size[1]/TRYON_MODELS.size[0]:1.25);
+    const f=v=>v.toFixed(1)+"%";return`width:${f(w)};left:${f(50-(x0+x1)/2*w)};top:${f(52-(y0+y1)/2*w*ar)}`}
   const e=s=>typeof esc==="function"?esc(s):String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const money=v=>typeof rupee==="function"?rupee(v):"₹"+v;
   const TABS=[["face","Face",["Foundation","BB / CC cream","Concealer","Compact powder"]],["lips","Lips",["Lipstick"]],["cheeks","Cheeks",["Blush"]],["eyes","Eyes",["Kajal / eyeliner"]]];
@@ -152,11 +156,11 @@ const TRYON=(()=>{
             <div class="to-ways">
               <button type="button" class="to-way" data-to="consent"><span class="to-wayic">${ICON.camera}</span><b>Use my camera</b><small>A live mirror that follows your face</small></button>
               <label class="to-way" tabindex="0"><span class="to-wayic">${ICON.upload}</span><b>Upload a photo</b><small>A clear, front-facing photo works best</small><input type="file" accept="image/*" data-to="file" hidden></label>
-              <div class="to-way to-way-models"><span class="to-wayic">${ICON.face}</span><b>Try on a model</b><small>Six faces, fair to very deep</small>
-                <div class="to-models">${MODELS.map((m,i)=>`<button type="button" class="to-model" data-to="model" data-i="${i}" aria-label="Model face: ${e(m.label)}, about Monk tone ${m.monk}"><span class="to-mimg"><img src="${m.src}" alt=""></span><span class="to-mlab">${e(m.label)}</span><span class="to-mclose">Closest to you</span></button>`).join("")}</div></div>
+              <div class="to-way to-way-models"><span class="to-wayic">${ICON.face}</span><b>Try on a model</b><small>${MODELS.length} faces, fair to deep: women and men</small>
+                <div class="to-models">${MODELS.map((m,i)=>`<button type="button" class="to-model" data-to="model" data-i="${i}" aria-label="Model face: ${e(m.label)}, about Monk tone ${m.monk}"><span class="to-mimg"><img src="${m.src}" alt="" style="${thumbStyle(m)}"></span><span class="to-mlab">${e(m.label)}</span><span class="to-mclose">Closest to you</span></button>`).join("")}</div></div>
             </div>
             <p class="to-consentnote">${ICON.lock}<span>Your camera and photos stay on this device. Frames are processed in your browser and never uploaded or stored.</span></p>
-            <p class="to-tip">Tip: face a window or soft, even light, with no beauty filter. Model faces are computer-rendered, not photos of real people.</p>
+            <p class="to-tip">Tip: face a window or soft, even light, with no beauty filter.</p>
           </section>
           <section class="to-consent" data-pane="consent" hidden>
             <h3 class="to-h">Before your camera turns on</h3>
@@ -214,7 +218,8 @@ const TRYON=(()=>{
   /* the model face closest to the user's tone and undertone, if we know them */
   function closestModel(){
     const tone=typeof P!=="undefined"&&P.tone;if(!tone||!MODELS.length)return -1;const ut=P.undertone||null;
-    let best=-1,bs=1e9;MODELS.forEach((m,i)=>{const sc=Math.abs(m.monk-tone)+(ut&&m.undertone!==ut?(typeof utPenalty==="function"?utPenalty(ut,m.undertone)*0.4:0.6):0);if(sc<bs){bs=sc;best=i}});return best}
+    const g=typeof P!=="undefined"&&(P.gender==="woman"||P.gender==="man")?P.gender:null;   // prefer a face of the shopper's gender
+    let best=-1,bs=1e9;MODELS.forEach((m,i)=>{const sc=(g&&m.gender&&m.gender!==g?100:0)+Math.abs(m.monk-tone)+(ut&&m.undertone!==ut?(typeof utPenalty==="function"?utPenalty(ut,m.undertone)*0.4:0.6):0);if(sc<bs){bs=sc;best=i}});return best}
   function markClosest(){const k=closestModel();root.querySelectorAll(".to-model").forEach((b,i)=>{const on=i===k;b.classList.toggle("closest",on);const l=b.getAttribute("aria-label").replace(/ \(closest to you\)$/,"");b.setAttribute("aria-label",on?l+" (closest to you)":l)})}
   function onClick(ev){
     const t=ev.target.closest("[data-to],[data-tab],[data-cat],[data-pid],[data-shade],[data-rm],[data-pick]");if(!t||!root.contains(t))return;

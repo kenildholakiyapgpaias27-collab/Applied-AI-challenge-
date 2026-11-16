@@ -75,14 +75,14 @@ check("seed tool never reads demo_colours.json", "demo_colours" not in (ROOT / "
 # ---- model faces ----
 faces = json.loads((ROOT / "data/model_faces.json").read_text(encoding="utf-8"))
 lms = json.loads((ROOT / "data/model_faces_landmarks.json").read_text(encoding="utf-8"))
-want_hex = ["#e6d0cd", "#f3c6a8", "#d39b78", "#ab6f51", "#91604b", "#483026"]
-check("six model faces with the given base tones, fair to very deep", [f["hex"] for f in faces["faces"]] == want_hex, [f["hex"] for f in faces["faces"]])
-check("each face has id, label, hex, Monk tone, undertone and image file",
-      all(set(f) >= {"id", "label", "hex", "monk", "undertone", "file"} and f["undertone"] in {"warm", "cool", "neutral", "olive"} and 1 <= f["monk"] <= 10 for f in faces["faces"]))
-check("Monk tones rise from fair to very deep", [f["monk"] for f in faces["faces"]] == sorted(f["monk"] for f in faces["faces"]))
+check("eight model faces: four women and four men", len(faces["faces"]) == 8 and [f["gender"] for f in faces["faces"]].count("woman") == 4
+      and [f["gender"] for f in faces["faces"]].count("man") == 4, [f["id"] for f in faces["faces"]])
+check("each face has id, label, gender, hex, Monk tone, undertone and image file",
+      all(set(f) >= {"id", "label", "gender", "hex", "monk", "undertone", "file"} and f["undertone"] in {"warm", "cool", "neutral", "olive"} and 1 <= f["monk"] <= 10 for f in faces["faces"]))
+check("within each gender, Monk tones rise from fair to deep", all([f["monk"] for f in faces["faces"] if f["gender"] == g] == sorted(f["monk"] for f in faces["faces"] if f["gender"] == g) for g in ("woman", "man")))
 check("each face has 478 landmarks inside the image", all(len(lms[f["id"]]) == 478 and all(0 <= x <= 1 and 0 <= y <= 1 for x, y in lms[f["id"]]) for f in faces["faces"]))
 check("each face image exists", all((ROOT / f["file"]).exists() for f in faces["faces"]))
-check("faces are rendered, not photographs", "No photographs of real people" in faces["source"])
+check("the faces' source is recorded", "make_photo_models.py" in faces["source"])
 check("old doll faces are gone", not (ROOT / "data/tryon_models.json").exists() and not (ROOT / "data/tryon_models").exists())
 try:
     from PIL import Image

@@ -56,7 +56,7 @@ Built for **PS-14, Masters' Union Applied AI Challenge**. Aaina and all products
 - **The plan:** three products that work together, a total price, two clearly labelled sponsored suggestions with relevance reasons, and a detailed "Why I recommended these" section.
 - **Quick experience feedback:** at the end of the plan, a short, sweet 1-tap rating (Loved it, Helpful, Good, Just okay, Needs work) with contextual tags and an optional note lets users share how the advisor worked for them, saved to their session and account.
 - **Shade preview in the base-makeup quiz:** the last question shows your foundation match (the same pick the plan will make) with **See it on a face**, which opens the try-on on that shade and the model face closest to your tone. Try other shades there; back in the quiz you can **Use** the one you tried, and the plan leads with it. Keep or Skip goes straight to the plan.
-- **Virtual try-on (`#try-on`):** see shades on a face before buying. Start from the **live camera** (front camera, mirrored, with a consent screen first and a **Stop camera** button), an **uploaded photo**, or one of six **model faces** (fair to very deep, about Monk 3 to 9; the one closest to your tone is marked).
+- **Virtual try-on (`#try-on`):** see shades on a face before buying. Start from the **live camera** (front camera, mirrored, with a consent screen first and a **Stop camera** button), an **uploaded photo**, or one of eight **model faces** (four women and four men, fair to deep; the one closest to your tone, and of your gender, is marked).
   - **Real complexion data:** every Foundation, BB / CC cream, Concealer and Compact powder shade in the catalogue (597 shades) is tried on in its own colour. Coverage sets opacity (sheer < medium < full) and the product finish sets sheen (matte, natural, dewy). Base products cover the face but not the eyes, brows, lips or nostrils; concealer goes under the eyes and on the centre of the face.
   - **Lips, cheeks and eyes use demo colours:** the catalogue has no colours for Lipstick, Blush or Kajal / eyeliner, so `data/demo_colours.json` holds 4–8 generated shades per product (`tools/tryon/make_demo_colours.py`, deterministic). Every one is marked `"demo": true` and labelled **Demo colour, not real product data** on screen. They never go into the catalogue, `seed.sql` or the database.
   - **Looks like makeup, not paint:** the shade replaces the skin's low-frequency colour in OKLab and the photo's own texture and shading are put back. A shade that is too light for deep skin looks grey and ashy, as it would in real life ([examples](docs/tryon_screens.png)).
@@ -122,7 +122,7 @@ aaina-skin-advisor/
 │   ├── catalogue.json  # 806-product demo catalogue (bundled; also the database seed)
 │   ├── supabase.json   # database URL + public anon key (empty = offline mode)
 │   ├── demo_colours.json   # DEMO lipstick/blush/kajal colours for the try-on (not real product data)
-│   ├── model_faces.json    # six try-on model faces: label, base hex, Monk tone, undertone, image
+│   ├── model_faces.json    # eight try-on model faces (4 women, 4 men): label, gender, base hex, Monk tone, undertone, image
 │   ├── model_faces_landmarks.json   # their 478 face landmarks each
 │   └── model_faces/        # the model face images
 ├── supabase/
@@ -234,7 +234,7 @@ The selfie consent screen tells users their photo is stored for **18 months**. T
 
 **Virtual try-on:** camera frames and uploaded photos are processed in the browser and never uploaded or stored. Snapshots are saved only as a download on the user's device. The face tracker's code and model file are downloaded from public CDNs (jsDelivr and Google's model storage); no image goes with those requests.
 
-**Model faces:** the six try-on models are computer-rendered by `tools/tryon/make_faces.py` from MediaPipe's canonical face mesh (Apache-2.0, `tools/tryon/MEDIAPIPE_LICENSE`), with skin mid-tones sampled from real skin (#e6d0cd fair, #f3c6a8 light, #d39b78 medium, #ab6f51 tan, #91604b deep, #483026 very deep). They are not photographs and are not based on any real person, so no model release is needed.
+**Model faces:** eight try-on models, four women and four men from fair to deep, cropped from two reference collages supplied by the team by `tools/tryon/make_photo_models.py`, which also finds each face's 478 landmarks and reads its skin tone from the cheeks. The try-on suggests a face of the shopper's own gender first. **The source and usage rights of these images still need confirming before the site is promoted publicly**; the generator script keeps the collages out of the repo.
 
 ## Disclaimer
 
