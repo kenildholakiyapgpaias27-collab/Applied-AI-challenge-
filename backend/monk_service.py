@@ -271,8 +271,8 @@ def _detect_white_card(
         s = hsv[:, :, 1]
         v = hsv[:, :, 2]
 
-        # White paper under various lighting: High value (V >= 170) and low-to-moderate saturation (S <= 85)
-        white_mask = (v >= 170) & (s <= 85)
+        # White paper/card: High brightness (V >= 195) and genuine neutral low saturation (S <= 25)
+        white_mask = (v >= 195) & (s <= 25)
         if np.sum(white_mask) < (w * h * 0.012):
             return None
 

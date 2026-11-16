@@ -1369,19 +1369,19 @@ function climateWeather(city,state,climate,month=new Date().getMonth()){
 }
 
 const AAINA_CAL={
-  "source": "AAINA Camera Calibrated Monk Centroids",
+  "source": "AAINA Calibrated Google Monk Centroids",
   "tau": 4,
   "centroids": {
-    "1": [80.0, 6.0, 5.0],
-    "2": [76.0, 8.5, 9.0],
-    "3": [73.0, 10.0, 13.0],
-    "4": [70.0, 12.0, 15.0],
-    "5": [66.0, 14.0, 17.0],
-    "6": [60.0, 16.0, 18.0],
-    "7": [54.0, 15.0, 16.0],
-    "8": [47.0, 13.0, 14.0],
-    "9": [40.0, 10.0, 11.0],
-    "10": [32.0, 7.0, 8.0]
+    "1": [90.0, 3.0, 7.0],
+    "2": [83.0, 5.0, 10.0],
+    "3": [76.0, 7.0, 14.0],
+    "4": [69.0, 9.0, 17.0],
+    "5": [61.0, 11.0, 19.0],
+    "6": [52.0, 13.0, 19.0],
+    "7": [44.0, 13.0, 17.0],
+    "8": [36.0, 11.0, 13.0],
+    "9": [28.0, 8.0, 9.0],
+    "10": [20.0, 5.0, 5.0]
   }
 }
 ;
@@ -1696,56 +1696,49 @@ function matchShade(p,read){
 function autoCropFace(srcImg){
   const origW=srcImg.width||srcImg.videoWidth||0,origH=srcImg.height||srcImg.videoHeight||0;
   if(!origW||!origH)return srcImg;
-  const maxDim=320,scale=Math.min(1,maxDim/Math.max(origW,origH));
+  const maxDim=240,scale=Math.min(1,maxDim/Math.max(origW,origH));
   const sw=Math.max(16,Math.round(origW*scale)),sh=Math.max(16,Math.round(origH*scale));
   const workCv=document.createElement("canvas");workCv.width=sw;workCv.height=sh;
   const wctx=workCv.getContext("2d",{willReadFrequently:true});
   wctx.drawImage(srcImg,0,0,sw,sh);
   const d=wctx.getImageData(0,0,sw,sh).data;
 
-  const rowCount=new Int32Array(sh),colCount=new Int32Array(sw);let totalSkin=0;
-  for(let y=0;y<sh;y++){
-    for(let x=0;x<sw;x++){
-      const idx=(y*sw+x)*4,r=d[idx],g=d[idx+1],b=d[idx+2];
+  // 1. Locate facial center by gradient and skin warmth
+  let sumX=0,sumY=0,totWeight=0;
+  const yMin=Math.floor(sh*0.18),yMax=Math.floor(sh*0.82);
+  const xMin=Math.floor(sw*0.18),xMax=Math.floor(sw*0.82);
+  for(let y=yMin;y<yMax;y++){
+    for(let x=xMin;x<xMax;x++){
+      const idx=y*sw+x,k=idx*4;
+      const r=d[k],g=d[k+1],b=d[k+2];
       const Y=0.299*r+0.587*g+0.114*b;
+      const kR=((y*sw+Math.min(sw-1,x+1)))*4;
+      const kD=((Math.min(sh-1,y+1)*sw+x))*4;
+      const grad=Math.abs(d[kR]-r)+Math.abs(d[kD]-r);
       const Cb=128-0.168736*r-0.331264*g+0.5*b;
       const Cr=128+0.5*r-0.418688*g-0.081312*b;
-      const mx=Math.max(r,g,b),mn=Math.min(r,g,b),sat=mx?(mx-mn)/mx:0;
-      const isPaper=Y>=160&&sat<=0.22;
-      const isSkinPx=!isPaper&&Y>=32&&Y<=245&&Cb>=76&&Cb<=130&&Cr>=132&&Cr<=176&&r>g&&g>=b*0.70&&Math.abs(r-g)>=4;
-      if(isSkinPx){rowCount[y]++;colCount[x]++;totalSkin++;}
+      if(grad>7 && r>g && g>=b*0.65 && Y>=40 && Y<=235 && Cb>=75 && Cb<=130 && Cr>=130 && Cr<=178){
+        sumX+=x*grad;sumY+=y*grad;totWeight+=grad;
+      }
     }
   }
 
-  const outCv=document.createElement("canvas");
-  if(totalSkin<30){
-    const cw=Math.round(origW*0.75),ch=Math.round(origH*0.75);
-    const cx0=Math.round((origW-cw)/2),cy0=Math.round((origH-ch)/2);
-    outCv.width=cw;outCv.height=ch;
-    outCv.getContext("2d").drawImage(srcImg,cx0,cy0,cw,ch,0,0,cw,ch);
-    return outCv;
+  let cx=origW*0.5,cy=origH*0.5;
+  if(totWeight>30){
+    cx=(sumX/totWeight)/scale;
+    cy=(sumY/totWeight)/scale;
   }
+  cx=Math.max(origW*0.30,Math.min(origW*0.70,cx));
+  cy=Math.max(origH*0.32,Math.min(origH*0.65,cy));
 
-  let maxR=0,maxC=0;
-  for(let y=0;y<sh;y++)if(rowCount[y]>maxR)maxR=rowCount[y];
-  for(let x=0;x<sw;x++)if(colCount[x]>maxC)maxC=colCount[x];
-  const rThresh=Math.max(2,Math.round(maxR*0.18)),cThresh=Math.max(2,Math.round(maxC*0.18));
-
-  let minY=0,maxY=sh-1,minX=0,maxX=sw-1;
-  while(minY<sh&&rowCount[minY]<rThresh)minY++;
-  while(maxY>minY&&rowCount[maxY]<rThresh)maxY--;
-  while(minX<sw&&colCount[minX]<cThresh)minX++;
-  while(maxX>minX&&colCount[maxX]<cThresh)maxX--;
-
-  const fx0=Math.round(minX/scale),fy0=Math.round(minY/scale);
-  const fx1=Math.round(maxX/scale),fy1=Math.round(maxY/scale);
-  const fw=fx1-fx0,fh=fy1-fy0;
-  const padX=Math.round(fw*0.12),padY=Math.round(fh*0.12);
-
-  const cropX0=Math.max(0,fx0-padX),cropY0=Math.max(0,fy0-padY);
-  const cropX1=Math.min(origW,fx1+padX),cropY1=Math.min(origH,fy1+padY);
+  const fw=Math.min(origW,origH)*0.55,fh=Math.min(origW,origH)*0.70;
+  const cropX0=Math.max(0,Math.round(cx-fw*0.55));
+  const cropY0=Math.max(0,Math.round(cy-fh*0.48));
+  const cropX1=Math.min(origW,Math.round(cx+fw*0.55));
+  const cropY1=Math.min(origH,Math.round(cy+fh*0.58));
   const cropW=cropX1-cropX0,cropH=cropY1-cropY0;
 
+  const outCv=document.createElement("canvas");
   outCv.width=cropW;outCv.height=cropH;
   outCv.getContext("2d").drawImage(srcImg,cropX0,cropY0,cropW,cropH,0,0,cropW,cropH);
   return outCv;
@@ -1756,7 +1749,8 @@ function readPhoto(src,oval){
   const imgData=ctx.getImageData(0,0,W,H);
   const d=imgData.data;
 
-  // 1. Detect White Reference Card (bottom 45% of image)
+  // 1. Detect White Reference Card/Collar (bottom 45% of image)
+  // Must be genuine white: Y >= 195 and sat <= 0.085 (never matches beige walls)
   let cardSumR=0,cardSumG=0,cardSumB=0,cardN=0;
   const startY=Math.floor(H*0.55);
   for(let j=startY;j<H;j+=2){
@@ -1764,27 +1758,57 @@ function readPhoto(src,oval){
       const k=(j*W+i)*4,r=d[k],g=d[k+1],b=d[k+2];
       const Y=0.299*r+0.587*g+0.114*b;
       const mx=Math.max(r,g,b),mn=Math.min(r,g,b),sat=mx?(mx-mn)/mx:0;
-      if(Y>=165&&sat<=0.20&&mx<254){cardSumR+=r;cardSumG+=g;cardSumB+=b;cardN++;}
+      if(Y>=195&&sat<=0.085&&mx<254){cardSumR+=r;cardSumG+=g;cardSumB+=b;cardN++;}
     }
   }
 
   let gains=[1.0,1.0,1.0],whiteCardCalibrated=false;
-  if(cardN>250){
+  if(cardN>50){
     const avgR=cardSumR/cardN,avgG=cardSumG/cardN,avgB=cardSumB/cardN;
     const mean=(avgR+avgG+avgB)/3.0;
     gains=[
-      Math.min(1.4,Math.max(0.7,mean/Math.max(1,avgR))),
-      Math.min(1.4,Math.max(0.7,mean/Math.max(1,avgG))),
-      Math.min(1.4,Math.max(0.7,mean/Math.max(1,avgB)))
+      Math.min(1.3,Math.max(0.75,mean/Math.max(1,avgR))),
+      Math.min(1.3,Math.max(0.75,mean/Math.max(1,avgG))),
+      Math.min(1.3,Math.max(0.75,mean/Math.max(1,avgB)))
     ];
     whiteCardCalibrated=true;
   }
 
-  // 2. Define ROIs on the face (forehead, left cheek, right cheek)
+  // 2. Locate facial feature center by gradient variance & skin warmth
+  let sumX=0,sumY=0,totWeight=0;
+  const step=Math.max(2,Math.round(Math.min(W,H)/120));
+  const yMin=Math.floor(H*0.18),yMax=Math.floor(H*0.82);
+  const xMin=Math.floor(W*0.18),xMax=Math.floor(W*0.82);
+  for(let j=yMin;j<yMax;j+=step){
+    for(let i=xMin;i<xMax;i+=step){
+      const k=(j*W+i)*4;
+      const r=d[k],g=d[k+1],b=d[k+2];
+      const Y=0.299*r+0.587*g+0.114*b;
+      const kR=((j*W+Math.min(W-1,i+step)))*4;
+      const kD=((Math.min(H-1,j+step)*W+i))*4;
+      const grad=Math.abs(d[kR]-r)+Math.abs(d[kD]-r);
+      const Cb=128-0.168736*r-0.331264*g+0.5*b;
+      const Cr=128+0.5*r-0.418688*g-0.081312*b;
+      if(grad>7 && r>g && g>=b*0.65 && Y>=40 && Y<=235 && Cb>=75 && Cb<=130 && Cr>=130 && Cr<=178){
+        sumX+=i*grad;sumY+=j*grad;totWeight+=grad;
+      }
+    }
+  }
+
+  let cx=W*0.5,cy=H*0.5;
+  if(totWeight>30){
+    cx=sumX/totWeight;
+    cy=sumY/totWeight;
+  }
+  cx=Math.max(W*0.32,Math.min(W*0.68,cx));
+  cy=Math.max(H*0.32,Math.min(H*0.65,cy));
+
+  // Anchor forehead and cheek ROIs directly to the detected facial center
+  const fw=Math.min(W,H)*0.40,fh=Math.min(W,H)*0.50;
   const Z=[
-    {name:"Forehead",box:[Math.round(0.22*W),Math.round(0.10*H),Math.round(0.56*W),Math.round(0.24*H)]},
-    {name:"Left Cheek",box:[Math.round(0.10*W),Math.round(0.38*H),Math.round(0.35*W),Math.round(0.28*H)]},
-    {name:"Right Cheek",box:[Math.round(0.55*W),Math.round(0.38*H),Math.round(0.35*W),Math.round(0.28*H)]}
+    {name:"Forehead",box:[Math.round(cx-0.12*fw),Math.round(cy-0.22*fh),Math.round(0.24*fw),Math.round(0.14*fh)]},
+    {name:"Left Cheek",box:[Math.round(cx-0.26*fw),Math.round(cy+0.02*fh),Math.round(0.19*fw),Math.round(0.16*fh)]},
+    {name:"Right Cheek",box:[Math.round(cx+0.07*fw),Math.round(cy+0.02*fh),Math.round(0.19*fw),Math.round(0.16*fh)]}
   ];
 
   const allLabSamples=[],regions=[];
@@ -1801,17 +1825,17 @@ function readPhoto(src,oval){
         const Cr=128+0.5*r-0.418688*g-0.081312*b;
         const mx=Math.max(r,g,b),mn=Math.min(r,g,b),sat=mx?(mx-mn)/mx:0;
 
-        // Pure skin: strictly excludes hair, glare, lips, dark shadows
-        const isSkinPx=Y>=38&&Y<=242&&Cb>=76&&Cb<=130&&Cr>=132&&Cr<=175&&
-                       r>g&&g>=b*0.70&&Math.abs(r-g)>=4&&
-                       !(Y>220&&sat<0.12)&&!(Cr>168||(r/(r+g+b)>0.58))&&Y>=42;
+        // Strictly facial skin (rejecting hair, glare, lips, dark shadows)
+        const isSkinPx=Y>=38&&Y<=242&&Cb>=75&&Cb<=132&&Cr>=130&&Cr<=178&&
+                       r>g&&g>=b*0.65&&Math.abs(r-g)>=4&&
+                       !(Y>225&&sat<0.10)&&!(Cr>168||(r/(r+g+b)>0.58))&&Y>=42;
         if(isSkinPx){
           zSamples.push(rgb2lab(Math.min(255,r),Math.min(255,g),Math.min(255,b)));
         }
       }
     }
     const frac=totPx?zSamples.length/totPx:0;
-    if(zSamples.length>=10){
+    if(zSamples.length>=8){
       const Ls=zSamples.map(p=>p[0]);
       const lo=quant(Ls,0.15),hi=quant(Ls,0.85);
       const keep=zSamples.filter(p=>p[0]>=lo&&p[0]<=hi);
@@ -1823,27 +1847,28 @@ function readPhoto(src,oval){
     }
   }
 
-  if(allLabSamples.length<20){
-    for(let j=0;j<H;j+=4){
-      for(let i=0;i<W;i+=4){
+  if(allLabSamples.length<15){
+    // Fallback: search around face center
+    for(let j=Math.max(0,cy-fh*0.4|0);j<Math.min(H,cy+fh*0.4);j+=3){
+      for(let i=Math.max(0,cx-fw*0.4|0);i<Math.min(W,cx+fw*0.4);i+=3){
         const k=(j*W+i)*4;
         let r=d[k]*gains[0],g=d[k+1]*gains[1],b=d[k+2]*gains[2];
         const Y=0.299*r+0.587*g+0.114*b;
         const Cb=128-0.168736*r-0.331264*g+0.5*b;
         const Cr=128+0.5*r-0.418688*g-0.081312*b;
-        if(Y>=35&&Y<=245&&Cb>=76&&Cb<=130&&Cr>=132&&Cr<=176&&r>g){
+        if(Y>=38&&Y<=242&&Cb>=75&&Cb<=132&&Cr>=130&&Cr<=178&&r>g){
           allLabSamples.push(rgb2lab(r,g,b));
         }
       }
     }
   }
 
-  if(allLabSamples.length<15){
+  if(allLabSamples.length<10){
     return {status:"RECAPTURE",issues:["NO_FACE"],regions:[]};
   }
 
   const finalL=allLabSamples.map(p=>p[0]);
-  const qLo=quant(finalL,0.10),qHi=quant(finalL,0.90);
+  const qLo=quant(finalL,0.12),qHi=quant(finalL,0.88);
   const finalKeep=allLabSamples.filter(p=>p[0]>=qLo&&p[0]<=qHi);
   const lab=[0,1,2].map(c=>median((finalKeep.length?finalKeep:allLabSamples).map(p=>p[c])));
 
@@ -1876,7 +1901,7 @@ function readPhoto(src,oval){
     method:whiteCardCalibrated?"Studio White-Card D65 Calibrated":"Google Monk Skin Tone AI Engine",
     conf:whiteCardCalibrated?0.98:Math.max(0.88,Math.min(0.96,+(1.0-(T.amb||0.5)*0.12).toFixed(2))),
     p:+T.p.toFixed(2),
-    coverage:+(allLabSamples.length/Math.max(1,W*H*0.15)).toFixed(2),
+    coverage:+(allLabSamples.length/Math.max(1,W*H*0.12)).toFixed(2),
     calibration:CAL.source,
     ut:U.ut,
     second:T.second,
