@@ -485,13 +485,38 @@ def _is_skin_rgb(r: int, g: int, b: int) -> bool:
 
 def _pil_fallback_roi(img: Image.Image) -> Optional[List[Tuple[int, int, int]]]:
     w, h = img.size
-    cx, cy = w / 2.0, h / 2.0
-    rx, ry = w * 0.26, h * 0.30
     pixels_obj = img.load()
     step = max(1, int(min(w, h) / 100))
-    skin: List[Tuple[int, int, int]] = []
+
+    # 1. Locate primary skin cluster
+    skin_pts: List[Tuple[int, int]] = []
     for y in range(0, h, step):
         for x in range(0, w, step):
+            r, g, b = pixels_obj[x, y]
+            max_c, min_c = max(r, g, b), min(r, g, b)
+            sat = (max_c - min_c) / max(max_c, 1)
+            if max_c > 230 and sat < 0.15:
+                continue
+            if _is_skin_rgb(r, g, b):
+                skin_pts.append((x, y))
+
+    if len(skin_pts) < 20:
+        return None
+
+    xs = [pt[0] for pt in skin_pts]
+    ys = [pt[1] for pt in skin_pts]
+    xs.sort()
+    ys.sort()
+    n = len(skin_pts)
+    x_lo, x_hi = xs[int(n * 0.08)], xs[int(n * 0.92)]
+    y_lo, y_hi = ys[int(n * 0.08)], ys[int(n * 0.92)]
+
+    cx, cy = (x_lo + x_hi) / 2.0, (y_lo + y_hi) / 2.0
+    rx, ry = max(10.0, (x_hi - x_lo) / 2.0), max(10.0, (y_hi - y_lo) / 2.0)
+
+    skin: List[Tuple[int, int, int]] = []
+    for y in range(max(0, int(y_lo)), min(h, int(y_hi)), step):
+        for x in range(max(0, int(x_lo)), min(w, int(x_hi)), step):
             if ((x - cx)**2 / rx**2) + ((y - cy)**2 / ry**2) > 1.0:
                 continue
             r, g, b = pixels_obj[x, y]

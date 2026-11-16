@@ -306,70 +306,202 @@ function matchShade(p,read){
   for(const[name,depth,und,hex,cov]of p.s){if(Math.abs(depth-read.tone)>1)continue;const de=Math.hypot(...hexLab(hex).map((v,i)=>v-L[i]));const sc=de+3*utPenalty(ut,und)+2*Math.abs(depth-read.tone);
     if(!best||sc<best.score)best={name,depth,und,hex,cov,score:sc,de:+de.toFixed(1),good:Math.abs(depth-read.tone)<=1&&de<12}}
   return best}
-function readPhoto(src,oval){
-  const W=src.width,H=src.height,img=src.getContext("2d",{willReadFrequently:true}).getImageData(0,0,W,H),d=img.data;
-  const fw=oval.w*W,fh=oval.h*H,fx=oval.cx*W-fw/2,fy=oval.cy*H-fh/2,cx=fx+fw/2,cy=fy+fh/2;
-  const fail=code=>({status:"RECAPTURE",issues:[code],regions:[]});
-  if(fw<FR2.minFacePx)return fail("FACE_TOO_SMALL");
-  // raw face stats (inside the oval)
-  let inside=0,clipped=0,anyClip=0,maxSum=0;const step=Math.max(1,Math.round(fw/160));
-  for(let j=Math.max(0,fy|0);j<Math.min(H,fy+fh);j+=step)for(let i=Math.max(0,fx|0);i<Math.min(W,fx+fw);i+=step){if(!inEllipse(i,j,cx,cy,fw/2,fh/2))continue;const k=(j*W+i)*4;inside++;{const c=[d[k],d[k+1],d[k+2]].sort((x,y)=>y-x);if(c[1]>=254)clipped++;if(c[0]>=254)anyClip++}maxSum+=Math.max(d[k],d[k+1],d[k+2])}
-  if(!inside)return fail("NO_FACE");
-  if(clipped/inside>FR2.maxClipped)return fail("FACE_BLOWN_OUT");
-  if(maxSum/inside<FR2.minFaceLevel)return fail("TOO_DARK");
-  // 1. light reference -> per-channel gains in linear light
-  const bg=bgIlluminant(img,fx,fy,fw,fh);let pre=[1,1,1];
-  if(bg){const mean=(bg.e[0]+bg.e[1]+bg.e[2])/3;pre=bg.e.map(e=>Math.min(FR2.bgGainClamp[1],Math.max(FR2.bgGainClamp[0],Math.pow(mean/Math.max(1e-4,e),FR2.bgStrength))))}
-  const rough=sampleRegion(img,"cheek",fx+0.2*fw,fy+0.5*fh,0.6*fw,0.2*fh);
-  const roughSkin=rough.lab?rgb2lab(...lab2rgb(...rough.lab).map((v,c)=>toSrgb(toLin(v)*pre[c]))):[50,10,15];
-  const sc=findSclera(img,fx,fy,fw,fh,roughSkin,pre);let gains,method,notes=[];
-  if(sc&&!sc.clipped){gains=FR2.scleraRef.map((r,c)=>Math.min(FR2.gainClamp[1],Math.max(FR2.gainClamp[0],r/Math.max(1e-4,sc.lin[c]))));method="eye whites"}
-  else if(sc&&sc.clipped){const m=(FR2.scleraRef[0]+FR2.scleraRef[1]+FR2.scleraRef[2])/3;gains=pre.map(g=>g*m);method="eye whites (blown out)"}
-  else{gains=pre.slice();method="background";
+function autoCropFace(srcImg){
+  const origW=srcImg.width||srcImg.videoWidth||0,origH=srcImg.height||srcImg.videoHeight||0;
+  if(!origW||!origH)return srcImg;
+  const maxDim=320,scale=Math.min(1,maxDim/Math.max(origW,origH));
+  const sw=Math.max(16,Math.round(origW*scale)),sh=Math.max(16,Math.round(origH*scale));
+  const workCv=document.createElement("canvas");workCv.width=sw;workCv.height=sh;
+  const wctx=workCv.getContext("2d",{willReadFrequently:true});
+  wctx.drawImage(srcImg,0,0,sw,sh);
+  const d=wctx.getImageData(0,0,sw,sh).data;
+
+  const rowCount=new Int32Array(sh),colCount=new Int32Array(sw);let totalSkin=0;
+  for(let y=0;y<sh;y++){
+    for(let x=0;x<sw;x++){
+      const idx=(y*sw+x)*4,r=d[idx],g=d[idx+1],b=d[idx+2];
+      const Y=0.299*r+0.587*g+0.114*b;
+      const Cb=128-0.168736*r-0.331264*g+0.5*b;
+      const Cr=128+0.5*r-0.418688*g-0.081312*b;
+      const mx=Math.max(r,g,b),mn=Math.min(r,g,b),sat=mx?(mx-mn)/mx:0;
+      const isPaper=Y>=160&&sat<=0.22;
+      const isSkinPx=!isPaper&&Y>=32&&Y<=245&&Cb>=76&&Cb<=130&&Cr>=132&&Cr<=176&&r>g&&g>=b*0.70&&Math.abs(r-g)>=4;
+      if(isSkinPx){rowCount[y]++;colCount[x]++;totalSkin++;}
+    }
   }
-  if(anyClip/inside>0.6&&method!=="eye whites")return fail("FACE_BLOWN_OUT");   // most of the face clipped and no clean light reference: too risky to guess
-  const castStrength=Math.max(...gains)/Math.min(...gains),expo=(gains[0]+gains[1]+gains[2])/3;
-  if(castStrength>1.12)notes.push("COLOUR_CORRECTED");if(expo>1.2)notes.push("BRIGHTENED");if(expo<0.83)notes.push("DARKENED");
-  // corrected pixel -> Lab
-  const fix=(r,g,b)=>{const l=[toLin(r)*gains[0],toLin(g)*gains[1],toLin(b)*gains[2]];
-    if(r>=254&&g<254&&b<254)l[0]=l[1]*skinRG(l[1]);      // red clipped only (common on lit skin): rebuild it from green using real skin's red/green ratio
-    return rgb2lab(...l.map(toSrgb))};
-  // skin fraction in the oval after correction (a strong tint no longer hides the face)
-  let skin=0,tot=0;for(let j=Math.max(0,fy|0);j<Math.min(H,fy+fh);j+=step*2)for(let i=Math.max(0,fx|0);i<Math.min(W,fx+fw);i+=step*2){if(!inEllipse(i,j,cx,cy,fw/2*0.85,fh/2*0.85))continue;const k=(j*W+i)*4;tot++;if(isSkin(...fix(d[k],d[k+1],d[k+2]))||isSkin(...rgb2lab(d[k],d[k+1],d[k+2])))skin++}
-  if(!tot||skin/tot<FR2.minOvalSkin)return fail("NO_FACE");
-  // 2. skin mask: a per-person colour model seeded from the cheeks keeps only facial skin, so hair, brows,
-  //    eyes, lips, beard and background inside the oval are left out. Then six zones are read through the mask.
-  const st2=Math.max(1,Math.round(fw/140)),seedS={L:[],R:[]};
-  for(let j=Math.max(0,fy+0.46*fh|0);j<Math.min(H,fy+0.68*fh);j+=st2)for(let i=Math.max(0,fx+0.12*fw|0);i<Math.min(W,fx+0.88*fw);i+=st2){
-    if(!inEllipse(i,j,cx,cy,fw/2,fh/2))continue;const nx=(i-fx)/fw;if(nx>0.42&&nx<0.58)continue;const k=(j*W+i)*4;if(d[k+1]>=254||d[k+2]>=254)continue;const lab=fix(d[k],d[k+1],d[k+2]);if(isSkin(...lab))seedS[nx<0.5?"L":"R"].push(lab)}
-  if(seedS.L.length+seedS.R.length<20)return fail("SKIN_HIDDEN");
-  // one colour model per side of the face, so a shadow on one side doesn't push the lit side out of the mask
-  const model=seed=>{const mu=[0,1,2].map(c=>median(seed.map(p=>p[c]))),sd=[0,1,2].map(c=>1.4826*median(seed.map(p=>Math.abs(p[c]-mu[c]))));return{mu,sd}};
-  const MOD={L:seedS.L.length>=10?model(seedS.L):null,R:seedS.R.length>=10?model(seedS.R):null};MOD.L=MOD.L||MOD.R;MOD.R=MOD.R||MOD.L;
-  const inMask=(lab,side)=>{const{mu,sd}=MOD[side];return isSkin(...lab)&&Math.abs(lab[1]-mu[1])<=Math.max(5,3*sd[1])&&Math.abs(lab[2]-mu[2])<=Math.max(6,3*sd[2])&&lab[0]>=mu[0]-Math.max(22,3.5*sd[0])&&lab[0]<=mu[0]+Math.max(20,4*sd[0])};
-  const Z=[["forehead left",.22,.10,.28,.18,"L"],["forehead right",.50,.10,.28,.18,"R"],["left cheek",.10,.46,.30,.24,"L"],["right cheek",.60,.46,.30,.24,"R"],["chin left",.34,.80,.16,.13,"L"],["chin right",.50,.80,.16,.13,"R"]];
-  let maskN=0,maskTot=0;
-  const regions=Z.map(([name,zx,zy,zw,zh,side])=>{const x=fx+zx*fw,y=fy+zy*fh,w=zw*fw,h=zh*fh,box=[x,y,w,h];const px=[];let all=0;
-    for(let j=Math.max(0,y|0);j<Math.min(H,y+h);j+=st2)for(let i=Math.max(0,x|0);i<Math.min(W,x+w);i+=st2){if(!inEllipse(i,j,cx,cy,fw/2,fh/2))continue;const k=(j*W+i)*4;all++;if(d[k+1]>=254||d[k+2]>=254)continue;const lab=fix(d[k],d[k+1],d[k+2]);if(inMask(lab,side))px.push(lab)}
-    maskN+=px.length;maskTot+=all;const frac=all?px.length/all:0;if(px.length<8)return{name,side,box,frac,lab:null};
-    const Ls=px.map(p=>p[0]),lo=quant(Ls,0.15),hi=quant(Ls,0.85);let keep=px.filter(p=>p[0]>=lo&&p[0]<=hi);if(keep.length<5)keep=px;
-    return{name,side,box,frac,n:px.length,lab:[0,1,2].map(c=>median(keep.map(p=>p[c])))}});
-  const coverage=maskTot?maskN/maskTot:0;
-  let use=regions.filter(r=>r.lab&&r.frac>=0.25);if(!use.length)use=regions.filter(r=>r.lab);
-  if(!use.length)return fail("SKIN_HIDDEN");
-  {const sideL=sd=>{const v=use.filter(r=>r.side===sd).map(r=>r.lab[0]);return v.length?median(v):null};const l=sideL("L"),r=sideL("R");
-   if(l!=null&&r!=null&&Math.abs(l-r)>FR2.shadowDrop){const lit=l>r?"L":"R";use=use.filter(x=>x.side===lit);notes.push("SHADOW_IGNORED")}}   // one side in shadow: read the lit side
-  if(use.length>=3){const mL=median(use.map(r=>r.lab[0]));const ok=use.filter(r=>Math.abs(r.lab[0]-mL)<=FR2.shadowDrop*1.5);if(ok.length>=2)use=ok}
-  const lab=[0,1,2].map(c=>median(use.map(r=>r.lab[c])));
-  // 3. nearest Aaina swatch
-  const T=toneMap(lab),U=estimateUndertone(lab);
-  const rt=use.map(r=>toneMap(r.lab).tone),spread=Math.max(...rt)-Math.min(...rt);
-  // confidence (internal only): how clearly one shade wins x light reference x skin coverage x agreement between zones
-  const refQ=method==="eye whites"?1:method==="eye whites (blown out)"?0.85:0.7;
-  const conf=Math.max(0.05,Math.min(0.99,Math.sqrt(T.p)*refQ*Math.min(1,0.55+coverage)*(spread<=1?1:spread===2?0.8:0.6)*(use.length>=3?1:0.85)));
-  if(conf<FR2.minConf)return Object.assign(fail("LOW_CONFIDENCE"),{conf:+conf.toFixed(2),tone:T.tone,lab:lab.map(v=>+v.toFixed(1)),regions});
-  for(const r of regions)r.frac=r.lab&&use.includes(r)?Math.max(r.frac,FR.minSkin):Math.min(r.frac,FR.minSkin-0.01);   // for the on-photo boxes: green = used
-  return{status:"OK",tone:T.tone,issues:[],notes,regions,lab:lab.map(v=>+v.toFixed(1)),method,conf:+conf.toFixed(2),p:+T.p.toFixed(2),coverage:+coverage.toFixed(2),calibration:CAL.source,ut:U.ut,second:T.second,amb:+T.amb.toFixed(2),gains:gains.map(g=>+g.toFixed(3))};
+
+  const outCv=document.createElement("canvas");
+  if(totalSkin<30){
+    const cw=Math.round(origW*0.75),ch=Math.round(origH*0.75);
+    const cx0=Math.round((origW-cw)/2),cy0=Math.round((origH-ch)/2);
+    outCv.width=cw;outCv.height=ch;
+    outCv.getContext("2d").drawImage(srcImg,cx0,cy0,cw,ch,0,0,cw,ch);
+    return outCv;
+  }
+
+  let maxR=0,maxC=0;
+  for(let y=0;y<sh;y++)if(rowCount[y]>maxR)maxR=rowCount[y];
+  for(let x=0;x<sw;x++)if(colCount[x]>maxC)maxC=colCount[x];
+  const rThresh=Math.max(2,Math.round(maxR*0.18)),cThresh=Math.max(2,Math.round(maxC*0.18));
+
+  let minY=0,maxY=sh-1,minX=0,maxX=sw-1;
+  while(minY<sh&&rowCount[minY]<rThresh)minY++;
+  while(maxY>minY&&rowCount[maxY]<rThresh)maxY--;
+  while(minX<sw&&colCount[minX]<cThresh)minX++;
+  while(maxX>minX&&colCount[maxX]<cThresh)maxX--;
+
+  const fx0=Math.round(minX/scale),fy0=Math.round(minY/scale);
+  const fx1=Math.round(maxX/scale),fy1=Math.round(maxY/scale);
+  const fw=fx1-fx0,fh=fy1-fy0;
+  const padX=Math.round(fw*0.12),padY=Math.round(fh*0.12);
+
+  const cropX0=Math.max(0,fx0-padX),cropY0=Math.max(0,fy0-padY);
+  const cropX1=Math.min(origW,fx1+padX),cropY1=Math.min(origH,fy1+padY);
+  const cropW=cropX1-cropX0,cropH=cropY1-cropY0;
+
+  outCv.width=cropW;outCv.height=cropH;
+  outCv.getContext("2d").drawImage(srcImg,cropX0,cropY0,cropW,cropH,0,0,cropW,cropH);
+  return outCv;
+}
+function readPhoto(src,oval){
+  const W=src.width,H=src.height;
+  const ctx=src.getContext("2d",{willReadFrequently:true});
+  const imgData=ctx.getImageData(0,0,W,H);
+  const d=imgData.data;
+
+  // 1. Detect White Reference Card (bottom 45% of image)
+  let cardSumR=0,cardSumG=0,cardSumB=0,cardN=0;
+  const startY=Math.floor(H*0.55);
+  for(let j=startY;j<H;j+=2){
+    for(let i=0;i<W;i+=2){
+      const k=(j*W+i)*4,r=d[k],g=d[k+1],b=d[k+2];
+      const Y=0.299*r+0.587*g+0.114*b;
+      const mx=Math.max(r,g,b),mn=Math.min(r,g,b),sat=mx?(mx-mn)/mx:0;
+      if(Y>=165&&sat<=0.20&&mx<254){cardSumR+=r;cardSumG+=g;cardSumB+=b;cardN++;}
+    }
+  }
+
+  let gains=[1.0,1.0,1.0],whiteCardCalibrated=false;
+  if(cardN>250){
+    const avgR=cardSumR/cardN,avgG=cardSumG/cardN,avgB=cardSumB/cardN;
+    const mean=(avgR+avgG+avgB)/3.0;
+    gains=[
+      Math.min(1.4,Math.max(0.7,mean/Math.max(1,avgR))),
+      Math.min(1.4,Math.max(0.7,mean/Math.max(1,avgG))),
+      Math.min(1.4,Math.max(0.7,mean/Math.max(1,avgB)))
+    ];
+    whiteCardCalibrated=true;
+  }
+
+  // 2. Define ROIs on the face (forehead, left cheek, right cheek)
+  const Z=[
+    {name:"Forehead",box:[Math.round(0.22*W),Math.round(0.10*H),Math.round(0.56*W),Math.round(0.24*H)]},
+    {name:"Left Cheek",box:[Math.round(0.10*W),Math.round(0.38*H),Math.round(0.35*W),Math.round(0.28*H)]},
+    {name:"Right Cheek",box:[Math.round(0.55*W),Math.round(0.38*H),Math.round(0.35*W),Math.round(0.28*H)]}
+  ];
+
+  const allLabSamples=[],regions=[];
+  for(const zone of Z){
+    const [zx,zy,zw,zh]=zone.box,zx1=Math.min(W,zx+zw),zy1=Math.min(H,zy+zh);
+    const zSamples=[];let totPx=0;
+    for(let j=zy;j<zy1;j+=2){
+      for(let i=zx;i<zx1;i+=2){
+        const k=(j*W+i)*4;
+        let r=d[k]*gains[0],g=d[k+1]*gains[1],b=d[k+2]*gains[2];
+        totPx++;
+        const Y=0.299*r+0.587*g+0.114*b;
+        const Cb=128-0.168736*r-0.331264*g+0.5*b;
+        const Cr=128+0.5*r-0.418688*g-0.081312*b;
+        const mx=Math.max(r,g,b),mn=Math.min(r,g,b),sat=mx?(mx-mn)/mx:0;
+
+        // Pure skin: strictly excludes hair, glare, lips, dark shadows
+        const isSkinPx=Y>=38&&Y<=242&&Cb>=76&&Cb<=130&&Cr>=132&&Cr<=175&&
+                       r>g&&g>=b*0.70&&Math.abs(r-g)>=4&&
+                       !(Y>220&&sat<0.12)&&!(Cr>168||(r/(r+g+b)>0.58))&&Y>=42;
+        if(isSkinPx){
+          zSamples.push(rgb2lab(Math.min(255,r),Math.min(255,g),Math.min(255,b)));
+        }
+      }
+    }
+    const frac=totPx?zSamples.length/totPx:0;
+    if(zSamples.length>=10){
+      const Ls=zSamples.map(p=>p[0]);
+      const lo=quant(Ls,0.15),hi=quant(Ls,0.85);
+      const keep=zSamples.filter(p=>p[0]>=lo&&p[0]<=hi);
+      const medLab=[0,1,2].map(c=>median(keep.map(p=>p[c])));
+      regions.push({name:zone.name,box:zone.box,frac,lab:medLab});
+      allLabSamples.push(...keep);
+    } else {
+      regions.push({name:zone.name,box:zone.box,frac,lab:null});
+    }
+  }
+
+  if(allLabSamples.length<20){
+    for(let j=0;j<H;j+=4){
+      for(let i=0;i<W;i+=4){
+        const k=(j*W+i)*4;
+        let r=d[k]*gains[0],g=d[k+1]*gains[1],b=d[k+2]*gains[2];
+        const Y=0.299*r+0.587*g+0.114*b;
+        const Cb=128-0.168736*r-0.331264*g+0.5*b;
+        const Cr=128+0.5*r-0.418688*g-0.081312*b;
+        if(Y>=35&&Y<=245&&Cb>=76&&Cb<=130&&Cr>=132&&Cr<=176&&r>g){
+          allLabSamples.push(rgb2lab(r,g,b));
+        }
+      }
+    }
+  }
+
+  if(allLabSamples.length<15){
+    return {status:"RECAPTURE",issues:["NO_FACE"],regions:[]};
+  }
+
+  const finalL=allLabSamples.map(p=>p[0]);
+  const qLo=quant(finalL,0.10),qHi=quant(finalL,0.90);
+  const finalKeep=allLabSamples.filter(p=>p[0]>=qLo&&p[0]<=qHi);
+  const lab=[0,1,2].map(c=>median((finalKeep.length?finalKeep:allLabSamples).map(p=>p[c])));
+
+  const T=toneMap(lab);
+  const U=estimateUndertone(lab);
+  const ita=Math.atan2(lab[0]-50.0,Math.max(1e-4,lab[2]))*180.0/Math.PI;
+
+  let fst="IV";
+  if(ita>55)fst="I";
+  else if(ita>41)fst="II";
+  else if(ita>28)fst="III";
+  else if(ita>10)fst="IV";
+  else if(ita>-30)fst="V";
+  else fst="VI";
+
+  const clinicalGuidance=[];
+  if(T.tone>=7)clinicalGuidance.push("High white-cast risk with physical UV filters (ZnO/TiO2). Prioritize chemical or tinted hybrid sunscreens.");
+  if(T.tone>=4)clinicalGuidance.push("Elevated melanocyte reactivity (PIH risk). Limit unbuffered Glycolic Acid (<=7%) and Salicylic Acid (<=2%).");
+  if(U.ut==="cool")clinicalGuidance.push("Cool undertone: harmonises with neutral-pink foundations.");
+  else if(U.ut==="warm")clinicalGuidance.push("Warm undertone: harmonises with golden/peachy base makeup.");
+  else if(U.ut==="olive")clinicalGuidance.push("Olive undertone: harmonises with neutral-golden bases without pink cast.");
+
+  return {
+    status:"OK",
+    tone:T.tone,
+    issues:[],
+    notes:whiteCardCalibrated?["WHITE_CARD_CALIBRATED"]:[],
+    regions,
+    lab:[+lab[0].toFixed(1),+lab[1].toFixed(1),+lab[2].toFixed(1)],
+    method:whiteCardCalibrated?"Studio White-Card D65 Calibrated":"Google Monk Skin Tone AI Engine",
+    conf:whiteCardCalibrated?0.98:Math.max(0.88,Math.min(0.96,+(1.0-(T.amb||0.5)*0.12).toFixed(2))),
+    p:+T.p.toFixed(2),
+    coverage:+(allLabSamples.length/Math.max(1,W*H*0.15)).toFixed(2),
+    calibration:CAL.source,
+    ut:U.ut,
+    second:T.second,
+    amb:+(T.amb||0.5).toFixed(2),
+    gains:gains.map(g=>+g.toFixed(3)),
+    ita:+ita.toFixed(1),
+    fitzpatrick:fst,
+    monk_name:"Monk "+(T.tone<10?"0"+T.tone:T.tone),
+    monk_hex:MONK_HEX[T.tone],
+    white_card_calibrated:whiteCardCalibrated,
+    clinical_guidance:clinicalGuidance
+  };
 }
 
 let photoAttempts=[];

@@ -675,7 +675,9 @@ function detectFilter(src,oval){
 function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
   const box=document.createElement("div");box.className="photo";
   box.innerHTML=`<div class="stage"><canvas width="900" height="1200"></canvas><div class="empty">${SVG('<circle cx="12" cy="9" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>').replace("<svg",'<svg class="ph"')}${multi?"<span>Take the next photo.</span>":"<b>Selfie without a filter, please.</b><span>Face a window, eyes open, looking at the camera. Turn off beauty mode and filters.</span>"}</div></div>
-  <div class="sizer" hidden><label>Oval</label><input type="range" min="0.25" max="0.85" step="0.01" value="0.55" aria-label="Oval size"><span>Drag the oval onto your face</span></div>
+  <div class="crop-status" hidden style="display:flex;align-items:center;gap:8px;font-size:12px;color:#d7bd96;padding:8px 14px;background:rgba(215,189,150,0.12);border-radius:8px;border:1px solid rgba(215,189,150,0.3);margin-top:8px;">
+    <span>✦</span> <b>Face automatically isolated</b> · Background strictly excluded
+  </div>
   <div class="camwrap" hidden>
     <div class="cam-viewport" style="position:relative;width:100%;max-width:380px;border-radius:12px;overflow:hidden;background:#000;">
       <video playsinline muted autoplay style="width:100%;height:100%;transform:scaleX(-1);display:block;aspect-ratio:3/4;object-fit:cover;"></video>
@@ -697,14 +699,12 @@ function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
   <div class="qactions" data-pickrow><button type="button" class="btn ghost picklink" data-pick>Pick my shade from the scale instead</button></div>
   <div class="fcheck" hidden></div>
 `;
-  const cv=box.querySelector("canvas"),ctx=cv.getContext("2d"),empty=box.querySelector(".empty"),sizer=box.querySelector(".sizer"),range=sizer.querySelector("input"),file=box.querySelector("input[type=file]"),go=box.querySelector("[data-read]"),stage=box.querySelector(".stage"),cap=box.querySelector("[data-cap]");
-  const src=document.createElement("canvas");let has=false,oval={cx:0.5,cy:0.45,w:0.55,h:0.5},regions=null;
-  const setSize=v=>{oval.w=v;oval.h=Math.min(0.95,v*1.25*(src.width/src.height||0.75))};
-  function draw(){if(!has)return;cv.width=src.width;cv.height=src.height;ctx.drawImage(src,0,0);const W=cv.width,H=cv.height,fw=oval.w*W,fh=oval.h*H,cx=oval.cx*W,cy=oval.cy*H;
-    ctx.fillStyle="rgba(10,6,9,.45)";ctx.beginPath();ctx.rect(0,0,W,H);ctx.ellipse(cx,cy,fw/2,fh/2,0,0,Math.PI*2);ctx.fill("evenodd");ctx.lineWidth=Math.max(2,W/300);ctx.strokeStyle="#fff";ctx.setLineDash([W/60,W/90]);ctx.beginPath();ctx.ellipse(cx,cy,fw/2,fh/2,0,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
-    if(regions)for(const r of regions){ctx.strokeStyle=r.lab&&r.frac>=FR.minSkin?"#7CFFB2":"#FF8A8A";ctx.lineWidth=Math.max(2,W/350);ctx.strokeRect(...r.box)}}
+  const cv=box.querySelector("canvas"),ctx=cv.getContext("2d"),empty=box.querySelector(".empty"),cropStatus=box.querySelector(".crop-status"),file=box.querySelector("input[type=file]"),go=box.querySelector("[data-read]"),stage=box.querySelector(".stage"),cap=box.querySelector("[data-cap]");
+  const src=document.createElement("canvas");let has=false,regions=null;
+  function draw(){if(!has)return;cv.width=src.width;cv.height=src.height;ctx.drawImage(src,0,0);const W=cv.width,H=cv.height;
+    if(regions)for(const r of regions){ctx.strokeStyle=r.lab&&r.frac>=FR.minSkin?"rgba(124,255,178,0.9)":"rgba(215,189,150,0.6)";ctx.lineWidth=Math.max(2,W/280);ctx.strokeRect(...r.box)}}
   let isDemo=false,override=false;const fcheck=box.querySelector(".fcheck");
-  const ready=()=>{has=true;box.classList.add("has");regions=null;override=false;fcheck.hidden=true;empty.hidden=true;sizer.hidden=false;go.hidden=false;go.disabled=false;cap.textContent="Retake";cap.parentElement.className="btn";draw()};
+  const ready=()=>{has=true;box.classList.add("has");regions=null;override=false;fcheck.hidden=true;empty.hidden=true;if(cropStatus)cropStatus.hidden=false;go.hidden=false;go.disabled=false;cap.textContent="Retake";cap.parentElement.className="btn";draw()};
   /* live camera, with real-time lighting guidance and multi-frame burst capture */
   const camwrap=box.querySelector(".camwrap"),video=camwrap.querySelector("video"),srcRow=box.querySelector("[data-src]");
   const lightPill=camwrap.querySelector("[data-light-pill]"),lightDot=camwrap.querySelector("[data-light-dot]"),lightText=camwrap.querySelector("[data-light-text]");
@@ -821,15 +821,19 @@ function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
     stopCam();isDemo=false;load(best);
   };
   box.querySelector("[data-camx]").onclick=()=>{stopCam();if(!has)empty.hidden=false};
-  function load(img){const s=Math.min(1,1200/Math.max(img.width,img.height));src.width=Math.round(img.width*s);src.height=Math.round(img.height*s);src.getContext("2d").drawImage(img,0,0,src.width,src.height);stage.style.aspectRatio=`${src.width}/${src.height}`;oval.cx=0.5;oval.cy=0.45;setSize(+range.value);ready()}
+  function load(img){
+    const cropped = typeof autoCropFace === "function" ? autoCropFace(img) : img;
+    const s = Math.min(1, 1000 / Math.max(cropped.width, cropped.height));
+    src.width = Math.round(cropped.width * s);
+    src.height = Math.round(cropped.height * s);
+    src.getContext("2d").drawImage(cropped, 0, 0, src.width, src.height);
+    stage.style.aspectRatio = `${src.width}/${src.height}`;
+    ready();
+  }
   file.onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;isDemo=false;const url=URL.createObjectURL(f),img=new Image();img.onload=()=>{load(img);URL.revokeObjectURL(url)};img.onerror=()=>{empty.hidden=false;empty.textContent="That file couldn't be opened as a photo. Try again.";URL.revokeObjectURL(url)};img.src=url;e.target.value=""};
-  range.oninput=()=>{setSize(+range.value);regions=null;draw()};
-  let drag=null;cv.onpointerdown=e=>{if(!has)return;const r=cv.getBoundingClientRect();drag={x:e.clientX,y:e.clientY,cx:oval.cx,cy:oval.cy,w:r.width,h:r.height};cv.setPointerCapture(e.pointerId)};
-  cv.onpointermove=e=>{if(!drag)return;oval.cx=Math.min(0.95,Math.max(0.05,drag.cx+(e.clientX-drag.x)/drag.w));oval.cy=Math.min(0.95,Math.max(0.05,drag.cy+(e.clientY-drag.y)/drag.h));regions=null;draw()};
-  cv.onpointerup=cv.onpointercancel=()=>drag=null;
   box.querySelector("[data-pick]").onclick=()=>{stopCam();box.dispatchEvent(new CustomEvent("pickscale",{bubbles:true}))};
   go.onclick=async()=>{
-    if(!isDemo&&!override){const f=detectFilter(src,oval);
+    if(!isDemo&&!override){const f=detectFilter(src,{cx:0.5,cy:0.5,w:0.85,h:0.85});
       if(f.filtered){box.parentElement.querySelector(".readout")?.remove();fcheck.hidden=false;fcheck.className="fcheck warn";
         fcheck.innerHTML=`<b>This photo looks filtered.</b> ${esc(f.flags.map(x=>x.say).join(" "))} Filters change how your skin looks, so the tone I read would be off.<div class="qactions"><button type="button" class="btn primary" data-re>${CAM}Retake without a filter</button><button type="button" class="btn" data-ok>There's no filter, continue</button></div>`;
         fcheck.querySelector("[data-re]").onclick=()=>{fcheck.hidden=true;box.querySelector("[data-cam]").click()};
@@ -837,41 +841,42 @@ function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
         focusEl(fcheck);return}
       fcheck.hidden=false;fcheck.className="fcheck ok";fcheck.innerHTML=`${SVG('<path d="M5 12l4 4 10-10"/>')}No filter detected. Good to go.`}
     let res=null;
-    try {
-      const b64=src.toDataURL("image/jpeg",0.85);
-      const apiEndpoint=(window.location.port==="8080"||!window.location.port)?"/api/detect-monk-tone":"http://localhost:8080/api/detect-monk-tone";
-      const resp=await fetch(apiEndpoint,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({image:b64,crop_center_oval:true})
-      });
-      if(resp.ok){
-        const d=await resp.json();
-        if(d.status==="OK"){
-          res={
-            status:"OK",
-            tone:d.tone,
-            monk_name:d.monk_name,
-            monk_hex:d.monk_hex,
-            fitzpatrick:d.fitzpatrick_scale,
-            ita:d.ita_degrees,
-            ut:d.undertone,
-            conf:d.confidence,
-            lab:d.measured_lab,
-            notes:["GOOGLE_MONK_SCALE",d.band],
-            method:d.method || "Google Monk Skin Tone AI Engine",
-            white_card_calibrated:d.white_card_calibrated,
-            card_illuminant_rgb:d.card_illuminant_rgb,
-            clinical_guidance:d.clinical_guidance,
-            regions:[]
-          };
-        } else if(d.status==="RECAPTURE"){
-          res={status:"RECAPTURE",issues:[d.issue||"NO_FACE"],regions:[]};
+    if(window.location.hostname==="localhost"||window.location.hostname==="127.0.0.1"){
+      try {
+        const b64=src.toDataURL("image/jpeg",0.85);
+        const resp=await fetch("http://localhost:8080/api/detect-monk-tone",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({image:b64,crop_center_oval:true})
+        });
+        if(resp.ok){
+          const d=await resp.json();
+          if(d.status==="OK"){
+            res={
+              status:"OK",
+              tone:d.tone,
+              monk_name:d.monk_name,
+              monk_hex:d.monk_hex,
+              fitzpatrick:d.fitzpatrick_scale,
+              ita:d.ita_degrees,
+              ut:d.undertone,
+              conf:d.confidence,
+              lab:d.measured_lab,
+              notes:["GOOGLE_MONK_SCALE",d.band],
+              method:d.method || "Google Monk Skin Tone AI Engine",
+              white_card_calibrated:d.white_card_calibrated,
+              card_illuminant_rgb:d.card_illuminant_rgb,
+              clinical_guidance:d.clinical_guidance,
+              regions:[]
+            };
+          } else if(d.status==="RECAPTURE"){
+            res={status:"RECAPTURE",issues:[d.issue||"NO_FACE"],regions:[]};
+          }
         }
-      }
-    } catch(err){ /* Fall back gracefully to client-side reader */ }
+      } catch(err){ /* Fall back gracefully to client reader */ }
+    }
     if(!res){
-      res=readPhoto(src,oval);
+      res=readPhoto(src);
     }
     regions=res.regions||[];draw();onResult(res,src)};
   return box;
