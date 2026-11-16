@@ -633,7 +633,6 @@ function toneWidget(){
         ${res.fitzpatrick ? `<span style="background:#111;color:#f5f0eb;padding:2px 8px;border-radius:4px;">Fitzpatrick ${res.fitzpatrick}</span>` : ""}
         ${res.ita !== undefined ? `<span style="background:rgba(0,0,0,0.06);color:#444;padding:2px 8px;border-radius:4px;border:1px solid rgba(0,0,0,0.08);">ITA°: ${typeof res.ita === 'number' ? res.ita.toFixed(1) : res.ita}°</span>` : ""}
         ${res.lab ? `<span style="background:rgba(0,0,0,0.06);color:#444;padding:2px 8px;border-radius:4px;border:1px solid rgba(0,0,0,0.08);">L*: ${typeof res.lab[0] === 'number' ? res.lab[0].toFixed(1) : res.lab[0]}</span>` : ""}
-        ${res.conf ? `<span style="background:rgba(42,157,143,0.12);color:#206a60;padding:2px 8px;border-radius:4px;border:1px solid rgba(42,157,143,0.25);">✦ ${(res.conf*100).toFixed(0)}% AI Confidence</span>` : ""}
       </div>` : "";
     out.innerHTML=`<div class="tonefinal" role="status"><span class="bigsw"></span><div><div class="eyebrow">${res.method ? esc(res.method) : "From your selfie"}</div><p class="tonenum">SKIN TONE: <b>${tone}</b> <span class="monk-tag" style="font-size:0.75rem;padding:2px 8px;border-radius:4px;background:#111;color:#fff;margin-left:6px;letter-spacing:0.04em;">Monk ${tone<10?'0'+tone:tone}</span></p><p class="tonename"></p>${whiteCardBadge}${metricsBadge}${guidanceHTML}</div></div>
       <div class="tonepick" hidden><div class="trow"></div></div>
@@ -702,7 +701,23 @@ function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
   const cv=box.querySelector("canvas"),ctx=cv.getContext("2d"),empty=box.querySelector(".empty"),cropStatus=box.querySelector(".crop-status"),file=box.querySelector("input[type=file]"),go=box.querySelector("[data-read]"),stage=box.querySelector(".stage"),cap=box.querySelector("[data-cap]");
   const src=document.createElement("canvas");let has=false,regions=null;
   function draw(){if(!has)return;cv.width=src.width;cv.height=src.height;ctx.drawImage(src,0,0);const W=cv.width,H=cv.height;
-    if(regions)for(const r of regions){ctx.strokeStyle=r.lab&&r.frac>=FR.minSkin?"rgba(124,255,178,0.9)":"rgba(215,189,150,0.6)";ctx.lineWidth=Math.max(2,W/280);ctx.strokeRect(...r.box)}}
+    if(regions)for(const r of regions){
+      const isOk=r.lab&&(r.frac>=0.15||r.frac>=FR.minSkin);
+      ctx.strokeStyle=isOk?"rgba(42,157,143,0.95)":"rgba(215,189,150,0.7)";
+      ctx.lineWidth=Math.max(2,Math.round(W/240));
+      ctx.strokeRect(...r.box);
+      if(r.name){
+        ctx.font=`600 ${Math.max(10,Math.round(W/42))}px -apple-system, sans-serif`;
+        const tw=ctx.measureText(r.name).width;
+        const th=Math.max(12,Math.round(W/38));
+        const tx=Math.max(2,Math.min(W-tw-10,r.box[0]));
+        const ty=Math.max(th+4,r.box[1]-4);
+        ctx.fillStyle="rgba(17,17,17,0.85)";
+        ctx.fillRect(tx,ty-th,tw+8,th+3);
+        ctx.fillStyle="#ffffff";
+        ctx.fillText(r.name,tx+4,ty-2);
+      }
+    }}
   let isDemo=false,override=false;const fcheck=box.querySelector(".fcheck");
   const ready=()=>{has=true;box.classList.add("has");regions=null;override=false;fcheck.hidden=true;empty.hidden=true;if(cropStatus)cropStatus.hidden=false;go.hidden=false;go.disabled=false;cap.textContent="Retake";cap.parentElement.className="btn";draw()};
   /* live camera, with real-time lighting guidance and multi-frame burst capture */
@@ -822,11 +837,11 @@ function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
   };
   box.querySelector("[data-camx]").onclick=()=>{stopCam();if(!has)empty.hidden=false};
   function load(img){
-    const cropped = typeof autoCropFace === "function" ? autoCropFace(img) : img;
-    const s = Math.min(1, 1000 / Math.max(cropped.width, cropped.height));
-    src.width = Math.round(cropped.width * s);
-    src.height = Math.round(cropped.height * s);
-    src.getContext("2d").drawImage(cropped, 0, 0, src.width, src.height);
+    const iw = img.width || img.videoWidth || 300, ih = img.height || img.videoHeight || 300;
+    const s = Math.min(1, 1000 / Math.max(iw, ih));
+    src.width = Math.round(iw * s);
+    src.height = Math.round(ih * s);
+    src.getContext("2d").drawImage(img, 0, 0, src.width, src.height);
     stage.style.aspectRatio = `${src.width}/${src.height}`;
     ready();
   }
@@ -840,43 +855,21 @@ function photoCard(onResult,{multi=false,cta="Check my skin tone"}={}){
         fcheck.querySelector("[data-ok]").onclick=()=>{override=true;P.toneFilterDoubt=true;fcheck.hidden=true;go.click()};
         focusEl(fcheck);return}
       fcheck.hidden=false;fcheck.className="fcheck ok";fcheck.innerHTML=`${SVG('<path d="M5 12l4 4 10-10"/>')}No filter detected. Good to go.`}
+    go.disabled=true;
+    const oldBtnText=go.textContent;
+    go.textContent="Analysing cheeks & forehead…";
     let res=null;
-    if(window.location.hostname==="localhost"||window.location.hostname==="127.0.0.1"){
-      try {
-        const b64=src.toDataURL("image/jpeg",0.85);
-        const resp=await fetch("http://localhost:8080/api/detect-monk-tone",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({image:b64,crop_center_oval:true})
-        });
-        if(resp.ok){
-          const d=await resp.json();
-          if(d.status==="OK"){
-            res={
-              status:"OK",
-              tone:d.tone,
-              monk_name:d.monk_name,
-              monk_hex:d.monk_hex,
-              fitzpatrick:d.fitzpatrick_scale,
-              ita:d.ita_degrees,
-              ut:d.undertone,
-              conf:d.confidence,
-              lab:d.measured_lab,
-              notes:["GOOGLE_MONK_SCALE",d.band],
-              method:d.method || "Google Monk Skin Tone AI Engine",
-              white_card_calibrated:d.white_card_calibrated,
-              card_illuminant_rgb:d.card_illuminant_rgb,
-              clinical_guidance:d.clinical_guidance,
-              regions:[]
-            };
-          } else if(d.status==="RECAPTURE"){
-            res={status:"RECAPTURE",issues:[d.issue||"NO_FACE"],regions:[]};
-          }
-        }
-      } catch(err){ /* Fall back gracefully to client reader */ }
-    }
-    if(!res){
+    try {
+      let landmarks=null;
+      if(typeof detectAainaFaceLandmarks==="function"){
+        try{landmarks=await detectAainaFaceLandmarks(src);}catch(e){}
+      }
+      res=readPhoto(src,landmarks);
+    } catch(err){
       res=readPhoto(src);
+    } finally {
+      go.disabled=false;
+      go.textContent=oldBtnText;
     }
     regions=res.regions||[];draw();onResult(res,src)};
   return box;

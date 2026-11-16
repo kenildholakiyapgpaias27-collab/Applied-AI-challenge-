@@ -307,76 +307,98 @@ function matchShade(p,read){
     if(!best||sc<best.score)best={name,depth,und,hex,cov,score:sc,de:+de.toFixed(1),good:Math.abs(depth-read.tone)<=1&&de<12}}
   return best}
 function autoCropFace(srcImg){
-  const origW=srcImg.width||srcImg.videoWidth||0,origH=srcImg.height||srcImg.videoHeight||0;
-  if(!origW||!origH)return srcImg;
-  const maxDim=240,scale=Math.min(1,maxDim/Math.max(origW,origH));
-  const sw=Math.max(16,Math.round(origW*scale)),sh=Math.max(16,Math.round(origH*scale));
-  const workCv=document.createElement("canvas");workCv.width=sw;workCv.height=sh;
-  const wctx=workCv.getContext("2d",{willReadFrequently:true});
-  wctx.drawImage(srcImg,0,0,sw,sh);
-  const d=wctx.getImageData(0,0,sw,sh).data;
-
-  // 1. Locate facial center by gradient and skin warmth
-  let sumX=0,sumY=0,totWeight=0;
-  const yMin=Math.floor(sh*0.18),yMax=Math.floor(sh*0.82);
-  const xMin=Math.floor(sw*0.18),xMax=Math.floor(sw*0.82);
-  for(let y=yMin;y<yMax;y++){
-    for(let x=xMin;x<xMax;x++){
-      const idx=y*sw+x,k=idx*4;
-      const r=d[k],g=d[k+1],b=d[k+2];
-      const Y=0.299*r+0.587*g+0.114*b;
-      const kR=((y*sw+Math.min(sw-1,x+1)))*4;
-      const kD=((Math.min(sh-1,y+1)*sw+x))*4;
-      const grad=Math.abs(d[kR]-r)+Math.abs(d[kD]-r);
-      const Cb=128-0.168736*r-0.331264*g+0.5*b;
-      const Cr=128+0.5*r-0.418688*g-0.081312*b;
-      if(grad>7 && r>g && g>=b*0.65 && Y>=40 && Y<=235 && Cb>=75 && Cb<=130 && Cr>=130 && Cr<=178){
-        sumX+=x*grad;sumY+=y*grad;totWeight+=grad;
-      }
-    }
-  }
-
-  let cx=origW*0.5,cy=origH*0.5;
-  if(totWeight>30){
-    cx=(sumX/totWeight)/scale;
-    cy=(sumY/totWeight)/scale;
-  }
-  cx=Math.max(origW*0.30,Math.min(origW*0.70,cx));
-  cy=Math.max(origH*0.32,Math.min(origH*0.65,cy));
-
-  const fw=Math.min(origW,origH)*0.55,fh=Math.min(origW,origH)*0.70;
-  const cropX0=Math.max(0,Math.round(cx-fw*0.55));
-  const cropY0=Math.max(0,Math.round(cy-fh*0.48));
-  const cropX1=Math.min(origW,Math.round(cx+fw*0.55));
-  const cropY1=Math.min(origH,Math.round(cy+fh*0.58));
-  const cropW=cropX1-cropX0,cropH=cropY1-cropY0;
-
-  const outCv=document.createElement("canvas");
-  outCv.width=cropW;outCv.height=cropH;
-  outCv.getContext("2d").drawImage(srcImg,cropX0,cropY0,cropW,cropH,0,0,cropW,cropH);
-  return outCv;
+  return srcImg;
 }
-function readPhoto(src,oval){
+
+let _aainaMpLandmarkerPromise = null;
+async function getAainaMpLandmarker() {
+  if (typeof window === "undefined") return null;
+  if (!_aainaMpLandmarkerPromise) {
+    _aainaMpLandmarkerPromise = (async () => {
+      try {
+        const MP_VER = "0.10.35";
+        const MP_BASE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}`;
+        const MP_MODEL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
+        const vision = await import(/* webpackIgnore: true */ `${MP_BASE}/vision_bundle.mjs`);
+        const files = await vision.FilesetResolver.forVisionTasks(`${MP_BASE}/wasm`);
+        try {
+          return await vision.FaceLandmarker.createFromOptions(files, {
+            baseOptions: { modelAssetPath: MP_MODEL, delegate: "GPU" },
+            runningMode: "IMAGE",
+            numFaces: 1,
+            outputFaceBlendshapes: false
+          });
+        } catch {
+          return await vision.FaceLandmarker.createFromOptions(files, {
+            baseOptions: { modelAssetPath: MP_MODEL, delegate: "CPU" },
+            runningMode: "IMAGE",
+            numFaces: 1,
+            outputFaceBlendshapes: false
+          });
+        }
+      } catch (e) {
+        return null;
+      }
+    })().catch(() => null);
+  }
+  return _aainaMpLandmarkerPromise;
+}
+
+async function detectAainaFaceLandmarks(canvas) {
+  if (!canvas || !canvas.width || !canvas.height) return null;
+  try {
+    const tr = await Promise.race([
+      getAainaMpLandmarker(),
+      new Promise(r => setTimeout(() => r(null), 3000))
+    ]);
+    if (!tr) return null;
+    const res = tr.detect(canvas);
+    if (!res || !res.faceLandmarks || !res.faceLandmarks.length) return null;
+    const lms = res.faceLandmarks[0];
+    const w = canvas.width, h = canvas.height;
+
+    const faceW = Math.abs(lms[454].x - lms[234].x) * w;
+    const boxSize = Math.max(16, Math.round(faceW * 0.18));
+
+    const fhX = Math.round(lms[151].x * w);
+    const fhY = Math.round((lms[10].y * 0.35 + lms[151].y * 0.65) * h);
+    const lChkX = Math.round(lms[425].x * w);
+    const lChkY = Math.round(lms[425].y * h);
+    const rChkX = Math.round(lms[205].x * w);
+    const rChkY = Math.round(lms[205].y * h);
+
+    return {
+      forehead: [fhX, fhY],
+      leftCheek: [lChkX, lChkY],
+      rightCheek: [rChkX, rChkY],
+      boxSize
+    };
+  } catch (err) {
+    return null;
+  }
+}
+if (typeof window !== "undefined") window.detectAainaFaceLandmarks = detectAainaFaceLandmarks;
+
+function readPhoto(src,landmarks){
   const W=src.width,H=src.height;
   const ctx=src.getContext("2d",{willReadFrequently:true});
   const imgData=ctx.getImageData(0,0,W,H);
   const d=imgData.data;
 
   // 1. Detect White Reference Card/Collar (bottom 45% of image)
-  // Must be genuine white: Y >= 195 and sat <= 0.085 (never matches beige walls)
   let cardSumR=0,cardSumG=0,cardSumB=0,cardN=0;
-  const startY=Math.floor(H*0.55);
+  const startY=Math.floor(H*0.48);
   for(let j=startY;j<H;j+=2){
     for(let i=0;i<W;i+=2){
       const k=(j*W+i)*4,r=d[k],g=d[k+1],b=d[k+2];
       const Y=0.299*r+0.587*g+0.114*b;
       const mx=Math.max(r,g,b),mn=Math.min(r,g,b),sat=mx?(mx-mn)/mx:0;
-      if(Y>=195&&sat<=0.085&&mx<254){cardSumR+=r;cardSumG+=g;cardSumB+=b;cardN++;}
+      if(Y>=190&&sat<=0.085&&mx<254){cardSumR+=r;cardSumG+=g;cardSumB+=b;cardN++;}
     }
   }
 
   let gains=[1.0,1.0,1.0],whiteCardCalibrated=false;
-  if(cardN>50){
+  if(cardN>40){
     const avgR=cardSumR/cardN,avgG=cardSumG/cardN,avgB=cardSumB/cardN;
     const mean=(avgR+avgG+avgB)/3.0;
     gains=[
@@ -387,145 +409,183 @@ function readPhoto(src,oval){
     whiteCardCalibrated=true;
   }
 
-  // 2. Locate facial feature center by gradient variance & skin warmth
-  let sumX=0,sumY=0,totWeight=0;
-  const step=Math.max(2,Math.round(Math.min(W,H)/120));
-  const yMin=Math.floor(H*0.18),yMax=Math.floor(H*0.82);
-  const xMin=Math.floor(W*0.18),xMax=Math.floor(W*0.82);
-  for(let j=yMin;j<yMax;j+=step){
-    for(let i=xMin;i<xMax;i+=step){
-      const k=(j*W+i)*4;
-      const r=d[k],g=d[k+1],b=d[k+2];
-      const Y=0.299*r+0.587*g+0.114*b;
-      const kR=((j*W+Math.min(W-1,i+step)))*4;
-      const kD=((Math.min(H-1,j+step)*W+i))*4;
-      const grad=Math.abs(d[kR]-r)+Math.abs(d[kD]-r);
-      const Cb=128-0.168736*r-0.331264*g+0.5*b;
-      const Cr=128+0.5*r-0.418688*g-0.081312*b;
-      if(grad>7 && r>g && g>=b*0.65 && Y>=40 && Y<=235 && Cb>=75 && Cb<=130 && Cr>=130 && Cr<=178){
-        sumX+=i*grad;sumY+=j*grad;totWeight+=grad;
-      }
-    }
-  }
-
-  let cx=W*0.5,cy=H*0.5;
-  if(totWeight>30){
-    cx=sumX/totWeight;
-    cy=sumY/totWeight;
-  }
-  cx=Math.max(W*0.32,Math.min(W*0.68,cx));
-  cy=Math.max(H*0.32,Math.min(H*0.65,cy));
-
-  // Anchor forehead and cheek ROIs directly to the detected facial center
-  const fw=Math.min(W,H)*0.40,fh=Math.min(W,H)*0.50;
-  const Z=[
-    {name:"Forehead",box:[Math.round(cx-0.12*fw),Math.round(cy-0.22*fh),Math.round(0.24*fw),Math.round(0.14*fh)]},
-    {name:"Left Cheek",box:[Math.round(cx-0.26*fw),Math.round(cy+0.02*fh),Math.round(0.19*fw),Math.round(0.16*fh)]},
-    {name:"Right Cheek",box:[Math.round(cx+0.07*fw),Math.round(cy+0.02*fh),Math.round(0.19*fw),Math.round(0.16*fh)]}
-  ];
-
-  const allLabSamples=[],regions=[];
-  for(const zone of Z){
-    const [zx,zy,zw,zh]=zone.box,zx1=Math.min(W,zx+zw),zy1=Math.min(H,zy+zh);
-    const zSamples=[];let totPx=0;
-    for(let j=zy;j<zy1;j+=2){
-      for(let i=zx;i<zx1;i+=2){
-        const k=(j*W+i)*4;
-        let r=d[k]*gains[0],g=d[k+1]*gains[1],b=d[k+2]*gains[2];
-        totPx++;
-        const Y=0.299*r+0.587*g+0.114*b;
-        const Cb=128-0.168736*r-0.331264*g+0.5*b;
-        const Cr=128+0.5*r-0.418688*g-0.081312*b;
-        const mx=Math.max(r,g,b),mn=Math.min(r,g,b),sat=mx?(mx-mn)/mx:0;
-
-        // Strictly facial skin (rejecting hair, glare, lips, dark shadows)
-        const isSkinPx=Y>=38&&Y<=242&&Cb>=75&&Cb<=132&&Cr>=130&&Cr<=178&&
-                       r>g&&g>=b*0.65&&Math.abs(r-g)>=4&&
-                       !(Y>225&&sat<0.10)&&!(Cr>168||(r/(r+g+b)>0.58))&&Y>=42;
-        if(isSkinPx){
-          zSamples.push(rgb2lab(Math.min(255,r),Math.min(255,g),Math.min(255,b)));
+  // 2. Establish ROI boxes: ONLY Forehead, Left Cheek, Right Cheek
+  let Z = [];
+  if (landmarks && landmarks.forehead && landmarks.leftCheek && landmarks.rightCheek) {
+    const bs = landmarks.boxSize || Math.max(16, Math.round(Math.min(W, H) * 0.12));
+    Z = [
+      { name: "Forehead", box: [Math.round(landmarks.forehead[0] - bs/2), Math.round(landmarks.forehead[1] - bs/2), bs, bs] },
+      { name: "Left Cheek", box: [Math.round(landmarks.leftCheek[0] - bs/2), Math.round(landmarks.leftCheek[1] - bs/2), bs, bs] },
+      { name: "Right Cheek", box: [Math.round(landmarks.rightCheek[0] - bs/2), Math.round(landmarks.rightCheek[1] - bs/2), bs, bs] }
+    ];
+  } else {
+    // Anatomical fallback: locate face by skin column distribution
+    const skinCols = new Int32Array(W);
+    const step = Math.max(2, Math.round(Math.min(W, H) / 140));
+    const y0 = Math.floor(H * 0.15), y1 = Math.floor(H * 0.70);
+    for (let j = y0; j < y1; j += step) {
+      for (let i = 0; i < W; i += step) {
+        const k = (j * W + i) * 4;
+        const r = d[k], g = d[k+1], b = d[k+2];
+        const Y = 0.299 * r + 0.587 * g + 0.114 * b;
+        const mx = Math.max(r, g, b), mn = Math.min(r, g, b), sat = mx ? (mx - mn) / mx : 0;
+        const Cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
+        const Cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
+        const isCard = Y >= 170 && sat <= 0.14;
+        const isDark = Y < 38;
+        if (Y >= 38 && Y <= 242 && Cb >= 75 && Cb <= 132 && Cr >= 130 && Cr <= 178 && r > g && g >= b * 0.65 && !isCard && !isDark) {
+          skinCols[i]++;
         }
       }
     }
-    const frac=totPx?zSamples.length/totPx:0;
-    if(zSamples.length>=8){
-      const Ls=zSamples.map(p=>p[0]);
-      const lo=quant(Ls,0.15),hi=quant(Ls,0.85);
-      const keep=zSamples.filter(p=>p[0]>=lo&&p[0]<=hi);
-      const medLab=[0,1,2].map(c=>median(keep.map(p=>p[c])));
-      regions.push({name:zone.name,box:zone.box,frac,lab:medLab});
+
+    let sumX = 0, totSkin = 0, minX = W, maxX = 0;
+    for (let i = 0; i < W; i++) {
+      if (skinCols[i] > 2) {
+        sumX += i * skinCols[i];
+        totSkin += skinCols[i];
+        if (i < minX) minX = i;
+        if (i > maxX) maxX = i;
+      }
+    }
+
+    const cx = totSkin > 20 ? Math.round(sumX / totSkin) : Math.round(W * 0.50);
+    const rawFw = maxX > minX ? (maxX - minX) : Math.round(W * 0.48);
+    const fw = Math.max(Math.round(W * 0.32), Math.min(Math.round(W * 0.65), rawFw));
+
+    // Eye line detection in central column [cx - 0.18*fw .. cx + 0.18*fw] across [0.26*H .. 0.46*H]
+    const eyeY0 = Math.floor(H * 0.26), eyeY1 = Math.floor(H * 0.46);
+    const ex0 = Math.max(0, Math.round(cx - 0.18 * fw)), ex1 = Math.min(W, Math.round(cx + 0.18 * fw));
+    let minLum = 1e9, bestEyeY = Math.floor(H * 0.36);
+    for (let j = eyeY0; j < eyeY1; j += 2) {
+      let rowLum = 0, n = 0;
+      for (let i = ex0; i < ex1; i += 2) {
+        const k = (j * W + i) * 4;
+        rowLum += 0.299 * d[k] + 0.587 * d[k+1] + 0.114 * d[k+2];
+        n++;
+      }
+      if (n > 0) {
+        const avg = rowLum / n;
+        if (avg < minLum) { minLum = avg; bestEyeY = j; }
+      }
+    }
+
+    const eyeY = bestEyeY;
+    const fhW = Math.round(0.22 * fw), fhH = Math.round(0.14 * fw);
+    const fhX = Math.round(cx - fhW / 2);
+    const fhY = Math.max(Math.round(H * 0.08), Math.round(eyeY - 0.16 * fw - fhH));
+
+    const chkW = Math.round(0.18 * fw), chkH = Math.round(0.14 * fw);
+    const chkY = Math.round(eyeY + 0.08 * fw);
+    const lChkX = Math.round(cx - 0.25 * fw);
+    const rChkX = Math.round(cx + 0.07 * fw);
+
+    Z = [
+      { name: "Forehead", box: [fhX, fhY, fhW, fhH] },
+      { name: "Left Cheek", box: [lChkX, chkY, chkW, chkH] },
+      { name: "Right Cheek", box: [rChkX, chkY, chkW, chkH] }
+    ];
+  }
+
+  // 3. Sample strictly cheek and forehead regions
+  const allLabSamples = [], regions = [];
+  for (const zone of Z) {
+    let [zx, zy, zw, zh] = zone.box;
+    zx = Math.max(0, Math.min(W - 4, zx));
+    zy = Math.max(0, Math.min(H - 4, zy));
+    const zx1 = Math.min(W, zx + zw), zy1 = Math.min(H, zy + zh);
+    const zSamples = []; let totPx = 0;
+    for (let j = zy; j < zy1; j++) {
+      for (let i = zx; i < zx1; i++) {
+        const k = (j * W + i) * 4;
+        let r = d[k] * gains[0], g = d[k+1] * gains[1], b = d[k+2] * gains[2];
+        totPx++;
+        const Y = 0.299 * r + 0.587 * g + 0.114 * b;
+        const Cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
+        const Cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
+        const mx = Math.max(r, g, b), mn = Math.min(r, g, b), sat = mx ? (mx - mn) / mx : 0;
+
+        // Strictly facial skin: reject paper/card (Y >= 170 && sat <= 0.14), glare, lips, dark shadow
+        const isSkinPx = Y >= 38 && Y <= 242 && Cb >= 75 && Cb <= 132 && Cr >= 130 && Cr <= 178 &&
+                         r > g && g >= b * 0.65 && Math.abs(r - g) >= 3 &&
+                         !(Y >= 170 && sat <= 0.14) && !(Y > 238 && sat < 0.16) &&
+                         !(Cr > 168 || (r / (r + g + b) > 0.58)) && Y >= 40;
+        if (isSkinPx) {
+          zSamples.push(rgb2lab(Math.min(255, r), Math.min(255, g), Math.min(255, b)));
+        }
+      }
+    }
+    const frac = totPx ? zSamples.length / totPx : 0;
+    if (zSamples.length >= 8) {
+      const Ls = zSamples.map(p => p[0]);
+      const lo = quant(Ls, 0.15), hi = quant(Ls, 0.85);
+      const keep = zSamples.filter(p => p[0] >= lo && p[0] <= hi);
+      const medLab = [0, 1, 2].map(c => median(keep.map(p => p[c])));
+      regions.push({ name: zone.name, box: [zx, zy, zx1 - zx, zy1 - zy], frac, lab: medLab });
       allLabSamples.push(...keep);
     } else {
-      regions.push({name:zone.name,box:zone.box,frac,lab:null});
+      regions.push({ name: zone.name, box: [zx, zy, zx1 - zx, zy1 - zy], frac, lab: null });
     }
   }
 
-  if(allLabSamples.length<15){
-    // Fallback: search around face center
-    for(let j=Math.max(0,cy-fh*0.4|0);j<Math.min(H,cy+fh*0.4);j+=3){
-      for(let i=Math.max(0,cx-fw*0.4|0);i<Math.min(W,cx+fw*0.4);i+=3){
-        const k=(j*W+i)*4;
-        let r=d[k]*gains[0],g=d[k+1]*gains[1],b=d[k+2]*gains[2];
-        const Y=0.299*r+0.587*g+0.114*b;
-        const Cb=128-0.168736*r-0.331264*g+0.5*b;
-        const Cr=128+0.5*r-0.418688*g-0.081312*b;
-        if(Y>=38&&Y<=242&&Cb>=75&&Cb<=132&&Cr>=130&&Cr<=178&&r>g){
-          allLabSamples.push(rgb2lab(r,g,b));
-        }
-      }
-    }
+  if (allLabSamples.length < 10) {
+    return { status: "RECAPTURE", issues: ["NO_FACE"], regions: [] };
   }
 
-  if(allLabSamples.length<10){
-    return {status:"RECAPTURE",issues:["NO_FACE"],regions:[]};
+  const finalL = allLabSamples.map(p => p[0]);
+  const qLo = quant(finalL, 0.12), qHi = quant(finalL, 0.88);
+  const finalKeep = allLabSamples.filter(p => p[0] >= qLo && p[0] <= qHi);
+  const lab = [0, 1, 2].map(c => median((finalKeep.length ? finalKeep : allLabSamples).map(p => p[c])));
+
+  const T = toneMap(lab);
+  const U = estimateUndertone(lab);
+  const ita = Math.atan2(lab[0] - 50.0, Math.max(1e-4, lab[2])) * 180.0 / Math.PI;
+
+  let fst = "IV";
+  if (ita > 55) fst = "I";
+  else if (ita > 41) fst = "II";
+  else if (ita > 28) fst = "III";
+  else if (ita > 10) fst = "IV";
+  else if (ita > -30) fst = "V";
+  else fst = "VI";
+
+  const clinicalGuidance = [];
+  if (T.tone >= 7) {
+    clinicalGuidance.push("High white-cast risk with physical UV filters (ZnO/TiO2). Prioritize chemical or tinted hybrid sunscreens.");
   }
-
-  const finalL=allLabSamples.map(p=>p[0]);
-  const qLo=quant(finalL,0.12),qHi=quant(finalL,0.88);
-  const finalKeep=allLabSamples.filter(p=>p[0]>=qLo&&p[0]<=qHi);
-  const lab=[0,1,2].map(c=>median((finalKeep.length?finalKeep:allLabSamples).map(p=>p[c])));
-
-  const T=toneMap(lab);
-  const U=estimateUndertone(lab);
-  const ita=Math.atan2(lab[0]-50.0,Math.max(1e-4,lab[2]))*180.0/Math.PI;
-
-  let fst="IV";
-  if(ita>55)fst="I";
-  else if(ita>41)fst="II";
-  else if(ita>28)fst="III";
-  else if(ita>10)fst="IV";
-  else if(ita>-30)fst="V";
-  else fst="VI";
-
-  const clinicalGuidance=[];
-  if(T.tone>=7)clinicalGuidance.push("High white-cast risk with physical UV filters (ZnO/TiO2). Prioritize chemical or tinted hybrid sunscreens.");
-  if(T.tone>=4)clinicalGuidance.push("Elevated melanocyte reactivity (PIH risk). Limit unbuffered Glycolic Acid (<=7%) and Salicylic Acid (<=2%).");
-  if(U.ut==="cool")clinicalGuidance.push("Cool undertone: harmonises with neutral-pink foundations.");
-  else if(U.ut==="warm")clinicalGuidance.push("Warm undertone: harmonises with golden/peachy base makeup.");
-  else if(U.ut==="olive")clinicalGuidance.push("Olive undertone: harmonises with neutral-golden bases without pink cast.");
+  if (T.tone >= 4) {
+    clinicalGuidance.push("Elevated melanocyte reactivity (PIH risk). Limit unbuffered Glycolic Acid (<=7%) and Salicylic Acid (<=2%).");
+  }
+  if (U.ut === "cool") {
+    clinicalGuidance.push("Cool undertone: harmonises with neutral-pink foundations.");
+  } else if (U.ut === "warm") {
+    clinicalGuidance.push("Warm undertone: harmonises with golden/peachy base makeup.");
+  } else if (U.ut === "olive") {
+    clinicalGuidance.push("Olive undertone: harmonises with neutral-golden bases without pink cast.");
+  }
 
   return {
-    status:"OK",
-    tone:T.tone,
-    issues:[],
-    notes:whiteCardCalibrated?["WHITE_CARD_CALIBRATED"]:[],
+    status: "OK",
+    tone: T.tone,
+    issues: [],
+    notes: whiteCardCalibrated ? ["WHITE_CARD_CALIBRATED"] : [],
     regions,
-    lab:[+lab[0].toFixed(1),+lab[1].toFixed(1),+lab[2].toFixed(1)],
-    method:whiteCardCalibrated?"Studio White-Card D65 Calibrated":"Google Monk Skin Tone AI Engine",
-    conf:whiteCardCalibrated?0.98:Math.max(0.88,Math.min(0.96,+(1.0-(T.amb||0.5)*0.12).toFixed(2))),
-    p:+T.p.toFixed(2),
-    coverage:+(allLabSamples.length/Math.max(1,W*H*0.12)).toFixed(2),
-    calibration:CAL.source,
-    ut:U.ut,
-    second:T.second,
-    amb:+(T.amb||0.5).toFixed(2),
-    gains:gains.map(g=>+g.toFixed(3)),
-    ita:+ita.toFixed(1),
-    fitzpatrick:fst,
-    monk_name:"Monk "+(T.tone<10?"0"+T.tone:T.tone),
-    monk_hex:MONK_HEX[T.tone],
-    white_card_calibrated:whiteCardCalibrated,
-    clinical_guidance:clinicalGuidance
+    lab: [+lab[0].toFixed(1), +lab[1].toFixed(1), +lab[2].toFixed(1)],
+    method: whiteCardCalibrated ? "Studio White-Card D65 Calibrated" : "Google Monk Skin Tone AI Engine",
+    conf: whiteCardCalibrated ? 0.98 : Math.max(0.88, Math.min(0.96, +(1.0 - (T.amb || 0.5) * 0.12).toFixed(2))),
+    p: +T.p.toFixed(2),
+    coverage: +(allLabSamples.length / Math.max(1, W * H * 0.12)).toFixed(2),
+    calibration: CAL.source,
+    ut: U.ut,
+    second: T.second,
+    amb: +(T.amb || 0.5).toFixed(2),
+    gains: gains.map(g => +g.toFixed(3)),
+    ita: +ita.toFixed(1),
+    fitzpatrick: fst,
+    monk_name: "Monk " + (T.tone < 10 ? "0" + T.tone : T.tone),
+    monk_hex: MONK_HEX[T.tone],
+    white_card_calibrated: whiteCardCalibrated,
+    clinical_guidance: clinicalGuidance
   };
 }
 
