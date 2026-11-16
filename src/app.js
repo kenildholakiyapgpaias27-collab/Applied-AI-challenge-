@@ -101,7 +101,7 @@ const PROBLEMS={
     expect:"Swatch a shade on your jawline in daylight before you buy; the right one disappears into your skin."},
 };
 const GOALS={routine:{label:"A skincare routine",sub:"Three products that work together",ic:"dropper"},sunscreen:{label:"Just a sunscreen",sub:"One great match for your skin and city",ic:"sun"},makeup:{label:"Foundation or base makeup",sub:"Your exact shade, matched to tone and undertone",ic:"spark"}};
-const GENDERS=[["woman","Woman"],["man","Man"],["nonbinary","Non-binary"],["unsaid","Prefer not to say"]];
+const GENDERS=[["woman","Woman"],["man","Man"]];
 const CONCERN_KEYS=Object.keys(PROBLEMS).filter(k=>!PROBLEMS[k].goal);
 /* which questions to ask, from Q1's answers; "Not sure" of undertone adds one helper question */
 const utHelpStep=()=>typeof P!=="undefined"&&P&&/^(unsure|helper)/.test(P.undertoneSource||"")?["utHelp"]:[];
@@ -438,7 +438,7 @@ function ask(key){
 /* Q1: who it's for and what they're after; the rest of the quiz follows from this */
 function aboutWidget(){
   const w=document.createElement("div");w.className="qbody safety about";
-  let gender=P.gender||null,goal=P.goal||null;
+  let gender=GENDERS.some(g=>g[0]===P.gender)?P.gender:null,goal=P.goal||null;   // an older saved answer (e.g. "prefer not to say") is asked again
   w.innerHTML=`<section class="sg" data-g="gender"><h4><span class="sn">1</span>You are</h4>
       <div class="scs">${GENDERS.map(([v,l])=>`<label class="sc"><input type="radio" name="agender" value="${v}" ${gender===v?"checked":""}><span><b>${esc(l)}</b></span></label>`).join("")}</div>
       <p class="small muted sgnote">Only used to skip questions that don't apply to you.</p></section>
@@ -446,7 +446,7 @@ function aboutWidget(){
       <div class="opts goalopts">${Object.entries(GOALS).map(([k,g])=>`<button type="button" class="opt" data-goal="${k}" aria-pressed="${goal===k}"><i class="art goalic">${IC[g.ic]}</i><b>${esc(g.label)}</b><span>${esc(g.sub)}</span></button>`).join("")}</div></section>
     <div class="qactions"><button type="button" class="btn primary" data-go disabled>Continue</button><span class="small muted" data-left></span></div>`;
   const go=w.querySelector("[data-go]"),left=w.querySelector("[data-left]");
-  const update=()=>{go.disabled=!(gender&&goal);left.textContent=!gender&&!goal?"":!gender?"Pick one under \"You are\". \"Prefer not to say\" counts.":!goal?"Pick what you're looking for.":"";
+  const update=()=>{go.disabled=!(gender&&goal);left.textContent=!gender&&!goal?"":!gender?"Pick one under \"You are\".":!goal?"Pick what you're looking for.":"";
     w.querySelectorAll("[data-goal]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.goal===goal)))};
   w.querySelectorAll('input[name="agender"]').forEach(r=>r.onchange=()=>{gender=r.value;update()});
   w.querySelectorAll("[data-goal]").forEach(b=>b.onclick=()=>{goal=b.dataset.goal;update();if(gender)focusEl(go)});

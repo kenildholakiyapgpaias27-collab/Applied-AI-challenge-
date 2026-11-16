@@ -1,57 +1,81 @@
 {
- "source": "Rendered by tools/tryon/make_faces.py from MediaPipe's canonical face mesh (Apache-2.0). No photographs of real people; no face is based on a real person.",
+ "source": "Cropped by tools/tryon/make_photo_models.py from two reference collages supplied by the team (4 women, 4 men). Source and usage rights of the collages to be confirmed before public release.",
  "size": [
   640,
   800
  ],
  "faces": [
   {
-   "id": "fair-cool",
-   "label": "Fair · cool",
-   "hex": "#e6d0cd",
-   "monk": 3,
-   "undertone": "cool",
-   "file": "data/model_faces/fair-cool.jpg"
-  },
-  {
-   "id": "light-warm",
-   "label": "Light · warm",
-   "hex": "#f3c6a8",
-   "monk": 4,
-   "undertone": "warm",
-   "file": "data/model_faces/light-warm.jpg"
-  },
-  {
-   "id": "medium-olive",
-   "label": "Medium · olive",
-   "hex": "#d39b78",
+   "id": "w-fair",
+   "label": "Fair · woman",
+   "gender": "woman",
+   "hex": "#edb19d",
    "monk": 5,
-   "undertone": "olive",
-   "file": "data/model_faces/medium-olive.jpg"
+   "undertone": "cool",
+   "file": "data/model_faces/w-fair.jpg"
   },
   {
-   "id": "tan-warm",
-   "label": "Tan · warm",
-   "hex": "#ab6f51",
+   "id": "w-medium",
+   "label": "Medium · woman",
+   "gender": "woman",
+   "hex": "#e19571",
    "monk": 6,
-   "undertone": "warm",
-   "file": "data/model_faces/tan-warm.jpg"
-  },
-  {
-   "id": "deep-warm",
-   "label": "Deep · warm",
-   "hex": "#91604b",
-   "monk": 7,
-   "undertone": "warm",
-   "file": "data/model_faces/deep-warm.jpg"
-  },
-  {
-   "id": "very-deep",
-   "label": "Very deep · neutral",
-   "hex": "#483026",
-   "monk": 9,
    "undertone": "neutral",
-   "file": "data/model_faces/very-deep.jpg"
+   "file": "data/model_faces/w-medium.jpg"
+  },
+  {
+   "id": "w-tan",
+   "label": "Tan · woman",
+   "gender": "woman",
+   "hex": "#de9772",
+   "monk": 6,
+   "undertone": "neutral",
+   "file": "data/model_faces/w-tan.jpg"
+  },
+  {
+   "id": "w-deep",
+   "label": "Deep · woman",
+   "gender": "woman",
+   "hex": "#9c5634",
+   "monk": 7,
+   "undertone": "neutral",
+   "file": "data/model_faces/w-deep.jpg"
+  },
+  {
+   "id": "m-fair",
+   "label": "Fair · man",
+   "gender": "man",
+   "hex": "#e8bda7",
+   "monk": 5,
+   "undertone": "neutral",
+   "file": "data/model_faces/m-fair.jpg"
+  },
+  {
+   "id": "m-medium",
+   "label": "Medium · man",
+   "gender": "man",
+   "hex": "#daa27f",
+   "monk": 5,
+   "undertone": "neutral",
+   "file": "data/model_faces/m-medium.jpg"
+  },
+  {
+   "id": "m-tan",
+   "label": "Tan · man",
+   "gender": "man",
+   "hex": "#cf8c5f",
+   "monk": 6,
+   "undertone": "neutral",
+   "file": "data/model_faces/m-tan.jpg"
+  },
+  {
+   "id": "m-deep",
+   "label": "Deep · man",
+   "gender": "man",
+   "hex": "#633a24",
+   "monk": 8,
+   "undertone": "neutral",
+   "file": "data/model_faces/m-deep.jpg"
   }
  ]
 }

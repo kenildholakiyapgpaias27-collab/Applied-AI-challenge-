@@ -82,7 +82,7 @@ def main():
     srv = Q.serve(site, 8795)
     url = "http://127.0.0.1:8795/index.html"
     tmp = Path(tempfile.mkdtemp(prefix="aaina_tryon_"))
-    face_jpg = ROOT / BY["medium-olive"]["file"]
+    face_jpg = ROOT / BY["w-medium"]["file"]
     y4m = tmp / "face.y4m"
     make_y4m(face_jpg, y4m)
     blank = tmp / "blank.png"
@@ -198,7 +198,7 @@ def main():
                 pg.click(".to-tools [data-to=start]")
         bad = {k: v for k, v in errs.items() if v is None or v >= 0.03}
         print("     tracking error (mean of 15 key points, fraction of image):", ", ".join(f"{k[0]}@{int(k[1]*100)}%={v:.3f}" if v is not None else f"{k[0]}@{int(k[1]*100)}%=none" for k, v in errs.items()))
-        check("B: tracking finds every model face (6 faces x 2 sizes)", all(v is not None for v in errs.values()), bad)
+        check(f"B: tracking finds every model face ({len(MODELS)} faces x 2 sizes)", all(v is not None for v in errs.values()), bad)
         check("B: tracked landmarks land on each face (mean error < 3% of the image)", not bad, bad)
         stable = all(errs.get((m["id"], 1.0)) is not None and errs.get((m["id"], 0.8)) is not None and abs(errs[(m["id"], 1.0)] - errs[(m["id"], 0.8)]) < 0.015 for m in MODELS)
         check("B: landmarks are stable across image sizes", stable)
@@ -217,10 +217,13 @@ def main():
         pg.wait_for_timeout(400)
         pg.evaluate("P.tone=7;P.undertone='warm';TRYON.close();TRYON.open()")
         pg.wait_for_timeout(300)
-        k = [m["id"] for m in MODELS].index("deep-warm")
+        k = [m["id"] for m in MODELS].index("w-deep")   # tone 7: the deep woman (no gender given yet)
         check("C: the model face closest to the user's tone is pre-selected", pg.locator(".to-model.closest").count() == 1 and pg.get_attribute(".to-model.closest", "data-i") == str(k)
               and "Closest to you" in pg.inner_text(".to-model.closest"))
-        check("C: model faces show as round thumbnails with labels", pg.locator(".to-model .to-mimg").count() == 6 and "Medium · olive" in pg.inner_text(".to-models"))
+        check("C: model faces show as round thumbnails with labels", pg.locator(".to-model .to-mimg").count() == len(MODELS) == 8 and "Medium · woman" in pg.inner_text(".to-models") and "Deep · man" in pg.inner_text(".to-models"))
+        pg.evaluate("P.gender='man';P.tone=8;TRYON.close();TRYON.open()"); pg.wait_for_timeout(300)
+        check("C: a man is shown a man's face first", pg.get_attribute(".to-model.closest", "data-i") == str([m["id"] for m in MODELS].index("m-deep")))
+        pg.evaluate("P.gender=undefined;P.tone=7;TRYON.close();TRYON.open()"); pg.wait_for_timeout(300)
         pg.click(".to-model >> nth=0")
         pg.click(".tryon [data-tab='lips']")
         pg.click(f".to-prod[data-pid='{found['bad']}']")
@@ -240,10 +243,10 @@ def main():
         check("D: base-makeup quiz ends with the shade preview", Q.current(pg) == "preview" and pg.is_visible(".q:not(.answered) .pvcard"), Q.current(pg))
         pv = pg.evaluate("(()=>{const x=previewPick();return{pid:x.p.id,name:x.m.name}})()")
         pg.click(".q:not(.answered) [data-pv=try]"); pg.wait_for_timeout(600)
-        k = [m["id"] for m in MODELS].index("tan-warm")
+        k = [m["id"] for m in MODELS].index("w-medium")
         st = pg.evaluate("({open:!document.querySelector('#tryon').hidden,mode:TRYON.state.mode,model:TRYON.state.model&&TRYON.state.model.id,base:TRYON.state.look.base&&{pid:TRYON.state.look.base.p.id,name:TRYON.state.look.base.s.name}})")
         check("D: 'See it on a face' opens the try-on on the matched shade and the closest model face",
-              st["open"] and st["mode"] == "model" and st["model"] == "tan-warm" and st["base"] == pv, (st, pv))
+              st["open"] and st["mode"] == "model" and st["model"] == "w-medium" and st["base"] == pv, (st, pv))
         other = pg.evaluate(f"(()=>{{const p=BY_ID['{pv['pid']}'];const i=p.s.findIndex(s=>s[0]==='{pv['name']}');return p.s[(i+1)%p.s.length][0]}})()")
         i2 = pg.evaluate(f"BY_ID['{pv['pid']}'].s.findIndex(s=>s[0]==={json.dumps(other)})")
         pg.click(f".to-sw[data-shade='{i2}']"); pg.click(".to-x"); pg.wait_for_timeout(400)

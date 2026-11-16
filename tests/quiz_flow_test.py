@@ -161,9 +161,9 @@ def main():
         check("B: no pregnancy chip on plan", "Pregnancy" not in pg.locator(".plan:not(.old) .applied").inner_text())
         ctx.close()
 
-        # C. non-binary + base makeup: finish, safety, skin, tone, undertone -> shade-matched picks
+        # C. woman + base makeup: finish, safety, skin, tone, undertone -> shade-matched picks
         ctx, pg = fresh()
-        about(pg, "nonbinary", "makeup")
+        about(pg, "woman", "makeup")
         pick(pg, "Matte")
         safety(pg, "false"); skin(pg, "Shiny all over"); tone(pg, 8)
         check("C: undertone after shade", current(pg) == "undertone")

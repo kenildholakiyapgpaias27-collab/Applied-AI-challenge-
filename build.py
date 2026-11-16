@@ -25,7 +25,7 @@ face_landmarks = json.loads(read("data/model_faces_landmarks.json"))
 for f in model_faces["faces"]:
     f["src"] = "data:image/jpeg;base64," + base64.b64encode((ROOT / f.pop("file")).read_bytes()).decode()
     f["landmarks"] = face_landmarks[f["id"]]
-tryon_js = ("const TRYON_DEMO=" + read("data/demo_colours.json") + ";\nconst TRYON_MODELS=" + json.dumps({"models": model_faces["faces"]}, separators=(",", ":"))
+tryon_js = ("const TRYON_DEMO=" + read("data/demo_colours.json") + ";\nconst TRYON_MODELS=" + json.dumps({"models": model_faces["faces"], "size": model_faces.get("size")}, separators=(",", ":"))
             + ";\n" + read("src/tryon.js"))
 
 page = (read("src/shell.html")
