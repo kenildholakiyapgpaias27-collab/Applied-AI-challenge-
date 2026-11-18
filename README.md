@@ -161,6 +161,18 @@ python3 build.py
 2. Go to **Settings → Pages → Build and deployment**, and set **Source: Deploy from a branch**, **Branch: `main` / root**.
 3. Your advisor will be live at `https://<your-username>.github.io/<repo-name>/`.
 
+## Results timeline (what to expect)
+
+Every skincare card has **What to expect**: what studies of its key ingredient measured at **2 weeks, 4 weeks, 3 months, 6 months and 1 year**, with a confidence chip (Strong / Some / Early evidence). Tap a point to see the study, who was studied, and why results might differ for you. The plan also gets **What to expect from this plan** (per concern, plus sunscreen's long-term protective role); **Compare with alternatives** puts up to 3 products side by side (first change, change at 3 months, evidence, irritation risk, cost per month, safety check) and highlights the best fit for *your* concern, not the biggest number.
+
+- **Evidence-based and honest**: numbers come only from peer-reviewed studies (`data/evidence/actives_timeline.json`, 21 PubMed references), only at time points a study measured, scaled down (never up) for unknown or lower strength, and "maintenance" or "not studied" past the last study point. No study, no timeline ("not enough evidence"). Rinse-off products get none.
+- **Illustration** (optional): a model face, or your own photo with consent (on this device only), changed only in the concern's area (spot contrast, shine, fine texture or redness) by the size studies reported. Overall tone and lightness are never changed, the label "Illustration of typical study results, not a prediction of your skin." is always on it, and there's no download.
+- **Sample product studies (fictional)**: each fictional product also shows its "brand's own in-house test" (`tools/make_sample_studies.py`), always badged **Sample data · fictional**, with no citation. It's never used for the timeline, the comparison ranking or the illustration, and no made-up results are attached to real ingredients.
+- **Progress check-ins** at day 10, week 4 and week 8: a 1–5 rating and an optional on-device photo, compared with what studies saw by then; "no change past the expected point" offers a swap. Stored on this device, and in the account only with sign-in and consent; deleted by **Delete my answers**.
+- Wording follows the safety guide, ASCI and the Cosmetics Rules 2020: no promises, no medical claims, no "lightening". A lint test enforces it.
+
+Evidence coverage, gaps (especially for deeper skin tones) and screenshots: [reports/timeline_report.md](reports/timeline_report.md). Check the evidence with `python3 tools/check_evidence.py`.
+
 ## Database (Supabase)
 
 The app works with no database at all: leave `data/supabase.json` empty and everything stays in the browser, as before. Connect a free [Supabase](https://supabase.com) project and it gains:
@@ -213,6 +225,9 @@ python3 tests/tryon_unit_test.py     # try-on data + colour/blend maths (Node fo
 python3 tests/tryon_test.py          # try-on in Chrome: model, upload, fake camera, compare, safety, plan
 python3 tests/quiz_flow_test.py      # the adaptive quiz
 node tests/oauth_unit_test.js        # Continue with Google: PKCE helpers, callback, URL cleanup (no browser)
+node tests/timeline_unit_test.js     # Results timeline: evidence, no numbers past the studies, wording lint, no-lightening image test
+python3 tests/timeline_test.py       # Results timeline in Chrome: timeline, compare, illustration slider, progress check-in
+python3 tools/check_evidence.py      # evidence table schema, references and coverage
 supabase/tests/run_db_tests.sh
 ```
 
