@@ -1,0 +1,6 @@
+{
+  "apiKey": "sk-proj-YOUR-KEY-HERE",
+  "chatModel": "gpt-4o-mini",
+  "sttModel": "whisper-1",
+  "maxRecordingMs": 15000
+}
