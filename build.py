@@ -39,8 +39,22 @@ for f in model_faces["faces"]:
 tryon_js = ("const TRYON_DEMO=" + read("data/demo_colours.json") + ";\nconst TRYON_MODELS=" + json.dumps({"models": model_faces["faces"], "size": model_faces.get("size")}, separators=(",", ":"))
             + ";\n" + read("src/tryon.js"))
 
+# RAG embeddings (opt-in): built by tools/build_embeddings.py.
+# File absent => RAG disabled; voice chat falls back to engine-only ranking.
+emb_path = ROOT / "data/embeddings.json"
+if emb_path.exists():
+    emb_raw = read("data/embeddings.json")
+    emb_obj = json.loads(emb_raw)
+    rag_status = f"ON ({len(emb_obj.get('items', []))} vectors, hash {emb_obj.get('cat_hash', '?')})"
+    emb_inline = emb_raw
+else:
+    rag_status = "off (run tools/build_embeddings.py)"
+    emb_inline = "null"
+
+rag_js = "const AAINA_EMBEDDINGS=" + emb_inline + ";\n" + read("src/rag.js")
+
 # Ask Aaina voice/chat module (opt-in: no-op without a key)
-voice_js = "const AAINA_OPENAI_CONFIG=" + json.dumps(openai_cfg) + ";\n" + read("src/voice.js")
+voice_js = "const AAINA_OPENAI_CONFIG=" + json.dumps(openai_cfg) + ";\n" + rag_js + "\n" + read("src/voice.js")
 
 page = (read("src/shell.html")
         .replace("__CATALOGUE__", read("data/catalogue.json"))
@@ -56,4 +70,4 @@ html = ("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">"
         "<style>[hidden]{display:none!important}</style></head><body>" + page + "</body></html>")
 
 (ROOT / "index.html").write_text(html, encoding="utf-8")
-print(f"Built index.html ({len(html)/1024:.0f} KB), catalogue {cat_version}, database {'ON: ' + db_cfg['url'] if db_cfg['url'] else 'off (offline mode)'}, voice chat {'ON' if openai_cfg['apiKey'] else 'off'}")
+print(f"Built index.html ({len(html)/1024:.0f} KB), catalogue {cat_version}, database {'ON: ' + db_cfg['url'] if db_cfg['url'] else 'off (offline mode)'}, voice chat {'ON' if openai_cfg['apiKey'] else 'ON (browser key)'}, RAG {rag_status}")
