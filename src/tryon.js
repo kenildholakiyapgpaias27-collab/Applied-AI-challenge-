@@ -659,5 +659,7 @@ void main(){vec2 t=vec2(uMirror>0.5?1.-uv.x:uv.x,uv.y);vec3 S=s2l(texture2D(uTex
   window.addEventListener("resize",()=>{if(S.open&&S.src){layout();kick()}});
   document.addEventListener("click",ev=>{const b=ev.target.closest&&ev.target.closest("[data-tryon]");if(!b||(root&&root.contains(b)))return;ev.preventDefault();open(b.dataset.tryon==="base"?{base:true}:{pid:b.dataset.tryon||null})});
   if(location.hash==="#try-on")setTimeout(()=>open(),0);
-  return{open,close,setSplit,closestModel,state:S,_draw:draw,_products:products,_status:status};
+  /* face landmarks for any image, on this device (used by the Results timeline illustration) */
+  async function landmarksFor(img){const tr=await tracker("IMAGE");if(!tr)return null;let r=null;try{r=tr.detect(img)}catch{}const lm=r&&r.faceLandmarks&&r.faceLandmarks[0];return lm?lm.map(p=>[p.x,p.y]):null}
+  return{open,close,setSplit,closestModel,landmarksFor,state:S,_draw:draw,_products:products,_status:status};
 })();

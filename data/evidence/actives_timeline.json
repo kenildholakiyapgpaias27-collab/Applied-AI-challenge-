@@ -1,0 +1,1513 @@
+{
+ "version": "2026-11-18",
+ "about": "Evidence for the Results timeline. Every checkpoint is a time point a cited study actually measured; numbers are only those reported in the PubMed abstract. change_* values are positive for improvement. kind: change (size of change in the named measure), responders (share of people who improved), ratio (times the plain-product improvement), protective (difference vs occasional use), qualitative (improvement reported without a size). Each checkpoint carries the grade of the study it cites (grade); the entry's evidence_strength is its best checkpoint.",
+ "grades": {
+  "A": "randomised, vehicle-controlled, n≥50",
+  "B": "smaller or less controlled randomised study",
+  "C": "open-label, uncontrolled, review of low-quality trials, or a blend",
+  "D": "no suitable evidence: no timeline"
+ },
+ "entries": [
+  {
+   "id": "niacinamide-oil",
+   "active": "Niacinamide",
+   "match": [
+    "niacinamide",
+    "nicotinamide"
+   ],
+   "concern": "oiliness and shine",
+   "concern_key": "oiliness",
+   "app_concerns": [
+    "oiliness",
+    "acne"
+   ],
+   "region": "shine",
+   "evidence_strength": "A",
+   "population": {
+    "n": 130,
+    "skin": "Japanese and white adults",
+    "country": "Japan, USA",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "2%",
+   "studied_pct": 2,
+   "checkpoints": [
+    {
+     "weeks": 2,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "sebum excretion rate",
+     "plain": "In a study of 100 people, oil production was measurably lower than with a plain moisturiser after 2 weeks.",
+     "ref": "16766489",
+     "representative": true,
+     "grade": "A"
+    },
+    {
+     "weeks": 4,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "sebum excretion rate",
+     "plain": "Oil production stayed lower than with a plain moisturiser at 4 weeks.",
+     "ref": "16766489",
+     "representative": true,
+     "grade": "A"
+    },
+    {
+     "weeks": 6,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "casual sebum level",
+     "plain": "In a second, smaller study, surface oil was lower at 6 weeks (oil production itself did not change significantly).",
+     "ref": "16766489",
+     "representative": true,
+     "grade": "A"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": false,
+   "note": null,
+   "refs": [
+    "16766489"
+   ]
+  },
+  {
+   "id": "niacinamide-spots",
+   "active": "Niacinamide",
+   "match": [
+    "niacinamide",
+    "nicotinamide"
+   ],
+   "concern": "appearance of dark spots",
+   "concern_key": "pigmentation",
+   "app_concerns": [
+    "pigmentation",
+    "tanning"
+   ],
+   "region": "spots",
+   "evidence_strength": "A",
+   "population": {
+    "n": 188,
+    "skin": "Japanese and white women",
+    "country": "Japan, USA",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "5% for dark spots (2% with sunscreen on tanned skin)",
+   "studied_pct": 5,
+   "checkpoints": [
+    {
+     "weeks": 4,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "image analysis of facial spots",
+     "plain": "In studies, the look of dark spots was measurably reduced compared with a plain moisturiser after 4 weeks.",
+     "ref": "12100180",
+     "representative": true,
+     "grade": "A"
+    },
+    {
+     "weeks": 12,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "image analysis of facial spots",
+     "plain": "At 12 weeks, the niacinamide side of the face showed fewer visible spots than the plain side.",
+     "ref": "16029679",
+     "representative": true,
+     "grade": "A"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": false,
+   "note": null,
+   "refs": [
+    "12100180",
+    "16029679"
+   ]
+  },
+  {
+   "id": "niacinamide-lines",
+   "active": "Niacinamide",
+   "match": [
+    "niacinamide",
+    "nicotinamide"
+   ],
+   "concern": "fine lines",
+   "concern_key": "fine lines",
+   "app_concerns": [
+    "fine lines"
+   ],
+   "region": "texture",
+   "evidence_strength": "A",
+   "population": {
+    "n": 50,
+    "skin": "white women",
+    "country": "USA",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "5%",
+   "studied_pct": 5,
+   "checkpoints": [
+    {
+     "weeks": 12,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "image analysis of fine lines",
+     "plain": "At 12 weeks, fine lines looked measurably softer on the niacinamide side than on the plain side.",
+     "ref": "16029679",
+     "representative": true,
+     "grade": "A"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": false,
+   "note": null,
+   "refs": [
+    "16029679"
+   ]
+  },
+  {
+   "id": "niacinamide-redness",
+   "active": "Niacinamide",
+   "match": [
+    "niacinamide",
+    "nicotinamide"
+   ],
+   "concern": "visible redness and blotchiness",
+   "concern_key": "redness",
+   "app_concerns": [
+    "redness"
+   ],
+   "region": "redness",
+   "evidence_strength": "A",
+   "population": {
+    "n": 50,
+    "skin": "white women",
+    "country": "USA",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "5%",
+   "studied_pct": 5,
+   "checkpoints": [
+    {
+     "weeks": 12,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "image analysis of red blotchiness",
+     "plain": "At 12 weeks, red blotchiness looked measurably reduced on the niacinamide side.",
+     "ref": "16029679",
+     "representative": true,
+     "grade": "A"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": false,
+   "note": null,
+   "refs": [
+    "16029679"
+   ]
+  },
+  {
+   "id": "txa-spots",
+   "active": "Tranexamic acid",
+   "match": [
+    "tranexamic"
+   ],
+   "concern": "appearance of dark spots",
+   "concern_key": "pigmentation",
+   "app_concerns": [
+    "pigmentation",
+    "tanning"
+   ],
+   "region": "spots",
+   "evidence_strength": "B",
+   "population": {
+    "n": 42,
+    "skin": "Korean women (8-week study); Brazilian women, skin types I–IV (12-week study)",
+    "country": "Korea, Brazil",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "2–5%",
+   "studied_pct": 2,
+   "checkpoints": [
+    {
+     "weeks": 2,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "expert grading",
+     "plain": "In a single-product study, a first improvement in the look of dark spots was seen from week 2.",
+     "ref": "31141852",
+     "representative": true,
+     "grade": "C"
+    },
+    {
+     "weeks": 8,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "colour meter and expert grading",
+     "plain": "In a 42-person study, a cream with 2% tranexamic acid and 2% niacinamide reduced the look of uneven pigmentation more than a plain cream, on top of sunscreen.",
+     "ref": "24033822",
+     "representative": true,
+     "grade": "B"
+    },
+    {
+     "weeks": 12,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "melanin index",
+     "plain": "By week 12, spot pigment readings were lower than at the start in a single-product study.",
+     "ref": "31141852",
+     "representative": true,
+     "grade": "C"
+    },
+    {
+     "weeks": 12,
+     "kind": "change",
+     "change_low": null,
+     "change_typical": 50.9,
+     "change_high": null,
+     "unit": "% reduction in severity score",
+     "measure": "severity score (MASI)",
+     "plain": "In 50 people with a diagnosed pigment condition (not typical shoppers), a 5% cream reduced a severity score by about half (−50.9%) at 12 weeks.",
+     "ref": "40923777",
+     "representative": false,
+     "grade": "B"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": false,
+   "note": null,
+   "refs": [
+    "24033822",
+    "31141852",
+    "40923777"
+   ]
+  },
+  {
+   "id": "arbutin-spots",
+   "active": "Alpha arbutin",
+   "match": [
+    "alpha arbutin",
+    "arbutin"
+   ],
+   "concern": "appearance of dark spots",
+   "concern_key": "pigmentation",
+   "app_concerns": [
+    "pigmentation",
+    "tanning"
+   ],
+   "region": "spots",
+   "evidence_strength": "C",
+   "population": {
+    "n": 120,
+    "skin": "Indian women, skin types III–IV",
+    "country": "India",
+    "deeper_tones": "studied in Indian skin (types III–IV); no data for deeper tones"
+   },
+   "typical_concentration": "2% (with 10% THBG and daily sunscreen)",
+   "studied_pct": 2,
+   "checkpoints": [
+    {
+     "weeks": 13,
+     "kind": "change",
+     "change_low": null,
+     "change_typical": 16.3,
+     "change_high": null,
+     "unit": "% lower melanin in dark spots",
+     "measure": "melanin content of dark spots",
+     "plain": "In an open study of 120 Indian women (no comparison group), pigment in dark spots was about 16% lower after 3 months, using a product that also contained another active and a daily sunscreen.",
+     "ref": "39943675",
+     "representative": true,
+     "grade": "C"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": false,
+   "note": "The study product combined alpha arbutin with another active and sunscreen, so the effect can't be credited to arbutin alone.",
+   "refs": [
+    "39943675"
+   ]
+  },
+  {
+   "id": "vitc-lines",
+   "active": "Vitamin C",
+   "match": [
+    "vitamin c",
+    "ascorbic",
+    "ascorbyl"
+   ],
+   "concern": "fine lines and rough texture",
+   "concern_key": "fine lines",
+   "app_concerns": [
+    "fine lines",
+    "dullness"
+   ],
+   "region": "texture",
+   "evidence_strength": "B",
+   "population": {
+    "n": 19,
+    "skin": "skin types I–III",
+    "country": "USA",
+    "deeper_tones": "no data for deeper skin tones"
+   },
+   "typical_concentration": "high-strength L-ascorbic acid serum",
+   "studied_pct": null,
+   "checkpoints": [
+    {
+     "weeks": 12,
+     "kind": "responders",
+     "change_low": null,
+     "change_typical": 73.7,
+     "change_high": null,
+     "unit": "% of participants improving more on the vitamin C side",
+     "measure": "skin-surface profilometry",
+     "plain": "In a small 19-person study, 14 people (74%) had smoother skin texture on the vitamin C side than on the plain side after 3 months.",
+     "ref": "10522500",
+     "representative": true,
+     "grade": "B"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": true,
+   "note": null,
+   "refs": [
+    "10522500"
+   ]
+  },
+  {
+   "id": "retinol-lines",
+   "active": "Retinol",
+   "match": [
+    "retinol",
+    "retinal",
+    "retinaldehyde"
+   ],
+   "concern": "fine lines",
+   "concern_key": "fine lines",
+   "app_concerns": [
+    "fine lines"
+   ],
+   "region": "texture",
+   "evidence_strength": "A",
+   "population": {
+    "n": 533,
+    "skin": "women with mild-to-moderate sun-related ageing",
+    "country": "USA",
+    "deeper_tones": "skin types not reported in the abstracts; assume limited data for deeper tones"
+   },
+   "typical_concentration": "0.1%",
+   "studied_pct": 0.1,
+   "checkpoints": [
+    {
+     "weeks": 4,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "dermatologist grading",
+     "plain": "In pooled studies of 471 women, fine lines and wrinkles improved more than with a plain cream from week 4.",
+     "ref": "38564380",
+     "representative": true,
+     "grade": "A"
+    },
+    {
+     "weeks": 8,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "dermatologist grading",
+     "plain": "The improvement over a plain cream continued at week 8.",
+     "ref": "38564380",
+     "representative": true,
+     "grade": "A"
+    },
+    {
+     "weeks": 12,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "dermatologist grading",
+     "plain": "The improvement over a plain cream continued at week 12.",
+     "ref": "38564380",
+     "representative": true,
+     "grade": "A"
+    },
+    {
+     "weeks": 52,
+     "kind": "change",
+     "change_low": null,
+     "change_typical": 44,
+     "change_high": null,
+     "unit": "% improvement from baseline",
+     "measure": "dermatologist grading of crow's-feet fine lines",
+     "plain": "In a one-year study of 62 people, crow's-feet fine lines were about 44% better than at the start.",
+     "ref": "25738849",
+     "representative": true,
+     "grade": "A"
+    }
+   ],
+   "beyond_last_study": "one-year study is the longest; improvements continued up to 52 weeks",
+   "if_stopped": "not studied",
+   "can_irritate": true,
+   "note": null,
+   "refs": [
+    "38564380",
+    "25738849"
+   ]
+  },
+  {
+   "id": "retinol-spots",
+   "active": "Retinol",
+   "match": [
+    "retinol",
+    "retinal",
+    "retinaldehyde"
+   ],
+   "concern": "appearance of dark spots",
+   "concern_key": "pigmentation",
+   "app_concerns": [
+    "pigmentation",
+    "tanning"
+   ],
+   "region": "spots",
+   "evidence_strength": "A",
+   "population": {
+    "n": 533,
+    "skin": "women with mild-to-moderate sun-related ageing",
+    "country": "USA",
+    "deeper_tones": "skin types not reported in the abstracts; assume limited data for deeper tones"
+   },
+   "typical_concentration": "0.1%",
+   "studied_pct": 0.1,
+   "checkpoints": [
+    {
+     "weeks": 4,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "dermatologist grading",
+     "plain": "In pooled studies, brown spots and uneven tone improved more than with a plain cream from week 4.",
+     "ref": "38564380",
+     "representative": true,
+     "grade": "A"
+    },
+    {
+     "weeks": 12,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "dermatologist grading",
+     "plain": "The improvement over a plain cream continued at week 12.",
+     "ref": "38564380",
+     "representative": true,
+     "grade": "A"
+    },
+    {
+     "weeks": 52,
+     "kind": "change",
+     "change_low": null,
+     "change_typical": 84,
+     "change_high": null,
+     "unit": "% improvement from baseline",
+     "measure": "dermatologist grading of mottled pigmentation",
+     "plain": "In a one-year study, mottled pigmentation was graded about 84% better than at the start.",
+     "ref": "25738849",
+     "representative": true,
+     "grade": "A"
+    }
+   ],
+   "beyond_last_study": "one-year study is the longest; improvements continued up to 52 weeks",
+   "if_stopped": "not studied",
+   "can_irritate": true,
+   "note": null,
+   "refs": [
+    "38564380",
+    "25738849"
+   ]
+  },
+  {
+   "id": "bakuchiol-lines",
+   "active": "Bakuchiol",
+   "match": [
+    "bakuchiol"
+   ],
+   "concern": "fine lines",
+   "concern_key": "fine lines",
+   "app_concerns": [
+    "fine lines",
+    "pigmentation"
+   ],
+   "region": "texture",
+   "evidence_strength": "B",
+   "population": {
+    "n": 44,
+    "skin": "adults with facial ageing",
+    "country": "USA",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "0.5%",
+   "studied_pct": 0.5,
+   "checkpoints": [
+    {
+     "weeks": 12,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "photographic analysis",
+     "plain": "In a 44-person study, wrinkle area and spots decreased over 12 weeks, similar to a 0.5% retinol cream and with less stinging (no plain-cream comparison).",
+     "ref": "29947134",
+     "representative": true,
+     "grade": "B"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": false,
+   "note": null,
+   "refs": [
+    "29947134"
+   ]
+  },
+  {
+   "id": "glycolic-texture",
+   "active": "Glycolic acid",
+   "match": [
+    "glycolic"
+   ],
+   "concern": "dullness and rough texture",
+   "concern_key": "dullness",
+   "app_concerns": [
+    "dullness",
+    "pigmentation",
+    "tanning"
+   ],
+   "region": "texture",
+   "evidence_strength": "A",
+   "population": {
+    "n": 149,
+    "skin": "adults with sun-related ageing",
+    "country": "USA",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "5–8%",
+   "studied_pct": 5,
+   "checkpoints": [
+    {
+     "weeks": 12,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "physician assessment",
+     "plain": "In a 75-person study, skin texture and discolouration improved more than with a plain cream after 3 months (wrinkles did not change significantly).",
+     "ref": "9598014",
+     "representative": true,
+     "grade": "A"
+    },
+    {
+     "weeks": 22,
+     "kind": "responders",
+     "change_low": null,
+     "change_typical": 76,
+     "change_high": null,
+     "unit": "% of participants improving ≥1 grade (40% with plain cream)",
+     "measure": "physician grading of overall sun damage",
+     "plain": "In a 74-person study, 76% of people using 8% glycolic acid improved by at least one grade, vs 40% with a plain cream, at 22 weeks.",
+     "ref": "8651713",
+     "representative": true,
+     "grade": "A"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": true,
+   "note": null,
+   "refs": [
+    "9598014",
+    "8651713"
+   ]
+  },
+  {
+   "id": "lactic-texture",
+   "active": "Lactic acid",
+   "match": [
+    "lactic"
+   ],
+   "concern": "dullness and rough texture",
+   "concern_key": "dullness",
+   "app_concerns": [
+    "dullness"
+   ],
+   "region": "texture",
+   "evidence_strength": "A",
+   "population": {
+    "n": 74,
+    "skin": "women aged 40–70 with sun-related ageing",
+    "country": "USA",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "8%",
+   "studied_pct": 8,
+   "checkpoints": [
+    {
+     "weeks": 22,
+     "kind": "responders",
+     "change_low": null,
+     "change_typical": 71,
+     "change_high": null,
+     "unit": "% of participants improving ≥1 grade (40% with plain cream)",
+     "measure": "physician grading of overall sun damage",
+     "plain": "In a 74-person study, 71% of people using 8% lactic acid improved by at least one grade, vs 40% with a plain cream, at 22 weeks.",
+     "ref": "8651713",
+     "representative": true,
+     "grade": "A"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": true,
+   "note": null,
+   "refs": [
+    "8651713"
+   ]
+  },
+  {
+   "id": "salicylic-blemish",
+   "active": "Salicylic acid",
+   "match": [
+    "salicylic"
+   ],
+   "concern": "blemishes and clogged pores",
+   "concern_key": "acne",
+   "app_concerns": [
+    "acne",
+    "oiliness"
+   ],
+   "region": "redness",
+   "evidence_strength": "C",
+   "population": {
+    "n": 132,
+    "skin": "mostly young women with mild-to-moderate breakouts",
+    "country": "Europe, Asia, USA",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "0.5–2%",
+   "studied_pct": null,
+   "checkpoints": [
+    {
+     "weeks": 12,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "global self-assessment of improvement",
+     "plain": "A review of trials rated the evidence as low quality: salicylic acid may work about as well as a stronger comparison product, but no reliable size of change was reported.",
+     "ref": "32356369",
+     "representative": true,
+     "grade": "C"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": true,
+   "note": null,
+   "refs": [
+    "32356369"
+   ]
+  },
+  {
+   "id": "azelaic-spots",
+   "active": "Azelaic acid",
+   "match": [
+    "azelaic"
+   ],
+   "concern": "appearance of dark spots",
+   "concern_key": "pigmentation",
+   "app_concerns": [
+    "pigmentation",
+    "tanning"
+   ],
+   "region": "spots",
+   "evidence_strength": "B",
+   "population": {
+    "n": null,
+    "skin": "people with darker skin (types IV–VI)",
+    "country": "USA",
+    "deeper_tones": "studied in darker skin types IV–VI"
+   },
+   "typical_concentration": "20%",
+   "studied_pct": 20,
+   "checkpoints": [
+    {
+     "weeks": 24,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "investigator scale and colour meter",
+     "plain": "In a study of people with darker skin, dark spots faded more than with a plain cream over 24 weeks; some burning or stinging at first.",
+     "ref": "9829446",
+     "representative": true,
+     "grade": "B"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": true,
+   "note": null,
+   "refs": [
+    "9829446"
+   ]
+  },
+  {
+   "id": "azelaic-blemish",
+   "active": "Azelaic acid",
+   "match": [
+    "azelaic"
+   ],
+   "concern": "blemishes",
+   "concern_key": "acne",
+   "app_concerns": [
+    "acne"
+   ],
+   "region": "redness",
+   "evidence_strength": "C",
+   "population": {
+    "n": 351,
+    "skin": "mostly young people with mild-to-moderate breakouts",
+    "country": "Europe, Asia, USA",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "15–20%",
+   "studied_pct": 15,
+   "checkpoints": [
+    {
+     "weeks": 12,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "global self-assessment of improvement",
+     "plain": "A review of trials found azelaic acid probably works a little less well than one stronger comparison product and about as well as another; no size of change was reported.",
+     "ref": "32356369",
+     "representative": true,
+     "grade": "C"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": true,
+   "note": null,
+   "refs": [
+    "32356369"
+   ]
+  },
+  {
+   "id": "teatree-blemish",
+   "active": "Tea tree oil",
+   "match": [
+    "tea tree",
+    "melaleuca"
+   ],
+   "concern": "blemishes",
+   "concern_key": "acne",
+   "app_concerns": [
+    "acne"
+   ],
+   "region": "redness",
+   "evidence_strength": "A",
+   "population": {
+    "n": 60,
+    "skin": "people with mild-to-moderate breakouts",
+    "country": "Iran",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "5% gel",
+   "studied_pct": 5,
+   "checkpoints": [
+    {
+     "weeks": 6.4,
+     "kind": "ratio",
+     "change_low": null,
+     "change_typical": 3.55,
+     "change_high": null,
+     "unit": "times the improvement seen with a plain gel",
+     "measure": "total blemish count",
+     "plain": "In a 60-person study, blemish counts improved 3.6 times as much as with a plain gel after about 6 weeks.",
+     "ref": "17314442",
+     "representative": true,
+     "grade": "A"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": true,
+   "note": "Tea tree oil is an essential oil and a common irritant for sensitive skin.",
+   "refs": [
+    "17314442"
+   ]
+  },
+  {
+   "id": "ha-dryness",
+   "active": "Hyaluronic acid",
+   "match": [
+    "hyaluronic",
+    "sodium hyaluronate"
+   ],
+   "concern": "dryness",
+   "concern_key": "dehydration",
+   "app_concerns": [
+    "dehydration",
+    "fine lines"
+   ],
+   "region": "texture",
+   "evidence_strength": "A",
+   "population": {
+    "n": 76,
+    "skin": "women aged 30–60",
+    "country": "Slovakia",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "0.1%",
+   "studied_pct": 0.1,
+   "checkpoints": [
+    {
+     "weeks": 4,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "corneometry and elasticity",
+     "plain": "In a 76-person study, skin hydration and elasticity were higher than with a plain cream after 30 days.",
+     "ref": "22052267",
+     "representative": true,
+     "grade": "A"
+    },
+    {
+     "weeks": 8,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "corneometry and skin replicas",
+     "plain": "Hydration stayed higher at 60 days; lighter-weight forms also reduced wrinkle depth around the eyes.",
+     "ref": "22052267",
+     "representative": true,
+     "grade": "A"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": false,
+   "note": null,
+   "refs": [
+    "22052267"
+   ]
+  },
+  {
+   "id": "ceramide-dryness",
+   "active": "Ceramides",
+   "match": [
+    "ceramide"
+   ],
+   "concern": "dryness",
+   "concern_key": "dehydration",
+   "app_concerns": [
+    "dehydration"
+   ],
+   "region": "texture",
+   "evidence_strength": "C",
+   "population": {
+    "n": 44,
+    "skin": "women with very dry skin (forearms, not face)",
+    "country": "Germany",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "barrier-lipid blend (with urea)",
+   "studied_pct": null,
+   "checkpoints": [
+    {
+     "weeks": 2,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "corneometry and water loss",
+     "plain": "In a 44-person study on the forearms, a moisturiser with barrier lipids and urea improved hydration and barrier function within 2 weeks.",
+     "ref": "34619676",
+     "representative": true,
+     "grade": "C"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": false,
+   "note": "Tested as a blend with urea on forearms, so the effect can't be credited to ceramides alone or to facial skin.",
+   "refs": [
+    "34619676"
+   ]
+  },
+  {
+   "id": "peptide-lines",
+   "active": "Peptides",
+   "match": [
+    "peptide"
+   ],
+   "concern": "fine lines",
+   "concern_key": "fine lines",
+   "app_concerns": [
+    "fine lines"
+   ],
+   "region": "texture",
+   "evidence_strength": "A",
+   "population": {
+    "n": 93,
+    "skin": "white women aged 35–55",
+    "country": "USA",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "3 ppm palmitoyl pentapeptide",
+   "studied_pct": null,
+   "checkpoints": [
+    {
+     "weeks": 12,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "image analysis and expert grading",
+     "plain": "In a 93-person study, fine lines looked measurably reduced on the peptide side after 12 weeks.",
+     "ref": "18492182",
+     "representative": true,
+     "grade": "A"
+    }
+   ],
+   "beyond_last_study": "maintenance: results usually hold with continued use; no evidence of further change",
+   "if_stopped": "not studied",
+   "can_irritate": false,
+   "note": "Evidence is for one specific peptide; this product's peptide type and amount may differ.",
+   "refs": [
+    "18492182"
+   ]
+  },
+  {
+   "id": "sunscreen-protect",
+   "active": "Sunscreen",
+   "match": [
+    "spf",
+    "sunscreen"
+   ],
+   "concern": "protection from visible sun damage",
+   "concern_key": "protection",
+   "app_concerns": [
+    "pigmentation",
+    "tanning",
+    "fine lines",
+    "dullness",
+    "redness",
+    "acne",
+    "oiliness",
+    "dehydration",
+    "dark circles"
+   ],
+   "region": "spots",
+   "evidence_strength": "A",
+   "population": {
+    "n": 935,
+    "skin": "mostly fair-skinned adults (4.5-year study); 32 adults (1-year study)",
+    "country": "Australia, USA",
+    "deeper_tones": "limited data for deeper skin tones"
+   },
+   "typical_concentration": "SPF 15–30 daily",
+   "studied_pct": null,
+   "checkpoints": [
+    {
+     "weeks": 12,
+     "kind": "qualitative",
+     "change_low": null,
+     "change_typical": null,
+     "change_high": null,
+     "unit": null,
+     "measure": "dermatologist grading",
+     "plain": "In a small one-year study, daily SPF 30 improved the look of sun damage from week 12 (no comparison group).",
+     "ref": "27749441",
+     "representative": true,
+     "grade": "C"
+    },
+    {
+     "weeks": 52,
+     "kind": "change",
+     "change_low": 40,
+     "change_typical": null,
+     "change_high": 52,
+     "unit": "% improvement from baseline",
+     "measure": "dermatologist grading",
+     "plain": "After a year of daily use, texture, clarity and pigmentation were rated 40–52% better than at the start (no comparison group).",
+     "ref": "27749441",
+     "representative": true,
+     "grade": "C"
+    },
+    {
+     "weeks": 234,
+     "kind": "protective",
+     "change_low": null,
+     "change_typical": 24,
+     "change_high": null,
+     "unit": "% less skin ageing than occasional use",
+     "measure": "skin-surface ageing grade",
+     "plain": "In a 4.5-year study of 903 adults, daily sunscreen users showed 24% less skin ageing than occasional users.",
+     "ref": "23732711",
+     "representative": true,
+     "grade": "A"
+    }
+   ],
+   "beyond_last_study": "keeps protecting while you use it daily",
+   "if_stopped": "not studied",
+   "can_irritate": false,
+   "note": null,
+   "refs": [
+    "27749441",
+    "23732711"
+   ]
+  },
+  {
+   "id": "licorice-none",
+   "active": "Licorice",
+   "match": [
+    "licorice",
+    "liquorice",
+    "glycyrrhiza"
+   ],
+   "concern": "any",
+   "concern_key": "any",
+   "app_concerns": [],
+   "region": null,
+   "evidence_strength": "D",
+   "population": null,
+   "typical_concentration": null,
+   "studied_pct": null,
+   "checkpoints": [],
+   "beyond_last_study": null,
+   "if_stopped": null,
+   "can_irritate": false,
+   "note": "We found no peer-reviewed controlled study of this ingredient on its own for a cosmetic concern, so no timeline is shown.",
+   "refs": []
+  },
+  {
+   "id": "centella-none",
+   "active": "Centella",
+   "match": [
+    "centella",
+    "cica",
+    "madecassoside"
+   ],
+   "concern": "any",
+   "concern_key": "any",
+   "app_concerns": [],
+   "region": null,
+   "evidence_strength": "D",
+   "population": null,
+   "typical_concentration": null,
+   "studied_pct": null,
+   "checkpoints": [],
+   "beyond_last_study": null,
+   "if_stopped": null,
+   "can_irritate": false,
+   "note": "We found no peer-reviewed controlled study of this ingredient on its own for a cosmetic concern, so no timeline is shown.",
+   "refs": []
+  },
+  {
+   "id": "zinc-pca-none",
+   "active": "Zinc PCA",
+   "match": [
+    "zinc pca"
+   ],
+   "concern": "any",
+   "concern_key": "any",
+   "app_concerns": [],
+   "region": null,
+   "evidence_strength": "D",
+   "population": null,
+   "typical_concentration": null,
+   "studied_pct": null,
+   "checkpoints": [],
+   "beyond_last_study": null,
+   "if_stopped": null,
+   "can_irritate": false,
+   "note": "We found no peer-reviewed controlled study of this ingredient on its own for a cosmetic concern, so no timeline is shown.",
+   "refs": []
+  },
+  {
+   "id": "caffeine-none",
+   "active": "Caffeine",
+   "match": [
+    "caffeine"
+   ],
+   "concern": "any",
+   "concern_key": "any",
+   "app_concerns": [],
+   "region": null,
+   "evidence_strength": "D",
+   "population": null,
+   "typical_concentration": null,
+   "studied_pct": null,
+   "checkpoints": [],
+   "beyond_last_study": null,
+   "if_stopped": null,
+   "can_irritate": false,
+   "note": "We found no peer-reviewed controlled study of this ingredient on its own for a cosmetic concern, so no timeline is shown.",
+   "refs": []
+  },
+  {
+   "id": "saffron-none",
+   "active": "Saffron",
+   "match": [
+    "saffron"
+   ],
+   "concern": "any",
+   "concern_key": "any",
+   "app_concerns": [],
+   "region": null,
+   "evidence_strength": "D",
+   "population": null,
+   "typical_concentration": null,
+   "studied_pct": null,
+   "checkpoints": [],
+   "beyond_last_study": null,
+   "if_stopped": null,
+   "can_irritate": false,
+   "note": "We found no peer-reviewed controlled study of this ingredient on its own for a cosmetic concern, so no timeline is shown.",
+   "refs": []
+  },
+  {
+   "id": "turmeric-none",
+   "active": "Turmeric",
+   "match": [
+    "turmeric",
+    "curcum"
+   ],
+   "concern": "any",
+   "concern_key": "any",
+   "app_concerns": [],
+   "region": null,
+   "evidence_strength": "D",
+   "population": null,
+   "typical_concentration": null,
+   "studied_pct": null,
+   "checkpoints": [],
+   "beyond_last_study": null,
+   "if_stopped": null,
+   "can_irritate": false,
+   "note": "We found no peer-reviewed controlled study of this ingredient on its own for a cosmetic concern, so no timeline is shown.",
+   "refs": []
+  }
+ ],
+ "refs": {
+  "12100180": {
+   "pmid": "12100180",
+   "doi": "10.1046/j.1365-2133.2002.04834.x",
+   "title": "The effect of niacinamide on reducing cutaneous pigmentation and suppression of melanosome transfer",
+   "journal": "Br J Dermatol",
+   "year": 2002,
+   "first_author": "Hakozaki et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "randomised, vehicle-controlled (n=18 paired; n=120 parallel)",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/12100180/",
+   "study_weeks": 8
+  },
+  "16766489": {
+   "pmid": "16766489",
+   "doi": "10.1080/14764170600717704",
+   "title": "The effect of 2% niacinamide on facial sebum production",
+   "journal": "J Cosmet Laser Ther",
+   "year": 2006,
+   "first_author": "Draelos et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "randomised, placebo-controlled (n=100) and split-face (n=30)",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/16766489/",
+   "study_weeks": 6
+  },
+  "16029679": {
+   "pmid": "16029679",
+   "doi": "10.1111/j.1524-4725.2005.31732",
+   "title": "Niacinamide: A B vitamin that improves aging facial skin appearance",
+   "journal": "Dermatol Surg",
+   "year": 2005,
+   "first_author": "Bissett et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "randomised, double-blind, split-face, vehicle-controlled",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/16029679/",
+   "study_weeks": 12
+  },
+  "24033822": {
+   "pmid": "24033822",
+   "doi": "10.1111/srt.12107",
+   "title": "Reduction in facial hyperpigmentation after treatment with a combination of topical niacinamide and tranexamic acid: a randomized, double-blind, vehicle-controlled trial",
+   "journal": "Skin Res Technol",
+   "year": 2014,
+   "first_author": "Lee et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "randomised, double-blind, vehicle-controlled",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/24033822/",
+   "study_weeks": 8
+  },
+  "31141852": {
+   "pmid": "31141852",
+   "doi": null,
+   "title": "Effect of a Tranexamic Acid, Kojic Acid, and Niacinamide Containing Serum on Facial Dyschromia: A Clinical Evaluation",
+   "journal": "J Drugs Dermatol",
+   "year": 2019,
+   "first_author": "Desai et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "single-product clinical study (no vehicle arm reported)",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/31141852/",
+   "study_weeks": 12
+  },
+  "40923777": {
+   "pmid": "40923777",
+   "doi": "10.1111/jocd.70428",
+   "title": "Randomized Clinical Trial on the Efficacy of Oral Tranexamic Acid Versus Topical Tranexamic Acid in Treatment of Melasma",
+   "journal": "J Cosmet Dermatol",
+   "year": 2025,
+   "first_author": "Heidary et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "randomised, oral vs topical (no vehicle arm)",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/40923777/",
+   "study_weeks": 12
+  },
+  "39943675": {
+   "pmid": "39943675",
+   "doi": "10.1111/jocd.70017",
+   "title": "Efficacy and Safety of a Topical Formulation Containing Trihydroxybenzoic Acid Glucoside and α-Arbutin, Applied Along With a Sunscreen: A Noncomparative, Prospective, Interventional Study in Indian Females With Facial Melasma or Dark Spots",
+   "journal": "J Cosmet Dermatol",
+   "year": 2025,
+   "first_author": "Gabhane et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "open-label, single-arm, no control",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/39943675/",
+   "study_weeks": 13
+  },
+  "10522500": {
+   "pmid": "10522500",
+   "doi": "10.1001/archotol.125.10.1091",
+   "title": "Use of topical ascorbic acid and its effects on photodamaged skin topography",
+   "journal": "Arch Otolaryngol Head Neck Surg",
+   "year": 1999,
+   "first_author": "Traikovich",
+   "funder": "not stated in the PubMed record",
+   "design": "randomised, double-blind, split-face, vehicle-controlled",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/10522500/",
+   "study_weeks": 12
+  },
+  "38564380": {
+   "pmid": "38564380",
+   "doi": "10.36849/JDD.8124",
+   "title": "Efficacy and Tolerability of Topical 0.1% Stabilized Bioactive Retinol for Photoaging: A Vehicle-Controlled Integrated Analysis",
+   "journal": "J Drugs Dermatol",
+   "year": 2024,
+   "first_author": "Farris et al.",
+   "funder": "industry-funded per the team's source list; not stated in the PubMed record",
+   "design": "pooled analysis of 6 vehicle-controlled studies",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/38564380/",
+   "study_weeks": 12
+  },
+  "25738849": {
+   "pmid": "25738849",
+   "doi": null,
+   "title": "One-year topical stabilized retinol treatment improves photodamaged skin in a double-blind, vehicle-controlled trial",
+   "journal": "J Drugs Dermatol",
+   "year": 2015,
+   "first_author": "Randhawa et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "double-blind, vehicle-controlled",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/25738849/",
+   "study_weeks": 52
+  },
+  "29947134": {
+   "pmid": "29947134",
+   "doi": "10.1111/bjd.16918",
+   "title": "Prospective, randomized, double-blind assessment of topical bakuchiol and retinol for facial photoageing",
+   "journal": "Br J Dermatol",
+   "year": 2019,
+   "first_author": "Dhaliwal et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "randomised, double-blind, active comparison (retinol), no vehicle",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/29947134/",
+   "study_weeks": 12
+  },
+  "9598014": {
+   "pmid": "9598014",
+   "doi": "10.1111/j.1524-4725.1998.tb04209.x",
+   "title": "A double-blind randomized clinical trial on the effectiveness of a daily glycolic acid 5% formulation in the treatment of photoaging",
+   "journal": "Dermatol Surg",
+   "year": 1998,
+   "first_author": "Thibault et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "randomised, double-blind, placebo-controlled",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/9598014/",
+   "study_weeks": 13
+  },
+  "8651713": {
+   "pmid": "8651713",
+   "doi": null,
+   "title": "Topical 8% glycolic acid and 8% L-lactic acid creams for the treatment of photodamaged skin. A double-blind vehicle-controlled clinical trial",
+   "journal": "Arch Dermatol",
+   "year": 1996,
+   "first_author": "Stiller et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "randomised, double-blind, vehicle-controlled",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/8651713/",
+   "study_weeks": 22
+  },
+  "32356369": {
+   "pmid": "32356369",
+   "doi": "10.1002/14651858.CD011368.pub2",
+   "title": "Topical azelaic acid, salicylic acid, nicotinamide, sulphur, zinc and fruit acid (alpha-hydroxy acid) for acne",
+   "journal": "Cochrane Database Syst Rev",
+   "year": 2020,
+   "first_author": "Liu et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "Cochrane systematic review (49 trials)",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/32356369/",
+   "study_weeks": 156
+  },
+  "9829446": {
+   "pmid": "9829446",
+   "doi": "10.1016/s0149-2918(98)80076-3",
+   "title": "Azelaic acid 20% cream in the treatment of facial hyperpigmentation in darker-skinned patients",
+   "journal": "Clin Ther",
+   "year": 1998,
+   "first_author": "Lowe et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "randomised, double-masked, vehicle-controlled",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/9829446/",
+   "study_weeks": 24
+  },
+  "17314442": {
+   "pmid": "17314442",
+   "doi": "10.4103/0378-6323.30646",
+   "title": "The efficacy of 5% topical tea tree oil gel in mild to moderate acne vulgaris: a randomized, double-blind placebo-controlled study",
+   "journal": "Indian J Dermatol Venereol Leprol",
+   "year": 2007,
+   "first_author": "Enshaieh et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "randomised, double-blind, placebo-controlled",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/17314442/",
+   "study_weeks": 6.4
+  },
+  "22052267": {
+   "pmid": "22052267",
+   "doi": null,
+   "title": "Efficacy of cream-based novel formulations of hyaluronic acid of different molecular weights in anti-wrinkle treatment",
+   "journal": "J Drugs Dermatol",
+   "year": 2011,
+   "first_author": "Pavicic et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "randomised, split-face, vehicle-controlled",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/22052267/",
+   "study_weeks": 8.6
+  },
+  "34619676": {
+   "pmid": "34619676",
+   "doi": "10.1159/000520009",
+   "title": "A Biomimetic Combination of Actives Enhances Skin Hydration and Barrier Function via Modulation of Gene Expression: Results of Two Double-Blind, Vehicle-Controlled Clinical Studies",
+   "journal": "Skin Pharmacol Physiol",
+   "year": 2022,
+   "first_author": "Altgilbers et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "double-blind, vehicle-controlled (forearms)",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/34619676/",
+   "study_weeks": 2
+  },
+  "18492182": {
+   "pmid": "18492182",
+   "doi": "10.1111/j.1467-2494.2005.00261.x",
+   "title": "Topical palmitoyl pentapeptide provides improvement in photoaged human facial skin",
+   "journal": "Int J Cosmet Sci",
+   "year": 2005,
+   "first_author": "Robinson et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "randomised, double-blind, split-face, placebo-controlled",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/18492182/",
+   "study_weeks": 12
+  },
+  "23732711": {
+   "pmid": "23732711",
+   "doi": "10.7326/0003-4819-158-11-201306040-00002",
+   "title": "Sunscreen and prevention of skin aging: a randomized trial",
+   "journal": "Ann Intern Med",
+   "year": 2013,
+   "first_author": "Hughes et al.",
+   "funder": "National Health and Medical Research Council of Australia (public)",
+   "design": "randomised, community-based",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/23732711/",
+   "study_weeks": 234
+  },
+  "27749441": {
+   "pmid": "27749441",
+   "doi": "10.1097/DSS.0000000000000879",
+   "title": "Daily Use of a Facial Broad Spectrum Sunscreen Over One-Year Significantly Improves Clinical Evaluation of Photoaging",
+   "journal": "Dermatol Surg",
+   "year": 2016,
+   "first_author": "Randhawa et al.",
+   "funder": "not stated in the PubMed record",
+   "design": "open-label, single-arm, no control",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/27749441/",
+   "study_weeks": 52
+  }
+ }
+}
