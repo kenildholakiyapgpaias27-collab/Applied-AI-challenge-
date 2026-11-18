@@ -5410,44 +5410,77 @@ const AAINA_EMBEDDINGS=null;
   var BUDGET_VALUES = [500, 1000, 2000, null]; // null = no limit
   var CONCERN_VALUES = []; // filled on first run from PROBLEMS
 
-  // The ONLY categories Aaina's catalogue carries. Anything outside this
-  // list is "out of scope" — the chat must say so, not silently show a
-  // skincare plan.
-  var IN_SCOPE_CATEGORIES = [
-    "Cleanser","Toner","Serum","Moisturiser","Sunscreen","Face oil",
-    "Mask","Eye cream","Lip balm","Foundation","Concealer",
-    "Compact powder","BB / CC cream"
+  // The 19 categories the catalogue actually carries.
+  var ALL_CATEGORIES = [
+    "BB / CC cream","Blush","Cleanser","Compact powder","Concealer",
+    "Exfoliant","Eye cream","Face mask","Face oil","Foundation",
+    "Kajal / eyeliner","Lip care","Lipstick","Moisturiser","Primer",
+    "Serum","Spot treatment","Sunscreen","Toner"
   ];
 
-  // Common out-of-scope asks that would trip up a vague LLM:
-  // if the user's message contains any of these words and no in-scope
-  // category, we decline in chat with a friendly suggestion.
-  var OUT_OF_SCOPE_PATTERNS = [
-    /\beye ?liner/i, /\bmascara/i, /\blipstick/i, /\blip liner/i, /\blip gloss/i,
-    /\bperfume/i, /\bfragrance\b(?!-free)/i, /\bdeodorant/i, /\bcologne/i,
-    /\bshampoo/i, /\bconditioner\b/i, /\bhair\s+(oil|serum|mask|colou?r|dye|gel|spray)/i,
-    /\bbody\s+(lotion|wash|butter|oil)/i, /\bhand\s+(cream|wash|sanitiz)/i,
-    /\bnail\s+(polish|paint)/i, /\bblush/i, /\bbronzer/i, /\bhighlighter/i,
-    /\beye\s*shadow/i, /\bbrow\s+(pencil|gel)/i, /\bsetting\s+(spray|powder)/i,
-    /\bfoot\s+cream/i, /\btoothpaste/i, /\brazor/i, /\bshaving/i
+  // Map common user words -> the exact category string in the catalogue.
+  // Ordered specific -> generic (first match wins).
+  var CATEGORY_SYNONYMS = [
+    [/\bkajal/i,                         "Kajal / eyeliner"],
+    [/\beye ?liner/i,                    "Kajal / eyeliner"],
+    [/\blip ?stick/i,                    "Lipstick"],
+    [/\blip (balm|care|gloss|oil)/i,     "Lip care"],
+    [/\bblush/i,                         "Blush"],
+    [/\bprimer/i,                        "Primer"],
+    [/\bcompact/i,                       "Compact powder"],
+    [/\bconcealer/i,                     "Concealer"],
+    [/\bfoundation/i,                    "Foundation"],
+    [/\bbb[\s\-]?cc|\bbb[\s\-]?cream|\bcc[\s\-]?cream/i, "BB / CC cream"],
+    [/\bsun ?screen|\bspf\b|sunblock/i,  "Sunscreen"],
+    [/\bexfoliant|\bexfoliat|\bpeel\b|\bscrub\b|\baha\b|\bbha\b/i, "Exfoliant"],
+    [/\bface mask|\bsheet mask|\bclay mask|\bmask\b/i, "Face mask"],
+    [/\bspot treat|\bspot cream|\bpimple (gel|cream|patch)/i, "Spot treatment"],
+    [/\bface ?oil/i,                     "Face oil"],
+    [/\beye (cream|gel|serum)/i,         "Eye cream"],
+    [/\bserum/i,                         "Serum"],
+    [/\btoner/i,                         "Toner"],
+    [/\bmoisturi[sz]er|\bday cream|\bnight cream|\bface cream\b/i, "Moisturiser"],
+    [/\bcleanser|\bface ?wash/i,         "Cleanser"]
   ];
 
-  // Map a plain-English category word in the user's message to the right
-  // app "goal" bucket so the plan page shows the right section.
-  function detectGoalFromText(text){
-    var t = (text || "").toLowerCase();
-    if (/\bsunscreen|\bspf\b|sunblock/.test(t)) return "sunscreen";
-    if (/\bfoundation|\bconcealer|\bcompact|\bbb\s*cream|\bcc\s*cream|\bbase (make ?up|makeup)/.test(t)) return "makeup";
-    // every other in-scope word maps to the routine (3-step skincare) flow
-    if (/\bcleanser|\bface ?wash|\btoner|\bserum|\bmoisturi[sz]er|\bcream\b|\bface oil|\bmask|\beye cream|\blip balm/.test(t)) return "routine";
-    return null; // unknown — let the model decide
+  // Returns the catalogue category string the user asked for, or null.
+  function detectCategoryFromText(text){
+    var t = text || "";
+    for (var i = 0; i < CATEGORY_SYNONYMS.length; i++) {
+      if (CATEGORY_SYNONYMS[i][0].test(t)) return CATEGORY_SYNONYMS[i][1];
+    }
+    return null;
   }
+
+  // Things Aaina truly doesn't sell. Only used to decline — and only when
+  // the message doesn't also name an in-scope category.
+  var OUT_OF_SCOPE_PATTERNS = [
+    /\bperfume\b|\bcologne\b/i, /\bdeodorant\b/i,
+    /\bshampoo\b/i, /\bconditioner\b/i,
+    /\bhair\s+(oil|serum|mask|colou?r|dye|gel|spray)/i,
+    /\bbody\s+(lotion|wash|butter|oil)/i,
+    /\bhand\s+(cream|wash|sanitiz)/i,
+    /\bnail\s+(polish|paint)/i,
+    /\bbronzer|highlighter|eye\s*shadow|mascara|brow\s+(pencil|gel)|setting\s+(spray|powder)/i,
+    /\btoothpaste|\brazor|\bshaving/i
+  ];
   function isOutOfScope(text){
     if (!text) return false;
     for (var i = 0; i < OUT_OF_SCOPE_PATTERNS.length; i++) {
       if (OUT_OF_SCOPE_PATTERNS[i].test(text)) return true;
     }
     return false;
+  }
+
+  // Parse a budget cap from the user's text: "under 500", "below 1000",
+  // "1k", "₹2000", "less than 300".
+  function detectBudgetFromText(text){
+    var t = (text || "").toLowerCase().replace(/[,₹]/g,"");
+    var m = t.match(/(?:under|below|less than|upto|up to|<|max|maximum)\s*(?:rs\.?|inr)?\s*(\d{2,5})(k?)/);
+    if (m) return +m[1] * (m[2] === "k" ? 1000 : 1);
+    m = t.match(/(\d{2,5})(k?)\s*(?:rs\.?|rupees?|inr|ke andar|tak)\b/);
+    if (m) return +m[1] * (m[2] === "k" ? 1000 : 1);
+    return null;
   }
 
   function allowedConcerns(){
@@ -5494,7 +5527,14 @@ const AAINA_EMBEDDINGS=null;
 '.aa-typing{display:inline-flex;gap:4px;padding:10px 14px}' +
 '.aa-typing span{width:6px;height:6px;border-radius:50%;background:#bbb;animation:aaDot 1.2s infinite ease-in-out}' +
 '.aa-typing span:nth-child(2){animation-delay:.2s}.aa-typing span:nth-child(3){animation-delay:.4s}' +
-'@keyframes aaDot{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}';
+'@keyframes aaDot{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}' +
+'.aa-cards{display:flex;flex-direction:column;gap:8px;margin:8px 0}' +
+'.aa-card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:12px 14px;font:400 13px/1.4 system-ui,sans-serif;color:#222}' +
+'.aa-card-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-weight:600;font-size:14px}' +
+'.aa-card-top span{font-weight:600;color:#6a4a2a;white-space:nowrap}' +
+'.aa-card-meta{color:#666;font-size:11px;margin-top:3px;text-transform:capitalize}' +
+'.aa-card-actives{color:#6a4a2a;font-size:11px;margin-top:4px;font-style:italic}' +
+'.aa-card-spons{color:#888;font-size:10px;margin-top:4px;letter-spacing:.5px;text-transform:uppercase}';
 
   // -------- DOM bootstrap --------
   function el(tag, cls, html){ var e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; }
@@ -5629,51 +5669,137 @@ const AAINA_EMBEDDINGS=null;
     });
   }
 
-  // -------- main turn: user text → RAG candidates → extraction → engine → plan --------
+  // -------- rendering: product cards inline in the chat --------
+  function renderProductCards(products, header){
+    if (header) botSay(header);
+    if (!products.length) return;
+    var wrap = el("div","aa-cards");
+    products.forEach(function(p){
+      var card = el("div","aa-card");
+      var spf   = p.spf ? ' · SPF ' + p.spf : '';
+      var fin   = p.fin ? ' · ' + p.fin : '';
+      card.innerHTML =
+        '<div class="aa-card-top"><b>' + escapeHtml(p.n) + '</b><span>₹' + (p.p == null ? "?" : p.p) + '</span></div>' +
+        '<div class="aa-card-meta">' + escapeHtml(p.b || "") + ' · ' + escapeHtml(p.c) + (p.sz ? ' · ' + escapeHtml(p.sz) : '') + spf + fin + '</div>' +
+        (p.a ? '<div class="aa-card-actives">' + escapeHtml(p.a) + '</div>' : '') +
+        (p.sp ? '<div class="aa-card-spons">Sponsored</div>' : '');
+      wrap.appendChild(card);
+    });
+    msgs().appendChild(wrap); scroll();
+  }
+
+  // -------- direct catalogue search (bypasses the quiz plan) --------
+  // Filter the real catalogue by whatever the user asked for. No concern /
+  // pregnancy / city defaults are forced. Missing = no constraint.
+  function directSearch(opts){
+    var cat     = opts.category;              // exact catalogue category string, or null
+    var maxP    = opts.maxPrice;              // number or null
+    var skin    = opts.skin;                  // oily|dry|normal|combination|null
+    var concerns= opts.concerns || [];        // array of concern keys
+    var avoidF  = !!opts.avoidFrag;
+    var avoidE  = !!opts.avoidEO;
+    var limit   = opts.limit || 6;
+
+    var candidates = CAT.slice();
+    if (cat)   candidates = candidates.filter(function(p){ return p.c === cat; });
+    if (maxP)  candidates = candidates.filter(function(p){ return p.p != null && p.p <= maxP; });
+    if (skin)  candidates = candidates.filter(function(p){ return !p.st || !p.st.length || p.st.indexOf(skin) !== -1; });
+    if (avoidF)candidates = candidates.filter(function(p){ return !p.frag && !p.eo; });
+    if (avoidE)candidates = candidates.filter(function(p){ return !p.eo; });
+
+    // Rank: concern matches first, then non-sponsored, then price ascending.
+    candidates.sort(function(a,b){
+      var ah = concerns.reduce(function(n,c){ return n + ((a.con||[]).indexOf(c) !== -1 ? 1 : 0); }, 0);
+      var bh = concerns.reduce(function(n,c){ return n + ((b.con||[]).indexOf(c) !== -1 ? 1 : 0); }, 0);
+      if (ah !== bh) return bh - ah;
+      if (!!a.sp !== !!b.sp) return a.sp ? 1 : -1;
+      return (a.p || 0) - (b.p || 0);
+    });
+    return candidates.slice(0, limit);
+  }
+
+  // -------- main turn: user text → direct catalogue search (default)
+  //                                or extraction + plan (full consultation)
   function handleUserInput(text){
     meSay(text);
 
-    // Shortcut chips from a previous "no match" turn — act on them directly
-    // instead of making another LLM round-trip.
     var lower = (text || "").toLowerCase();
-    if (window.AAINA_NEAREST_PICK && /yes.*show|show.*that|yes,?\s*please|show it/.test(lower)) {
-      var pid = window.AAINA_NEAREST_PICK;
-      window.AAINA_NEAREST_PICK = null;
-      P.budget = null;             // relax the thing that was blocking
-      P.budgetChosen = true;
-      try {
-        if (!P.shelf) P.shelf = [];
-        P.shelf.push({ id: pid });
-      } catch(e){}
-      triggerPlan();
-      return;
-    }
-    if (/^raise.*budget|increase.*budget|budget up/.test(lower)) {
-      P.budget = null; P.budgetChosen = true;
-      window.AAINA_NEAREST_PICK = null;
-      triggerPlan();
+
+    // 1. Direct category search — the fast path, no LLM round-trip needed.
+    //    "eyeliner", "eyeliner under 500", "lipstick", "serum oily skin", etc.
+    var cat = detectCategoryFromText(text);
+    if (cat) {
+      var maxP = detectBudgetFromText(text);
+      var skin = null;
+      if (/\boily\b/.test(lower)) skin = "oily";
+      else if (/\bdry\b/.test(lower)) skin = "dry";
+      else if (/\bcombin/.test(lower)) skin = "combination";
+      else if (/\bnormal skin/.test(lower)) skin = "normal";
+      var avoidFrag = /no fragrance|fragrance[- ]free|without fragrance/.test(lower);
+      var avoidEO   = /no essential oil/.test(lower);
+
+      // Concern hints (best-effort, lowercased string match)
+      var cTerms = {
+        acne:"acne|pimple|breakout", pigmentation:"pigment|dark spot|melasma|marks",
+        dullness:"dull|glow", oiliness:"oily|oil control|shine",
+        pores:"pores", aging:"aging|wrinkle|fine line", redness:"redness|sensitive",
+        dehydration:"dehydrat|hydrat", "dark circles":"dark circle|eye bag"
+      };
+      var concerns = [];
+      for (var k in cTerms) {
+        if (new RegExp(cTerms[k]).test(lower)) concerns.push(k);
+      }
+
+      var hits = directSearch({ category: cat, maxPrice: maxP, skin: skin, concerns: concerns, avoidFrag: avoidFrag, avoidEO: avoidEO, limit: 6 });
+
+      var bits = [cat.toLowerCase()];
+      if (skin) bits.push("suits " + skin + " skin");
+      if (maxP) bits.push("under ₹" + maxP);
+      if (avoidFrag) bits.push("fragrance-free");
+      var brief = bits.join(", ");
+
+      if (hits.length) {
+        renderProductCards(hits, "Found " + hits.length + " " + (hits.length === 1 ? "match" : "matches") + " for " + brief + ":");
+      } else {
+        // Nothing in the exact slice — offer the closest alternative
+        var nearest = directSearch({ category: cat, limit: 3 });
+        if (nearest.length) {
+          renderProductCards(nearest, "No " + cat.toLowerCase() + " matches " + brief + " exactly. The closest I have in that category:");
+        } else {
+          botSay("I couldn’t find any " + cat.toLowerCase() + " in the catalogue.");
+        }
+      }
       return;
     }
 
-    // Guard 1: hard decline for anything the catalogue cannot deliver.
-    // Done in-chat so the user understands WHY we're not showing products,
-    // instead of being handed a confusing skincare plan.
-    if (isOutOfScope(text) && !detectGoalFromText(text)) {
-      botSay("Aaina's catalogue is skincare and base makeup only — we don’t carry that kind of product. I can suggest something for your skin or a foundation / concealer / sunscreen if that’s helpful.");
+    // 2. Hard decline only for things truly not in catalogue
+    if (isOutOfScope(text)) {
+      botSay("Aaina’s catalogue doesn’t carry that. We have 19 categories across skincare and makeup — cleansers, serums, moisturisers, sunscreens, masks, exfoliants, spot treatments, face oils, eye creams, lip care, foundations, concealers, compact powders, BB/CC creams, primers, blushes, lipsticks, kajal/eyeliner. Ask for any of those.");
       showChips([
-        "A cleanser under ₹500",
+        "Eyeliner under ₹500",
         "A moisturiser for oily skin",
         "A sunscreen for Mumbai",
-        "Foundation for medium-tan skin"
+        "Lipstick"
       ]);
       return;
     }
 
+    // 3. Shortcut chips from an earlier turn
+    if (window.AAINA_NEAREST_PICK && /yes.*show|show.*that|yes,?\s*please|show it/.test(lower)) {
+      var pid = window.AAINA_NEAREST_PICK;
+      window.AAINA_NEAREST_PICK = null;
+      P.budget = null; P.budgetChosen = true;
+      try { if (!P.shelf) P.shelf = []; P.shelf.push({ id: pid }); } catch(e){}
+      triggerPlan();
+      return;
+    }
+
+    // 4. No specific category named → fall through to full LLM consultation
+    //    (profile extraction → quiz-style 3-step plan).
     var stop = typing();
     var key = getKey();
     if (!key) { stop(); askForKey(function(){ handleUserInput(text); }); return; }
 
-    // Stash the text so triggerPlan can read the user's category hint
     try { window.AAINA_LAST_QUERY = text; } catch(e){}
 
     // Step 1: pull a semantic shortlist from the embedding index (if present).
