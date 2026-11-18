@@ -4957,7 +4957,8 @@ const AAINA_EMBEDDINGS=null;
   function allowedConcerns(){
     if (CONCERN_VALUES.length) return CONCERN_VALUES;
     try {
-      var P_ = window.PROBLEMS || {};
+      // PROBLEMS is a top-level const in app.js — same script block, so it's in scope.
+      var P_ = (typeof PROBLEMS !== "undefined") ? PROBLEMS : {};
       for (var k in P_) if (P_.hasOwnProperty(k) && !P_[k].goal) CONCERN_VALUES.push(k);
     } catch(e) {}
     return CONCERN_VALUES;
@@ -5197,38 +5198,30 @@ const AAINA_EMBEDDINGS=null;
   }
 
   // -------- profile application --------
+  // P, PROB, NAME, nameAsked, DONE and buildPlan are all declared at the top
+  // of the same <script> block (engine.js + app.js + voice.js are concatenated
+  // by build.py). They are in lexical scope here — not on window.
   function snapshotP(){
     try {
-      var P = window.P || {};
       return {
-        goal: P.goal || null,
-        gender: P.gender || null,
-        skin: P.skin || null,
-        concerns: P.concerns || [],
-        sensitive: !!P.sensitive,
-        avoidFrag: !!P.avoidFrag,
-        avoidEO: !!P.avoidEO,
-        noClog: !!P.noClog,
-        reactions: P.reactions || [],
-        pregnancy: P.pregnancy,
-        city: P.city || null,
-        state: P.state || null,
+        goal: P.goal || null, gender: P.gender || null, skin: P.skin || null,
+        concerns: P.concerns || [], sensitive: !!P.sensitive,
+        avoidFrag: !!P.avoidFrag, avoidEO: !!P.avoidEO, noClog: !!P.noClog,
+        reactions: P.reactions || [], pregnancy: P.pregnancy,
+        city: P.city || null, state: P.state || null,
         budget: P.budget === undefined ? null : P.budget,
-        tone: P.tone || null,
-        undertone: P.undertone || null
+        tone: P.tone || null, undertone: P.undertone || null
       };
     } catch(e) { return {}; }
   }
 
   function applyProfileUpdates(u){
     if (!u || typeof u !== "object") return;
-    var P = window.P; if (!P) return;
-    var DONE = window.DONE;
     var concerns = allowedConcerns();
 
-    if (GOAL_VALUES.indexOf(u.goal) !== -1) { P.goal = u.goal; DONE && DONE.add && DONE.add("about"); }
-    if (GENDER_VALUES.indexOf(u.gender) !== -1) { P.gender = u.gender; DONE && DONE.add && DONE.add("about"); }
-    if (SKIN_VALUES.indexOf(u.skin) !== -1) { P.skin = u.skin; P.skinConfirmed = true; DONE && DONE.add && DONE.add("skin"); }
+    if (GOAL_VALUES.indexOf(u.goal) !== -1)   { P.goal = u.goal;   DONE.add("about"); }
+    if (GENDER_VALUES.indexOf(u.gender) !== -1){ P.gender = u.gender; DONE.add("about"); }
+    if (SKIN_VALUES.indexOf(u.skin) !== -1)   { P.skin = u.skin; P.skinConfirmed = true; DONE.add("skin"); }
 
     if (Array.isArray(u.concerns)) {
       var picked = u.concerns.filter(function(k){ return concerns.indexOf(k) !== -1; }).slice(0,3);
@@ -5238,8 +5231,8 @@ const AAINA_EMBEDDINGS=null;
         if (u.concernSeverity && typeof u.concernSeverity === "object") {
           picked.forEach(function(k){ if (typeof u.concernSeverity[k] === "number") P.concernFU[k] = u.concernSeverity[k]; });
         }
-        DONE && DONE.add && DONE.add("concerns");
-        try { window.PROB = picked[0]; } catch(e){}
+        DONE.add("concerns");
+        PROB = picked[0]; // the primary concern buildPlan() reads
       }
     }
 
@@ -5250,55 +5243,69 @@ const AAINA_EMBEDDINGS=null;
 
     if (Array.isArray(u.reactions)) P.reactions = u.reactions.filter(function(x){ return typeof x === "string"; });
     if (typeof u.pregnancy === "boolean") P.pregnancy = u.pregnancy;
-    if (u.pregnancy === null) P.pregnancy = null;
 
     if (typeof u.city === "string" && u.city.trim()) {
       P.city = u.city.trim();
       if (typeof u.state === "string" && u.state.trim()) P.state = u.state.trim();
       if (typeof u.climate === "string") P.climate = u.climate;
-      DONE && DONE.add && DONE.add("location");
+      DONE.add("location");
     }
 
     if (BUDGET_VALUES.indexOf(u.budget === undefined ? null : u.budget) !== -1) {
       P.budget = u.budget;
       P.budgetChosen = true;
-      DONE && DONE.add && DONE.add("budget");
+      DONE.add("budget");
     }
 
-    // safety step is implied once we have the three safety toggles + pregnancy
-    if (DONE && (P.avoidFrag !== null && P.avoidEO !== undefined) && P.pregnancy !== undefined) {
-      DONE.add && DONE.add("avoid");
-      DONE.add && DONE.add("safety");
-      DONE.add && DONE.add("preg");
+    // safety step is implied once we have the toggles
+    DONE.add("avoid"); DONE.add("safety"); DONE.add("preg");
+  }
+
+  // Default main concern when the user didn't name one — picks something the
+  // engine knows about, so buildPlan() never crashes. "acne" is a safe pick:
+  // it's the most common, and the shortlist for it includes universal
+  // staples (cleanser, light moisturiser, sunscreen) that make sense as a
+  // starter plan when the user said nothing specific.
+  var DEFAULT_PROB = "acne";
+
+  function enterAdvisorView(){
+    // Simulate what the welcome-screen name form does when the user submits.
+    // Without this, buildPlan() has nowhere to render and PROB/P are untouched.
+    if (!NAME) { NAME = "Guest"; }
+    nameAsked = true;
+    var w = document.getElementById("welcome");
+    var a = document.getElementById("advisor");
+    if (w) w.hidden = true;
+    if (a) a.hidden = false;
+    var thread = document.getElementById("thread");
+    if (thread && !thread.children.length) {
+      // thread must exist and be empty when buildPlan() renders
     }
   }
 
   function triggerPlan(){
     try {
-      var P = window.P;
-      // No-constraint default: unset fields are treated as "no constraint"
-      // (guardrails doc §7). We do NOT ask about pregnancy / fragrance /
-      // reactions unless the plan would include something that depends on
-      // them; the engine handles the default-safe path.
+      // No-constraint defaults (guardrails §7): unset fields = "no constraint"
       if (P.pregnancy === undefined || P.pregnancy === null) P.pregnancy = false;
-      if (P.budget === undefined) P.budget = null;             // null = no limit
-      if (!P.goal) P.goal = "routine";                         // sensible default goal
+      if (P.budget === undefined) P.budget = null;
+      if (!P.goal) P.goal = "routine";
       if (P.avoidFrag === null || P.avoidFrag === undefined) P.avoidFrag = false;
       if (P.avoidEO === null || P.avoidEO === undefined) P.avoidEO = false;
       if (!P.reactions) P.reactions = [];
+      if (!P.concerns || !P.concerns.length) P.concerns = [DEFAULT_PROB];
+      if (!PROB || !PROBLEMS[PROB]) PROB = P.concerns[0];
+      if (!PROBLEMS[PROB]) PROB = DEFAULT_PROB;
 
-      if (typeof window.buildPlan === "function") {
-        window.buildPlan();
-        // bring the plan view into focus if hidden
-        var adv = document.getElementById("advisor");
-        if (adv && adv.hidden) adv.hidden = false;
-        var welcome = document.getElementById("welcome");
-        if (welcome) welcome.hidden = true;
-        close(); // close chat so the plan is visible
-      } else {
+      enterAdvisorView();
+
+      if (typeof buildPlan !== "function") {
         botSay("The plan engine hasn’t finished loading. Please try again in a moment.");
+        return;
       }
+      buildPlan();
+      close(); // close chat so the plan is visible
     } catch(e) {
+      console.error("[ask-aaina] triggerPlan failed:", e);
       botSay("Something went wrong building your plan. Please use the guided quiz.");
     }
   }
