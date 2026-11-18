@@ -909,6 +909,9 @@ body{background:#fcfbfa;color:var(--ink);font:16px/1.55 var(--body);margin:0}
 #advisor .ask .mic{width:50px;height:50px;padding:0;border-radius:999px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--ink)}
 /* catalogue results card: a page-like panel, not a chat bubble */
 .results{background:var(--surface);border:1px solid #ebe6df;border-radius:22px;padding:22px clamp(16px,3vw,32px) 24px;margin:8px 0 22px;box-shadow:0 6px 24px -14px rgba(120,84,40,.18);scroll-margin-top:12px}
+#thread.results-view>:not(.results){display:none}   /* results are the "Your plan" stage: nothing else shows until the customer goes back */
+.results .rback{appearance:none;border:1px solid #e0d6c6;background:#fbf8f3;color:#6b4a22;font:600 13px var(--body);padding:7px 14px;border-radius:999px;cursor:pointer;margin:0 0 14px}
+.results .rback:hover{background:#f5efe6}
 .results .rhead{cursor:pointer;outline-offset:4px}
 .results .rhead .eyebrow{display:block;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#8c5e28}
 .results .rhead h3{margin:4px 0 10px;font:600 clamp(22px,2.4vw,30px)/1.15 var(--display,Georgia,serif)}

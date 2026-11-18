@@ -909,6 +909,9 @@ body{background:#fcfbfa;color:var(--ink);font:16px/1.55 var(--body);margin:0}
 #advisor .ask .mic{width:50px;height:50px;padding:0;border-radius:999px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--ink)}
 /* catalogue results card: a page-like panel, not a chat bubble */
 .results{background:var(--surface);border:1px solid #ebe6df;border-radius:22px;padding:22px clamp(16px,3vw,32px) 24px;margin:8px 0 22px;box-shadow:0 6px 24px -14px rgba(120,84,40,.18);scroll-margin-top:12px}
+#thread.results-view>:not(.results){display:none}   /* results are the "Your plan" stage: nothing else shows until the customer goes back */
+.results .rback{appearance:none;border:1px solid #e0d6c6;background:#fbf8f3;color:#6b4a22;font:600 13px var(--body);padding:7px 14px;border-radius:999px;cursor:pointer;margin:0 0 14px}
+.results .rback:hover{background:#f5efe6}
 .results .rhead{cursor:pointer;outline-offset:4px}
 .results .rhead .eyebrow{display:block;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#8c5e28}
 .results .rhead h3{margin:4px 0 10px;font:600 clamp(22px,2.4vw,30px)/1.15 var(--display,Georgia,serif)}
@@ -2790,7 +2793,7 @@ function newBlock(step){
     el.classList.add("past")}
   for(const c of carry){c.classList.add("carried");b.appendChild(c)}
   thread.appendChild(b);CUR_BLOCK=b;thread.scrollTop=0;return b}
-function botSay(html,kind=""){const r=document.createElement("div");r.className="row";r.innerHTML=avatar()+`<div class="say ${kind}">${html}</div>`;host().appendChild(r);focusEl(r);return r}
+function botSay(html,kind=""){exitResultsView();const r=document.createElement("div");r.className="row";r.innerHTML=avatar()+`<div class="say ${kind}">${html}</div>`;host().appendChild(r);focusEl(r);return r}
 function meSay(text){const r=document.createElement("div");r.className="row me";const s=document.createElement("div");s.className="say";s.textContent=text;r.appendChild(s);host().appendChild(r)}
 function focusEl(el){requestAnimationFrame(()=>el.scrollIntoView({block:"nearest",behavior:"smooth"}))}
 function lockAll(){thread.querySelectorAll(".q:not(.answered)").forEach(q=>{q.classList.add("answered");q.querySelectorAll("button,select,input").forEach(x=>{if(!x.classList.contains("backcta"))x.disabled=true})})}
@@ -2799,13 +2802,14 @@ function progress(){const SS=STEPS.filter(ASKED),d=SS.filter(k=>DONE.has(k)).len
   $("eta").textContent=!nameAsked?"Consultation":left===0?"Your plan is ready":left===1?"Last step":left<=3?"Almost there":`${left} questions left`}
 
 function next(){
+  exitResultsView();
   if(!nameAsked){progress();askName();return}
   armExitTrap();
   stepNow=STEPS.find(k=>!DONE.has(k))||null;renderSide();updateTitle();
   if(stepNow)ask(stepNow);else buildPlan();
 }
 function ask(key){
-  lockAll();const s=STEP[key],Q=s.q();
+  exitResultsView();lockAll();const s=STEP[key],Q=s.q();
   const remaining=STEPS.filter(k=>!DONE.has(k)&&ASKED(k));const idx=Math.max(1,remaining.indexOf(key)+1),total=remaining.length||1;   // count what's actually left to answer, not the original total — skipped steps shouldn't make this still look like a 7-question quiz
   const box=document.createElement("div");box.className="q";box.dataset.step=key;
   box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">Q${idx} of ${total} · ${esc(s.title)}${total-idx===0?" · last one":""}</span><p class="qgreet" hidden></p><h3 class="qtitle">${esc(Q.ask)}</h3>${Q.help?`<p class="qhelp">${fmt(Q.help)}</p>`:""}</div></div>`;
@@ -3682,12 +3686,12 @@ const SHORT={about:"About you",undertone:"Undertone",utHelp:"Undertone help",pre
 function renderSide(){
   const j=$("journey");if(!j)return;j.innerHTML="";
   const ol=document.createElement("ol");
-  STEPS.forEach((k,i)=>{const done=DONE.has(k),now=k===stepNow;const li=document.createElement("li");li.className="jn"+(done?" done":"")+(now?" now":"");
+  STEPS.forEach((k,i)=>{const done=DONE.has(k),now=k===stepNow&&!thread.classList.contains("results-view");const li=document.createElement("li");li.className="jn"+(done?" done":"")+(now?" now":"");
     const b=document.createElement("button");b.type="button";b.disabled=!done;b.title=done?`Change: ${STEP[k].show()}`:SHORT[k];
     b.innerHTML=`<span class="jc">${done?'<svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>':"Q"+(i+1)}</span><span class="jl">${esc(SHORT[k])}</span>`;
     b.setAttribute("aria-label",`Q${i+1} ${SHORT[k]}${done?", done, tap to change":now?", current question":""}`);
     if(done)b.onclick=()=>editStep(k);li.appendChild(b);ol.appendChild(li)});
-  const fin=document.createElement("li");fin.className="jn final"+(STEPS.every(k=>DONE.has(k))?" done now":"");fin.innerHTML=`<span class="jbtn"><span class="jc"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" fill="currentColor"/></svg></span><span class="jl">Your plan</span></span>`;ol.appendChild(fin);
+  const fin=document.createElement("li");fin.className="jn final"+(STEPS.every(k=>DONE.has(k))?" done now":thread.classList.contains("results-view")?" now":"");fin.innerHTML=`<span class="jbtn"><span class="jc"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" fill="currentColor"/></svg></span><span class="jl">Your plan</span></span>`;ol.appendChild(fin);
   j.appendChild(ol);
   const cur=j.querySelector(".now");if(cur)requestAnimationFrame(()=>cur.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}));
   progress();
@@ -4615,14 +4619,18 @@ function showResults({title,chips=[],answer="",items=[],more=0,notes=[],doctor=f
   thread.querySelectorAll(".results:not(.old)").forEach(r=>r.classList.add("old"));
   const sec=document.createElement("section");sec.className="results";sec.setAttribute("aria-label","Catalogue results");
   const cards=items.map(({p,why,pick})=>`<article class="rcard${pick?" pick":""}"><div class="rtop"><span>${esc(p.c)}</span><b>${rupee(p.p)}</b></div><h4>${esc(p.n)}</h4><p class="rmeta">${esc(p.b||"")}${p.sz?` · ${esc(p.sz)}`:""}</p>${p.a?`<p class="ract">${esc(p.a)}</p>`:""}${why&&why.length?`<ul class="rwhy">${why.map(w=>`<li>${esc(w)}</li>`).join("")}</ul>`:""}</article>`).join("");
-  sec.innerHTML=`<header class="rhead" tabindex="0" role="button" aria-label="Show or hide these results"><span class="eyebrow">✦ From our catalogue</span><h3>${esc(title)}</h3>${chips.length?`<div class="rchips">${chips.map(c=>`<span>${esc(c)}</span>`).join("")}</div>`:""}</header>
+  const hasQ=!!thread.querySelector(".q:not(.answered)"),backLabel=hasQ?"Back to my questions":PL?"Back to my plan":"Back";
+  sec.innerHTML=`<button type="button" class="rback" data-back>← ${backLabel}</button><header class="rhead" tabindex="0" role="button" aria-label="Show or hide these results"><span class="eyebrow">✦ From our catalogue</span><h3>${esc(title)}</h3>${chips.length?`<div class="rchips">${chips.map(c=>`<span>${esc(c)}</span>`).join("")}</div>`:""}</header>
     <div class="rbody">${answer?`<p class="ranswer">${answer}</p>`:""}${doctor?`<p class="ranswer rdoc">This sounds like something a dermatologist should look at; I can't tell what's causing it.</p>`:""}
     ${items.length?`<div class="rgrid">${cards}</div>`:""}${more>0?`<p class="small muted">${more} more ${more>1?"matches":"match"}. Add a detail to narrow it down, such as a lower budget or your skin type.</p>`:""}
     ${notes.map(n=>`<p class="small muted">${n}</p>`).join("")}</div>`;
   const hd=sec.querySelector(".rhead"),tog=()=>{thread.querySelectorAll(".results").forEach(r=>{if(r!==sec)r.classList.add("old")});sec.classList.toggle("old")};
   hd.onclick=tog;hd.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();tog()}};
-  host().appendChild(sec);requestAnimationFrame(()=>sec.scrollIntoView({block:"start",behavior:"smooth"}));
+  sec.querySelector("[data-back]").onclick=()=>{exitResultsView();refocus();thread.querySelector(".plan:not(.old)")?.scrollIntoView({block:"start"})};
+  thread.appendChild(sec);thread.classList.add("results-view");renderSide();   // results are the "Your plan" stage: the stepper moves there and the quiz steps out of the way
+  thread.scrollTop=0;requestAnimationFrame(()=>{thread.scrollTop=0;sec.scrollIntoView({block:"start",behavior:"smooth"})});
 }
+function exitResultsView(){if(!thread.classList.contains("results-view"))return;thread.classList.remove("results-view");renderSide()}
 const passNote=()=>`${DONE.has("safety")?"Everything shown passes all your checks":"Everything shown passes the checks I can run so far"}; that is decided by our own rules, not by the assistant's wording.`;
 const colourNote=t=>{const m=COLOUR_RE.exec(t);return m?`Our catalogue doesn't list shade colours, so I can't filter by <b>${esc(m[1].toLowerCase())}</b>. Check the shades in store or in the try-on.`:null};
 async function answerQuestion(t){
