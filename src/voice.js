@@ -266,6 +266,28 @@
   function handleUserInput(text){
     meSay(text);
 
+    // Shortcut chips from a previous "no match" turn — act on them directly
+    // instead of making another LLM round-trip.
+    var lower = (text || "").toLowerCase();
+    if (window.AAINA_NEAREST_PICK && /yes.*show|show.*that|yes,?\s*please|show it/.test(lower)) {
+      var pid = window.AAINA_NEAREST_PICK;
+      window.AAINA_NEAREST_PICK = null;
+      P.budget = null;             // relax the thing that was blocking
+      P.budgetChosen = true;
+      try {
+        if (!P.shelf) P.shelf = [];
+        P.shelf.push({ id: pid });
+      } catch(e){}
+      triggerPlan();
+      return;
+    }
+    if (/^raise.*budget|increase.*budget|budget up/.test(lower)) {
+      P.budget = null; P.budgetChosen = true;
+      window.AAINA_NEAREST_PICK = null;
+      triggerPlan();
+      return;
+    }
+
     // Guard 1: hard decline for anything the catalogue cannot deliver.
     // Done in-chat so the user understands WHY we're not showing products,
     // instead of being handed a confusing skincare plan.
@@ -440,6 +462,69 @@
     }
   }
 
+  // Dry-run the engine's primary slot to see if any product survives the
+  // current P's constraints. Returns:
+  //   { ok: true, count: n }                              -> plan will have products
+  //   { ok: false, reason: "...", nearest: {product} }    -> no match, stay in chat
+  function dryRunPrimary(){
+    try {
+      if (!PROBLEMS[PROB] || !PROBLEMS[PROB].plan) return { ok: true, count: 0 };
+      var primary = PROBLEMS[PROB].plan.find(function(s){ return s.primary; }) || PROBLEMS[PROB].plan[0];
+      if (!primary || !primary.cats) return { ok: true, count: 0 };
+
+      var inCat = CAT.filter(function(p){ return primary.cats.indexOf(p.c) !== -1 && !p.sp; });
+      if (!inCat.length) return { ok: false, reason: "no_category", nearest: null };
+
+      var passing = inCat.filter(function(p){ return check(p).ok; });
+      if (passing.length) return { ok: true, count: passing.length };
+
+      // Nothing passes. Diagnose the single most common blocker so we can
+      // tell the user WHY and offer a smart relaxation.
+      var reasons = {};
+      inCat.forEach(function(p){
+        var r = check(p);
+        (r.blocks || []).forEach(function(b){ reasons[b[0]] = (reasons[b[0]] || 0) + 1; });
+      });
+      var top = Object.keys(reasons).sort(function(a,b){ return reasons[b] - reasons[a]; })[0];
+
+      // "Closest alternative" = the cheapest product in the category that
+      // ONLY fails the budget check (C5). This is the most common user
+      // mistake: asked for ₹300 when the cheapest is ₹419.
+      var nearest = null;
+      if (top === "C5") {
+        var candidates = inCat.filter(function(p){
+          var r = check(p); if (r.ok) return true;
+          return (r.blocks || []).every(function(b){ return b[0] === "C5"; });
+        }).sort(function(a,b){ return (a.p||0) - (b.p||0); });
+        nearest = candidates[0] || null;
+      } else {
+        // any product that only trips this one blocker
+        var relax = inCat.filter(function(p){
+          var r = check(p); if (r.ok) return true;
+          return (r.blocks || []).length === 1 && r.blocks[0][0] === top;
+        }).sort(function(a,b){ return (a.p||0) - (b.p||0); });
+        nearest = relax[0] || null;
+      }
+      return { ok: false, reason: top || "constraints", nearest: nearest };
+    } catch(e) {
+      console.warn("[ask-aaina] dryRunPrimary failed:", e);
+      return { ok: true, count: 0 };
+    }
+  }
+
+  function friendlyBlockReason(code){
+    return {
+      C5:  "they’re all above the budget you asked for",
+      B1:  "every option in that category contains fragrance",
+      B2:  "every option contains an essential oil",
+      B3:  "every option contains an ingredient you’ve reacted to",
+      B4:  "we don’t have the full ingredient list for the options we have",
+      B6:  "none of them suit the skin type you mentioned",
+      B7:  "they all contain drying alcohol, which isn’t right for your skin right now",
+      A2:  "they all carry a pregnancy caution"
+    }[code] || "none of them match your constraints";
+  }
+
   function triggerPlan(){
     try {
       // Route the plan to the category the user actually asked for:
@@ -466,6 +551,32 @@
         PROB = P.concerns[0];
       }
       if (!PROBLEMS[PROB]) PROB = DEFAULT_PROB;
+
+      // Dry-run: if no product matches, stay in chat with a next-best suggestion
+      var dry = dryRunPrimary();
+      if (!dry.ok) {
+        if (dry.nearest) {
+          var n = dry.nearest;
+          var catWord = (PROBLEMS[PROB] && PROBLEMS[PROB].label) ? PROBLEMS[PROB].label.toLowerCase() : "product";
+          botSay("I couldn’t find a " + catWord + " that fits exactly — " + friendlyBlockReason(dry.reason) + ". The closest I have is <b>" + escapeHtml(n.n) + "</b> (" + escapeHtml(n.c) + ", ₹" + n.p + "). Want to see it?");
+          showChips([
+            "Yes, show me that one",
+            dry.reason === "C5" ? "Raise my budget" : "Relax that constraint",
+            "Pick something else"
+          ]);
+          // One-shot handler: if they tap "yes", add the near product to shelf and show plan
+          window.AAINA_NEAREST_PICK = n.id;
+        } else {
+          botSay("I couldn’t find anything in the catalogue that matches that query. Want to try a different brief?");
+          showChips([
+            "A cleanser under ₹500",
+            "A moisturiser for oily skin",
+            "A sunscreen for Mumbai",
+            "Foundation for medium-tan skin"
+          ]);
+        }
+        return;
+      }
 
       enterAdvisorView();
 
