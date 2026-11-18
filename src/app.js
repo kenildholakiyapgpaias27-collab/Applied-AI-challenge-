@@ -2225,9 +2225,26 @@ async function understandText(t){
   catch{return null}
   finally{clearTimeout(tm);f.classList.remove("busy");inp.disabled=false;inp.placeholder=ph}}
 /* ---------- hybrid RAG answers: a QUESTION ("which sunscreen has no white cast?") is answered from retrieved catalogue products ----------
-   The server retrieves with BM25 + embeddings (fused) and the model may only talk about what was retrieved. Safety stays here: the ids of every
-   product that fails THIS customer's checks are sent so they are never retrieved, and each product the answer cites is checked again before it is shown. */
-let CHAT_HIST=[];
+   The server retrieves with filters + BM25 + embeddings (fused) and the model may only talk about what was retrieved. Safety stays here: the ids of
+   every product that fails THIS customer's checks are sent so they are never retrieved, and each product shown is checked again first.
+   Results appear as a results card (a page-like panel scrolled into view), not as a pile of chat bubbles above the quiz. */
+let CHAT_HIST=[],LAST_SEARCH=false;
+const NONPLAN=[["Lipstick",/lipstick|lip ?colou?r|lippie/i],["Kajal / eyeliner",/kajal|eye ?liner|kohl/i],["Blush",/\bblush(er)?\b/i],["Lip care",/lip balm|lip care/i]];
+const COLOUR_RE=/\b(pink|red|nude|brown|coral|peach|maroon|plum|berry|orange|mauve|wine|purple|black|blue|rose)\b/i;
+function showResults({title,chips=[],answer="",items=[],more=0,notes=[],doctor=false}){
+  thread.querySelectorAll(".results:not(.old)").forEach(r=>r.classList.add("old"));
+  const sec=document.createElement("section");sec.className="results";sec.setAttribute("aria-label","Catalogue results");
+  const cards=items.map(({p,why,pick})=>`<article class="rcard${pick?" pick":""}"><div class="rtop"><span>${esc(p.c)}</span><b>${rupee(p.p)}</b></div><h4>${esc(p.n)}</h4><p class="rmeta">${esc(p.b||"")}${p.sz?` · ${esc(p.sz)}`:""}</p>${p.a?`<p class="ract">${esc(p.a)}</p>`:""}${why&&why.length?`<ul class="rwhy">${why.map(w=>`<li>${esc(w)}</li>`).join("")}</ul>`:""}</article>`).join("");
+  sec.innerHTML=`<header class="rhead" tabindex="0" role="button" aria-label="Show or hide these results"><span class="eyebrow">✦ From our catalogue</span><h3>${esc(title)}</h3>${chips.length?`<div class="rchips">${chips.map(c=>`<span>${esc(c)}</span>`).join("")}</div>`:""}</header>
+    <div class="rbody">${answer?`<p class="ranswer">${answer}</p>`:""}${doctor?`<p class="ranswer rdoc">This sounds like something a dermatologist should look at; I can't tell what's causing it.</p>`:""}
+    ${items.length?`<div class="rgrid">${cards}</div>`:""}${more>0?`<p class="small muted">${more} more ${more>1?"matches":"match"}. Add a detail to narrow it down, such as a lower budget or your skin type.</p>`:""}
+    ${notes.map(n=>`<p class="small muted">${n}</p>`).join("")}</div>`;
+  const hd=sec.querySelector(".rhead"),tog=()=>{thread.querySelectorAll(".results").forEach(r=>{if(r!==sec)r.classList.add("old")});sec.classList.toggle("old")};
+  hd.onclick=tog;hd.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();tog()}};
+  host().appendChild(sec);requestAnimationFrame(()=>sec.scrollIntoView({block:"start",behavior:"smooth"}));
+}
+const passNote=()=>`${DONE.has("safety")?"Everything shown passes all your checks":"Everything shown passes the checks I can run so far"}; that is decided by our own rules, not by the assistant's wording.`;
+const colourNote=t=>{const m=COLOUR_RE.exec(t);return m?`Our catalogue doesn't list shade colours, so I can't filter by <b>${esc(m[1].toLowerCase())}</b>. Check the shades in store or in the try-on.`:null};
 async function answerQuestion(t){
   const f=$("askForm"),inp=$("askInput");f.classList.add("busy");const ph=inp.placeholder;inp.placeholder="Looking through our range…";inp.disabled=true;
   const c=new AbortController(),tm=setTimeout(()=>c.abort(),20000);
@@ -2235,21 +2252,32 @@ async function answerQuestion(t){
     const blocked=CAT.filter(p=>!check(p).ok).map(p=>p.id);
     const profile={skin:P.skin||null,city:P.city||null,budget_inr:P.budget||null,pregnancy:typeof P.pregnancy==="boolean"?P.pregnancy:null,sensitive:!!P.sensitive,avoid_fragrance:!!P.avoidFrag,avoid_eo:!!P.avoidEO,reactions:P.reactions||[],concerns:(P.concerns||[]).map(k=>PROBLEMS[k]?PROBLEMS[k].label:k)};
     const r=await fetch(UNDERSTAND_BASE+"/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:t.slice(0,400),profile,history:CHAT_HIST.slice(-4),blocked_ids:blocked}),signal:c.signal});
-    const j=r.ok?await r.json():null;if(!j||!j.ok)return false;
-    const shown=(j.product_ids||[]).filter(id=>BY_ID[id]&&check(BY_ID[id]).ok),dropped=(j.product_ids||[]).length-shown.length;   // belt and braces: the page's own rules have the last word
-    let h=esc(j.answer).replace(/\[(P\d+)\]/g,(m,id)=>shown.includes(id)?`<b>${esc(BY_ID[id].n)}</b>`:"");
-    h=`<p>${h}</p>`;
-    if(shown.length)h+=`<ul class="ragprods">${shown.map(id=>{const p=BY_ID[id];return`<li><b>${esc(p.n)}</b> · ${esc(p.c)} · ${rupee(p.p)}</li>`}).join("")}</ul>`;
-    if(shown.length)h+=`<p class="small muted">${shown.length>1?"These pass":"This passes"} ${DONE.has("safety")?"all your checks":"the checks I can run so far"}; that is decided by our own rules, not by the answer above.</p>`;
-    if(dropped>0)h+=`<p class="small muted">I left out ${dropped} product${dropped>1?"s":""} that didn't pass your checks.</p>`;
-    if(j.needs_doctor)h+=`<p>This sounds like something a dermatologist should look at; I can't tell what's causing it.</p>`;
-    h+=`<p class="small muted">Answered from our catalogue (${j.mode==="hybrid"?"keyword + meaning search":"keyword search"}). Cosmetic advice only.</p>`;
-    botSay(h,j.needs_doctor?"escalate":"");
-    CHAT_HIST.push({role:"user",text:t.slice(0,300)},{role:"assistant",text:String(j.answer).replace(/\[(P\d+)\]/g,(m,id)=>BY_ID[id]?BY_ID[id].n:"").slice(0,300)});CHAT_HIST=CHAT_HIST.slice(-8);
+    const j=r.ok?await r.json():null;if(!j||(!j.ok&&!(j.results&&j.results.length)))return false;   // nothing usable: the caller carries on as before
+    const okp=id=>BY_ID[id]&&check(BY_ID[id]).ok;   // belt and braces: the page's own rules have the last word
+    const res=(j.results||[]).filter(x=>okp(x.id)),cited=new Set((j.product_ids||[]).filter(okp)),leftOut=(j.product_ids||[]).filter(id=>!okp(id)).length;
+    const ordered=[...res.filter(x=>cited.has(x.id)),...res.filter(x=>!cited.has(x.id))].slice(0,6),shown=new Set(ordered.map(x=>x.id));
+    const ans=j.ok?esc(j.answer).replace(/\[(P\d+)\]/g,(m,id)=>shown.has(id)?`<b>${esc(BY_ID[id].n)}</b>`:""):"";
+    const F=j.filters||{},cats=F.categories||[];
+    const title=cats.length?`${cats.join(" & ")}${F.max_price!=null?` under ${rupee(F.max_price)}`:""}`:"Matches for your question";
+    const chips=[...cats,F.max_price!=null&&!j.relaxed?`Under ${rupee(F.max_price)}`:null,F.cheapest?"Cheapest first":null,"Passes your checks"].filter(Boolean);
+    const notes=[j.relaxed?`Nothing matched ${j.relaxed==="price"?"that budget":"that product type"}, so I widened the search.`:null,leftOut>0?`I left out ${leftOut} product${leftOut>1?"s":""} that didn't pass your checks.`:null,colourNote(t),ordered.length?passNote():null,`Searched by ${j.mode==="hybrid"?"keywords and meaning":"keywords"}. Cosmetic advice only.`].filter(Boolean);
+    showResults({title,chips,answer:ans,items:ordered.map(x=>({p:BY_ID[x.id],why:x.why,pick:cited.has(x.id)})),more:Math.max(0,(j.total_matches||0)-ordered.length),notes,doctor:!!j.needs_doctor});
+    LAST_SEARCH=true;
+    CHAT_HIST.push({role:"user",text:t.slice(0,300)},{role:"assistant",text:j.ok?String(j.answer).replace(/\[(P\d+)\]/g,(m,id)=>BY_ID[id]?BY_ID[id].n:"").slice(0,300):title});CHAT_HIST=CHAT_HIST.slice(-8);
     return true;
   }catch{return false}
   finally{clearTimeout(tm);f.classList.remove("busy");inp.disabled=false;inp.placeholder=ph}
 }
+/* Lipstick, kajal, blush and lip care are in the catalogue but outside what a routine/plan covers. Asking for one must never fall into a
+   skincare or base-makeup plan, so it is a catalogue search: category + budget + this customer's own checks. Works with the AI service off. */
+function localCategorySearch(t,slots){
+  const hit=NONPLAN.find(([,re])=>re.test(t));if(!hit)return false;
+  const cat=hit[0],cap=slots.budget||P.budget||null,fit=CAT.filter(p=>p.c===cat&&check(p).ok&&(!cap||p.p<=cap)).sort((a,b)=>a.p-b.p),top=fit.slice(0,6);
+  showResults({title:`${cat}${cap?` under ${rupee(cap)}`:""}`,chips:[cat,cap?`Under ${rupee(cap)}`:null,"Cheapest first","Passes your checks"].filter(Boolean),
+    answer:fit.length?"":`I couldn't find a ${esc(cat.toLowerCase())}${cap?` under ${rupee(cap)}`:""} that passes your checks.`,
+    items:top.map(p=>({p,why:[cat,cap?`Under ${rupee(cap)}`:null].filter(Boolean)})),more:Math.max(0,fit.length-top.length),
+    notes:[colourNote(t),top.length?passNote():null].filter(Boolean)});
+  LAST_SEARCH=true;return true}
 function mergeUnderstood(s,ai){   // what the sentence said (regex) + what it meant (Claude). Restrictions only ever add, never remove.
   const m={...s};
   const cs=uniq([...(ai.concerns||[]),...(s.concerns||[])]).filter(k=>PROBLEMS[k]&&!PROBLEMS[k].goal).slice(0,MAX_CONCERNS);cs.length?m.concerns=cs:delete m.concerns;
@@ -2275,8 +2303,13 @@ async function handleTyped(text){
   let slots=parseSlots(t),ai=null;
   if(UNDERSTAND_ON&&!(stepNow&&/^(none|no|nothing|no reactions)\b/i.test(t)))ai=await understandText(t);
   if(ai&&ai.escalate){botSay(ESCALATE_HTML,"escalate");return refocus()}   // the model noticed something medical the word list missed: same stop as the rules above, nothing is built
-  if(ai&&ai.on_topic===false&&!G.beauty.test(t)){botSay("I'm Aaina's skincare advisor, so I can only help with skin concerns and skincare products.");return refocus()}
-  if(ai&&ai.intent==="question"){if(await answerQuestion(t))return refocus()}   // asked a question: answer it from the catalogue; if that service is down, carry on as before
+  // A question (or a short follow-up to the last search, like "in pink?" or "cheaper ones") is answered from the catalogue before the on-topic check:
+  // lipstick, kajal and the like ARE on topic for this shop. If that service is down, carry on as before.
+  const shopTalk=G.beauty.test(t)||NONPLAN.some(([,re])=>re.test(t)),followUp=LAST_SEARCH&&UNDERSTAND_ON&&t.split(/\s+/).length<=8&&!(ai&&ai.on_topic===false&&!shopTalk);   // a short reply right after a search is a follow-up, unless it is plainly off topic
+  if(UNDERSTAND_ON&&((ai&&ai.intent==="question"&&(ai.on_topic!==false||shopTalk))||followUp)){if(await answerQuestion(t))return refocus(true)}
+  if(ai&&ai.on_topic===false&&!shopTalk){botSay("I'm Aaina's skincare advisor, so I can only help with skin and beauty products from our range.");return refocus()}
+  if(localCategorySearch(t,slots))return refocus(true);   // lipstick / kajal / blush / lip care: a catalogue search, never a skincare or base-makeup plan (also the fallback when the AI answer is unavailable)
+  LAST_SEARCH=false;
   if(ai)slots=mergeUnderstood(slots,ai);
   const fromStart=!DONE.has("about"),assumed=[],missing=[];   // sent from the very first screen = they want the answer, not the quiz
   /* skip straight ahead: someone who doesn't want the quiz can describe everything at once.
@@ -2340,7 +2373,7 @@ async function handleTyped(text){
   if(!G.beauty.test(t)){botSay("I'm Aaina's skincare advisor, so I can only help with skin concerns and skincare products.");return refocus()}
   botSay(stepNow?"Thanks. To keep the plan accurate, please pick one of the options above.":"I can check a product (type its name), or start over with another concern.");refocus();
 }
-function refocus(){const q=thread.querySelector(".q:not(.answered)");if(q){thread.appendChild(q);focusEl(q)}}
+function refocus(quiet){const q=thread.querySelector(".q:not(.answered)");if(q){thread.appendChild(q);if(!quiet)focusEl(q)}}   // quiet: keep the quiz card below, but leave the view where it is (on the results just shown)
 function findCity(t){const low=t.toLowerCase();for(const[st,s]of Object.entries(INDIA))for(const c of Object.keys(s.c))if(new RegExp("\\b"+c.toLowerCase().replace(/[()]/g,"")+"\\b").test(low))return{state:st,city:c,climate:s.c[c]||s.d};return null}
 $("askForm").addEventListener("submit",e=>{e.preventDefault();
   const mic=$("askMic");if(mic)mic.dispatchEvent(new Event("aaina:stopmic"));   // Send always wins: a still-running mic (continuous mode) must not keep refilling the box after this
