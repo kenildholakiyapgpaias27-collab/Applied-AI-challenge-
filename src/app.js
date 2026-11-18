@@ -1077,6 +1077,7 @@ function cardHTML(i,s){
     ${act.length?`<div class="keyact">${act.map(a=>`<span>${esc(a.name)}</span>`).join("")}${p.spf?`<span>SPF ${p.spf}${p.pa?" "+esc(p.pa):""}</span>`:""}</div>`:p.spf?`<div class="keyact"><span>SPF ${p.spf}${p.pa?" "+esc(p.pa):""}</span></div>`:""}
     ${s.slot.shade?shadeLineHTML(p):""}
     <p class="why1">${lineHTML(p,s.slot)}</p>
+    ${expectHTML(p,i)}
     <div class="pfoot">
       <span class="price">${rupee(p.p)}</span>
       ${p.s&&p.s.length?`<button type="button" class="tryon-btn" data-tryon="${p.id}">Try it on</button>`:""}
@@ -1145,6 +1146,7 @@ function renderPlan(){
   </div>
   ${tuneHTML()}
   <div class="pcards">${PL.slots.map((s,i)=>cardHTML(i,s)).join("")}</div>
+  ${planExpectHTML()}
   <div class="acq-bar">
     <div class="acq-left">
       <div class="eyebrow">Acquire The Full Ritual</div>
@@ -1177,10 +1179,11 @@ function renderPlan(){
   if(P.goal&&P.goal!=="routine")add("Look for something else",()=>{meSay("Look for something else");DONE.delete("about");botSay(`Sure${nm(", ")}. I'll keep your safety answers.`);next()},true);
   else add("Plan for another concern",()=>{meSay("Plan for another concern");DONE.delete("concerns");P.concerns=[];P.concernFU={};PROB=null;botSay(`Of course${nm(", ")}. I'll keep your safety, location and skin answers, so this one is quicker.`);next()},true);
   add("How's it going? Check in",()=>openCheckin());
+  if(P.goal!=="makeup")add("Track my progress",()=>openProgress());
   add("Check a product",()=>{$("askInput").focus();$("askInput").placeholder="Type a product name or code, e.g. P1025"});
   box.appendChild(nx);
   const ac=accountCard();if(ac)box.insertBefore(ac,nx);
-  box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));wireShare(box);wireUpgrades(box);wireTune(box);wireFeedback(box);
+  box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));wireTimeline(box);wireShare(box);wireUpgrades(box);wireTune(box);wireFeedback(box);
   const acqBtn=box.querySelector("[data-acq-btn]");if(acqBtn)acqBtn.onclick=()=>openCheckin();
   const vAM=box.querySelector('[data-vanity="am"]');
   const vPM=box.querySelector('[data-vanity="pm"]');
@@ -1320,7 +1323,7 @@ function goBack(){
   CUR_BLOCK=null;next();saveState();
 }
 if($("newBtn"))$("newBtn").onclick=()=>{if($("advisor").hidden){$("nameInput").focus();return}meSay("Start over");STEPS=[...DEFAULT_STEPS];P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;lockAll();botSay(NAME?`Fresh start, ${esc(NAME)}. Let's go again.`:"Fresh start. Let's go again.");next();return;botSay("Okay, starting fresh.");next()};
-function wipeLocal(msg){clearState();META={planAt:null,planProb:null,checks:[]};FOLLOW_IDX=null;P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;NAME=null;nameAsked=false;STEPS=[...DEFAULT_STEPS];LAST_PLAN=null;lockAll();toggleSide(false);botSay(msg||"Done. I've deleted all your answers.");next()}
+function wipeLocal(msg){clearState();try{localStorage.removeItem(PROGRESS_PHOTOS)}catch{};META={planAt:null,planProb:null,checks:[]};FOLLOW_IDX=null;P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;NAME=null;nameAsked=false;STEPS=[...DEFAULT_STEPS];LAST_PLAN=null;lockAll();toggleSide(false);botSay(msg||"Done. I've deleted all your answers.");next()}
 $("deleteBtn").onclick=()=>confirmDelete();
 
 /* =====================================================================
@@ -2061,19 +2064,19 @@ function renderResume(){
   const dp=Object.assign({},d.P||{}),dd=new Set(d.DONE||[]);migrateAbout(dp,dd);
   const steps=stepsFor(dp.goal,dp.gender),done=steps.filter(k=>dd.has(k)).length,finished=done>=steps.length&&d.PROB;
   const nextIdx=steps.findIndex(k=>!dd.has(k))+1;const prob=d.PROB&&PROBLEMS[d.PROB]?PROBLEMS[d.PROB].label.toLowerCase():null;
-  const due=finished?dueCheck(d.META):null;
+  const due=finished?dueCheck(d.META):null,pdue=finished&&!due?dueProgress(d.META):null;
   const sNow=finished&&d.P?.seasonAlert&&d.P?.state?seasonFor(d.P.state,d.P.climate):null,sChanged=sNow&&d.META?.planSeason&&sNow.key!==d.META.planSeason;
   box.hidden=false;
   box.innerHTML=finished
-    ?`<div class="rs-ic">${SVG('<path d="M5 12l4 4 10-10"/>')}</div><div class="rs-tx"><b>Welcome back, ${esc(d.NAME)}.</b> Your plan for <b>${esc(prob)}</b> is saved${d.META?.planAt?` (made ${agoText(d.META.planAt)})`:""}.${due?`<span class="rs-due">${due==="week2"?"Two weeks in! Time for a quick check-in.":"It's been 3 days. How are your products going?"}</span>`:""}${sChanged?`<span class="rs-due rs-season">${SEASON_IC[sNow.key]||""}${esc(sNow.label)} has started in ${esc(d.P.city)}. Want to refresh your plan for it?</span>`:""}</div>
-       <div class="rs-act">${sChanged?`<button type="button" class="btn primary" data-rs="season">Refresh for ${esc(sNow.label.toLowerCase())}</button>`:""}${due?`<button type="button" class="btn${sChanged?"":" primary"}" data-rs="check">Check in now</button><button type="button" class="btn" data-rs="plan">View my plan</button>`:`<button type="button" class="btn${sChanged?"":" primary"}" data-rs="plan">View my plan</button><button type="button" class="btn" data-rs="check">Report how it's going</button>`}<button type="button" class="btn ghost" data-rs="fresh">Start fresh</button></div>`
+    ?`<div class="rs-ic">${SVG('<path d="M5 12l4 4 10-10"/>')}</div><div class="rs-tx"><b>Welcome back, ${esc(d.NAME)}.</b> Your plan for <b>${esc(prob)}</b> is saved${d.META?.planAt?` (made ${agoText(d.META.planAt)})`:""}.${due?`<span class="rs-due">${due==="week2"?"Two weeks in! Time for a quick check-in.":"It's been 3 days. How are your products going?"}</span>`:""}${pdue?`<span class="rs-due">${esc(pdue.lab)} progress check: how is it looking?</span>`:""}${sChanged?`<span class="rs-due rs-season">${SEASON_IC[sNow.key]||""}${esc(sNow.label)} has started in ${esc(d.P.city)}. Want to refresh your plan for it?</span>`:""}</div>
+       <div class="rs-act">${sChanged?`<button type="button" class="btn primary" data-rs="season">Refresh for ${esc(sNow.label.toLowerCase())}</button>`:""}${due?`<button type="button" class="btn${sChanged?"":" primary"}" data-rs="check">Check in now</button><button type="button" class="btn" data-rs="plan">View my plan</button>`:`<button type="button" class="btn${sChanged?"":" primary"}" data-rs="plan">View my plan</button><button type="button" class="btn" data-rs="check">Report how it's going</button>`}${pdue?`<button type="button" class="btn" data-rs="progress">Progress check</button>`:""}<button type="button" class="btn ghost" data-rs="fresh">Start fresh</button></div>`
     :`<div class="rs-ic">${SVG('<path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/>')}</div><div class="rs-tx"><b>Welcome back, ${esc(d.NAME)}.</b> You were on <b>question ${nextIdx} of ${steps.length}</b>${prob?` of your plan for ${esc(prob)}`:""}. Your answers are saved.<div class="rs-bar" aria-hidden="true"><span style="width:${Math.round(100*done/steps.length)}%"></span></div></div>
        <div class="rs-act"><button type="button" class="btn primary" data-rs="go">Continue where I left off</button><button type="button" class="btn ghost" data-rs="fresh">Start fresh</button></div>`;
   box.querySelectorAll("[data-rs]").forEach(b=>b.onclick=()=>{const a=b.dataset.rs;
     if(a==="fresh"){clearState();resetAll();renderResume();$("nameInput").focus();return}
-    resumeFrom(d,a==="check",a==="season")});
+    resumeFrom(d,a==="check",a==="season",a==="progress")});
 }
-async function resumeFrom(d,thenCheck,seasonRefresh){
+async function resumeFrom(d,thenCheck,seasonRefresh,thenProgress){
   restoreState(d);P.month=new Date().getMonth();
   if(seasonRefresh){const before=(d.planIds||[]).map(id=>id&&id!=="keep"?BY_ID[id]:null);RESTORE_IDS=(d.planIds||[]).map(id=>id==="keep"?"keep":null);
     $("welcome").hidden=true;$("advisor").hidden=false;thread.innerHTML="";CUR_BLOCK=null;
@@ -2086,6 +2089,7 @@ async function resumeFrom(d,thenCheck,seasonRefresh){
   botSay(left?`<p>Welcome back, <b>${esc(NAME)}</b>! I've kept all your answers, so let's pick up at <b>question ${STEPS.length-left+1}</b>.</p>`:`<p>Welcome back, <b>${esc(NAME)}</b>! Here's the plan we made${META.planAt?` ${agoText(META.planAt)}`:""}.</p>`);
   updateTitle();next();
   if(thenCheck&&PL)openCheckin();
+  if(thenProgress&&PL)openProgress();
 }
 function resetAll(){P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;FOLLOW_IDX=null;PL=null;RESTORE_IDS=null;META={planAt:null,planProb:null,checks:[]};NAME=null;nameAsked=false;STEPS=[...DEFAULT_STEPS];thread.innerHTML="";CUR_BLOCK=null}
 
@@ -2223,6 +2227,182 @@ function handleTyped(text){
 function refocus(){const q=thread.querySelector(".q:not(.answered)");if(q){thread.appendChild(q);focusEl(q)}}
 function findCity(t){const low=t.toLowerCase();for(const[st,s]of Object.entries(INDIA))for(const c of Object.keys(s.c))if(new RegExp("\\b"+c.toLowerCase().replace(/[()]/g,"")+"\\b").test(low))return{state:st,city:c,climate:s.c[c]||s.d};return null}
 $("askForm").addEventListener("submit",e=>{e.preventDefault();const v=$("askInput").value;$("askInput").value="";handleTyped(v.slice(0,400))});
+
+/* =====================================================================
+   RESULTS TIMELINE (src/timeline.js): what studies saw at 2w / 4w / 3m / 6m / 1y,
+   a side-by-side compare, an optional illustration, and progress check-ins
+   ===================================================================== */
+const MAKEUP_CATS=new Set(["Foundation","Concealer","Compact powder","BB / CC cream","Lipstick","Blush","Kajal / eyeliner","Primer"]);
+const tlFor=(p,concern)=>TIMELINE.productTimeline(p,P,{concern:concern||PROB});
+const gradeChip=t=>t&&t.confidence?`<span class="tl-chip g${t.grade}">${esc(t.confidence)}</span>`:"";
+function expectHTML(p,i){
+  if(!p||MAKEUP_CATS.has(p.c)||typeof TIMELINE==="undefined")return"";
+  const t=tlFor(p);
+  return`<details class="tl" data-tl="${esc(p.id)}" data-slot="${i}"><summary>What to expect ${t.grade==="D"?`<span class="tl-chip gD">Not enough evidence</span>`:gradeChip(t)}</summary>${timelineBody(t,p,i)}</details>`;
+}
+function timelineBody(t,p,i){
+  if(t.grade==="D")return`<p class="tl-none">${esc(t.reason)} We'd rather show nothing than guess.</p>${i!=null?`<button type="button" class="link small" data-tl-compare="${i}">Compare with alternatives</button>`:""}`;
+  return`<p class="tl-head">Studies of <b>${esc(t.active)}</b> for <b>${esc(t.concernLabel)}</b>. What many people noticed, not a promise for your skin.</p>
+    <ol class="tl-strip">${t.stops.map((s,k)=>`<li><button type="button" class="tl-stop ${s.status}" data-tl-stop="${k}" aria-expanded="false"><span class="tl-when">${esc(s.label)}</span><span class="tl-dot" aria-hidden="true"></span>
+      <span class="tl-line">${esc(s.short)}</span>${s.status==="measured"?`<span class="tl-chip g${s.grade}">${esc(s.confidence)}</span>`:""}</button></li>`).join("")}</ol>
+    <div class="tl-detail" data-tl-detail hidden></div>
+    ${t.notes.length?`<ul class="tl-notes">${t.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul>`:""}
+    ${t.alsoHelps.length?`<p class="tl-also">May also help: ${esc(t.alsoHelps.join(", "))} (less evidence for this concern).</p>`:""}
+    <p class="tl-half small muted">If used as directed: the lines above. ${esc((t.stops.find(s=>s.status==="measured"&&s.value!=null)||t.stops.find(s=>s.status==="measured")||{}).half||"")}</p>
+    <div class="tl-acts">${i!=null?`<button type="button" class="btn small" data-tl-compare="${i}">Compare with alternatives</button>`:""}${t.hasNumeric?`<button type="button" class="btn small ghost" data-tl-illus="${esc(p.id)}">See an illustration</button>`:""}</div>`;
+}
+function stopDetailHTML(t,s){
+  const r=s.refInfo;
+  return`${s.detail?`<p>${esc(s.detail)}</p>`:`<p>${esc(s.short)}</p>`}
+    ${r?`<p class="small"><b>Study:</b> <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.first_author)} (${r.year}), ${esc(r.journal)}</a> · ${esc(r.design)} · funding: ${esc(r.funder)}</p>`:""}
+    ${s.population?`<p class="small"><b>Who was studied:</b> ${s.population.n?`${s.population.n} people, `:""}${esc(s.population.skin||"")}${s.population.country?`, ${esc(s.population.country)}`:""}.</p>`:""}
+    ${s.why?`<p class="small"><b>Why this might differ for you:</b> ${esc(s.why)}</p>`:""}`;
+}
+function planExpectHTML(){
+  if(!PL||P.goal==="makeup"||typeof TIMELINE==="undefined")return"";
+  const ps=PL.slots.map(s=>s.p).filter(Boolean).concat((PL.extras||[]).map(x=>x.p));
+  const concerns=[PROB,...(P.concerns||[])].filter(c=>c&&!PROBLEMS[c]?.goal);
+  const pt=TIMELINE.planTimeline(ps,P,concerns.length?concerns:[PROB]);
+  const lines=pt.lines.map(l=>{
+    if(!l.timeline)return`<li><b>${esc(cap(l.label))}:</b> <span class="muted">not enough evidence for the products in this plan.</span></li>`;
+    const t=l.timeline,firstM=t.stops.find(s=>s.status==="measured");
+    return`<li><b>${esc(cap(l.label))}:</b> ${esc(l.product.n)} (${esc(t.active)}) ${gradeChip(t)}<br><span class="small">${esc(firstM?firstM.short:"")}</span></li>`});
+  const sun=pt.sunscreen&&pt.sunscreen.protective&&pt.sunscreen.protective[0];
+  return`<section class="tl-plan"><h4>What to expect from this plan</h4><p class="small muted">From published studies of the key ingredients. Many people notice these changes; results vary and nothing here is a promise.</p>
+    <ul>${lines.join("")}${sun?`<li><b>Sunscreen, every morning:</b> ${esc(sun.plain)} <span class="tl-chip gA">Strong evidence</span></li>`:""}</ul></section>`;
+}
+function wireTimeline(box){
+  box.addEventListener("click",e=>{
+    const st=e.target.closest("[data-tl-stop]");
+    if(st){const d=st.closest(".tl"),p=BY_ID[d.dataset.tl],t=tlFor(p),k=+st.dataset.tlStop,det=d.querySelector("[data-tl-detail]");
+      const open=st.getAttribute("aria-expanded")==="true";d.querySelectorAll("[data-tl-stop]").forEach(b=>b.setAttribute("aria-expanded","false"));
+      if(open){det.hidden=true;return}st.setAttribute("aria-expanded","true");det.innerHTML=stopDetailHTML(t,t.stops[k]);det.hidden=false;return}
+    const cmp=e.target.closest("[data-tl-compare]");if(cmp){openCompare(+cmp.dataset.tlCompare);return}
+    const il=e.target.closest("[data-tl-illus]");if(il){openIllustration(BY_ID[il.dataset.tlIllus]);return}
+  });
+}
+function tlModal(title,html,cls){
+  const m=document.createElement("div");m.className="exitm tl-modal "+(cls||"");m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");m.setAttribute("aria-label",title);
+  m.innerHTML=`<div class="exbox"><button type="button" class="tl-x" aria-label="Close">×</button><h3>${esc(title)}</h3>${html}</div>`;
+  document.body.appendChild(m);const close=()=>{m.remove();document.removeEventListener("keydown",onKey)};const onKey=e=>{if(e.key==="Escape")close()};
+  document.addEventListener("keydown",onKey);m.addEventListener("click",e=>{if(e.target===m)close()});m.querySelector(".tl-x").onclick=close;m.querySelector(".tl-x").focus();
+  return{m,close};
+}
+/* price per month: rough amounts people use, by category (an estimate, labelled as such) */
+const MONTHLY_USE={Serum:9,Moisturiser:30,Sunscreen:37,Toner:60,Exfoliant:15,"Spot treatment":5,"Eye cream":5,"Face oil":9,Cleanser:45,"Face mask":25,"Lip care":3};
+function perMonth(p){const m=/(\d+(?:\.\d+)?)\s*(ml|g)\b/i.exec(p.sz||"");const use=MONTHLY_USE[p.c];if(!m||!use||!p.p)return null;return Math.round(p.p/Math.max(1,(+m[1])/use))}
+function irritation(p){
+  let s=0;const a=String(p.a||"").toLowerCase();
+  if(p.ret)s+=2;if(p.aha)s+=2;if(p.bha&&p.leaveOn)s+=1;if(/azelaic|ascorb|vitamin c|tea tree|benzoyl/.test(a))s+=1;if(p.frag||p.eo)s+=1;if(P.sensitive&&s)s+=1;
+  return s>=3?"Higher at first":s>=1?"Some":"Low";
+}
+function openCompare(i){
+  const s=PL&&PL.slots[i];if(!s)return;
+  const used=new Set(PL.slots.filter((x,j)=>j!==i&&x.p).map(x=>x.p.id));
+  const list=[s.p,...s.list.filter(p=>p&&p!==s.p&&!used.has(p.id))].filter(Boolean).slice(0,3);
+  const rows=list.map(p=>{const t=tlFor(p),ok=check(p).ok,pm=perMonth(p);return{p,t,ok,pm,irr:irritation(p)}});
+  const fits=rows.filter(r=>r.ok&&r.t.grade!=="D"&&r.t.concern===PROB);
+  const RK={A:0,B:1,C:2,D:3},IR={"Low":0,"Some":1,"Higher at first":2};
+  fits.sort((a,b)=>RK[a.t.grade]-RK[b.t.grade]||(a.t.firstChangeWeek??99)-(b.t.firstChangeWeek??99)||(P.sensitive?IR[a.irr]-IR[b.irr]:0)||(a.pm??9e9)-(b.pm??9e9));
+  const best=fits[0]&&fits[0].p.id;
+  const cell=r=>{const t=r.t,s12=t.stops&&t.stops[2];return[
+    t.grade==="D"?"Not enough evidence":t.firstChangeWeek!=null?`${t.firstChangeWeek<=4?"About "+Math.round(t.firstChangeWeek)+" weeks":"About "+Math.round(t.firstChangeWeek/4.33)+" months"} (first study point)`:"Not studied",
+    t.grade==="D"?"—":s12&&s12.status==="measured"?(s12.valueText?`${s12.valueText} (${s12.kind==="responders"?"of people improved":s12.kind==="ratio"?"vs plain product":"change"})`:"Improvement measured, no size reported"):s12?s12.short:"—",
+    t.grade==="D"?"D: not enough evidence":`${t.grade}: ${t.confidence}`+(t.concern!==PROB?` (for ${t.concernLabel}, not ${PROBLEMS[PROB].label.toLowerCase()})`:""),
+    r.irr,r.pm!=null?`${rupee(r.pm)} a month (estimate)`:"Size not listed",r.ok?"✓ Passes your checks":"✗ Doesn't pass your checks"]};
+  const heads=["First visible change","Typical change at 3 months","Evidence","Irritation risk","Cost per month of use","Your safety check"];
+  const html=`<p class="small muted">Best fit for <b>${esc(PROBLEMS[PROB].label.toLowerCase())}</b> means the strongest evidence for that concern, then the earliest change, ${P.sensitive?"then lower irritation, ":""}then price. Not the biggest number.</p>
+    <div class="tl-cmpwrap"><table class="tl-cmp"><thead><tr><th></th>${rows.map(r=>`<th class="${r.p.id===best?"best":""}">${r.p.id===best?`<span class="tl-best">Best fit for you</span>`:""}<b>${esc(r.p.n)}</b><small>${esc(r.p.c)} · ${rupee(r.p.p)}</small></th>`).join("")}</tr></thead>
+    <tbody>${heads.map((h,k)=>`<tr><th scope="row">${esc(h)}</th>${rows.map(r=>`<td class="${r.p.id===best?"best":""}">${esc(cell(r)[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    <p class="small muted">Monthly cost assumes typical amounts for a ${esc(s.p.c.toLowerCase())}. Evidence is for the ingredient in studies, not a claim about any brand.</p>`;
+  tlModal(`Compare: ${s.slot.role}`,html,"wide");
+}
+/* ---------- illustration: a model face (or your own photo, with consent), changed only where the concern is ---------- */
+const ILLUS_LABEL="Illustration of typical study results, not a prediction of your skin.";
+async function openIllustration(p){
+  const t=tlFor(p);if(!t||t.grade==="D"||!t.hasNumeric)return;
+  const models=(typeof TRYON_MODELS!=="undefined"&&TRYON_MODELS.models)||[];
+  const mi=Math.max(0,typeof TRYON!=="undefined"&&TRYON?TRYON.closestModel():0);
+  const steps=[{label:"Start",stop:null},...t.stops.map(s=>({label:s.label,stop:s}))];
+  const {m}=tlModal(`${t.active}: ${t.concernLabel}`,`<p class="tl-ilabel" role="note">${esc(ILLUS_LABEL)}</p>
+    <div class="tl-canvas"><canvas width="640" height="800" aria-label="${esc(ILLUS_LABEL)}"></canvas></div>
+    <label class="tl-slider"><span data-when>Start</span><input type="range" min="0" max="${steps.length-1}" step="1" value="0" aria-label="Time since starting"></label>
+    <p class="small" data-say aria-live="polite"></p>
+    <details class="tl-own"><summary>Use my own photo instead</summary><label class="agree"><input type="checkbox" data-ok> I agree to use my photo for this illustration. It stays on this device and is never uploaded or saved.</label>
+      <input type="file" accept="image/*" data-file disabled></details>
+    <p class="small muted">Only ${esc(t.concernLabel)} in the face area changes, by the size studies reported at each point. Skin tone, lightness and face shape are never changed. There's no download, so it can't be used as a before/after photo.</p>`,"illus");
+  const cv=m.querySelector("canvas"),g=cv.getContext("2d",{willReadFrequently:true}),range=m.querySelector("input[type=range]"),say=m.querySelector("[data-say]"),when=m.querySelector("[data-when]");
+  cv.addEventListener("contextmenu",e=>e.preventDefault());
+  let base=null,mask=null;
+  const loadImg=src=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=src});
+  async function useSource(img,lm){
+    const k=Math.min(1,640/img.width,800/img.height);cv.width=Math.round(img.width*k);cv.height=Math.round(img.height*k);
+    g.drawImage(img,0,0,cv.width,cv.height);base=g.getImageData(0,0,cv.width,cv.height);
+    mask=TIMELINE.maskFromLandmarks(cv.width,cv.height,lm,t.region);draw()}
+  function draw(){
+    if(!base)return;const k=+range.value,st=steps[k].stop;when.textContent=steps[k].label;
+    const v=st?st.illus:0,sN=v?v/100:0;
+    const out=sN&&mask?TIMELINE.illustrate(base.data,base.width,base.height,mask,t.region,sN):base.data;
+    g.putImageData(new ImageData(new Uint8ClampedArray(out),base.width,base.height),0,0);
+    g.fillStyle="rgba(20,16,12,.62)";g.fillRect(0,cv.height-34,cv.width,34);g.fillStyle="#fff";g.font=`${Math.max(11,Math.round(cv.width/48))}px Arial,sans-serif`;g.fillText(ILLUS_LABEL,10,cv.height-12);
+    say.textContent=!st?"Starting point.":st.status==="early"?"Too early: studies hadn't measured anything yet, so nothing changes.":
+      st.status==="maintenance"?"Maintenance: held at the last measured result. No evidence of further change.":
+      st.status==="gap"?"Not measured at this point: held at the last measured result.":v?`Showing a ${Math.round(v)}% change in ${t.concernLabel}, as measured in the study at this point.`:"Studies saw a change here but reported no size, so nothing is drawn.";
+  }
+  range.oninput=draw;
+  const ok=m.querySelector("[data-ok]"),file=m.querySelector("[data-file]");ok.onchange=()=>{file.disabled=!ok.checked};
+  file.onchange=async()=>{const f=file.files&&file.files[0];if(!f||!ok.checked)return;const url=URL.createObjectURL(f);
+    try{const img=await loadImg(url);say.textContent="Finding your face on this device…";
+      const c=document.createElement("canvas");c.width=img.width;c.height=img.height;c.getContext("2d").drawImage(img,0,0);
+      const lm=typeof TRYON!=="undefined"&&TRYON&&TRYON.landmarksFor?await TRYON.landmarksFor(c):null;
+      if(!lm){say.textContent="I couldn't find a face in that photo, so I'm keeping the model face.";return}
+      await useSource(img,lm)}finally{URL.revokeObjectURL(url);file.value=""}};
+  const md=models[mi]||models[0];if(md)await useSource(await loadImg(md.src),md.landmarks);
+}
+/* ---------- progress check-ins: day 10, week 4, week 8 ---------- */
+const PROGRESS_PHOTOS="aaina.progress.photos.v1";
+const PROGRESS_STAGES=[["d10",10,"Day 10"],["w4",28,"Week 4"],["w8",56,"Week 8"]];
+function dueProgress(meta){
+  if(!meta||!meta.planAt)return null;const d=daysSince(meta.planAt),done=new Set((meta.progress||[]).map(x=>x.stage));
+  for(const[k,days,lab] of PROGRESS_STAGES.slice().reverse())if(d>=days&&!done.has(k))return{k,lab};return null;
+}
+function mainSlot(){
+  let best=null;PL.slots.forEach((s,i)=>{if(!s.p)return;const t=tlFor(s.p);if(t.grade==="D"||t.concern!==PROB)return;const R={A:0,B:1,C:2};if(!best||R[t.grade]<R[best.t.grade])best={i,p:s.p,t}});return best;
+}
+function openProgress(){
+  if(!PL)return;const due=dueProgress(META)||{k:"manual",lab:"Progress check"};
+  const ms=mainSlot(),weeks=META.planAt?daysSince(META.planAt)/7:0,label=(PROBLEMS[PROB]?.label||"your concern").toLowerCase();
+  let photos=[];try{photos=JSON.parse(localStorage.getItem(PROGRESS_PHOTOS)||"[]")}catch{}
+  const {m,close}=tlModal(`${due.lab}: how is ${label} looking?`,`
+    <fieldset class="tl-rate"><legend>How much change have you noticed?</legend>${[1,2,3,4,5].map(n=>`<label><input type="radio" name="tlr" value="${n}"><span>${n}</span></label>`).join("")}<small>1 = none yet, 5 = a lot</small></fieldset>
+    <details class="tl-own"><summary>Add a progress photo (optional)</summary>
+      <p class="small">Same light every time: face a window, no filter, no makeup. The photo stays on this device and is never uploaded.</p>
+      <label class="agree"><input type="checkbox" data-ok> I agree to use a photo for my progress. It stays on this device.</label>
+      <input type="file" accept="image/*" capture="user" data-file disabled>
+      <label class="agree"><input type="checkbox" data-keep> Keep this photo on this device to compare next time (deleted with "Delete my answers").</label>
+      ${photos.length?`<div class="tl-photos">${photos.map(x=>`<figure><img src="${x.img}" alt="Your earlier progress photo"><figcaption>${esc(x.lab)}</figcaption></figure>`).join("")}</div>`:""}</details>
+    <div class="qactions"><button type="button" class="btn primary" data-save disabled>Save</button></div><div data-out aria-live="polite"></div>`);
+  const save=m.querySelector("[data-save]"),ok=m.querySelector("[data-ok]"),file=m.querySelector("[data-file]"),keep=m.querySelector("[data-keep]");let photo=null;
+  m.querySelectorAll("input[name=tlr]").forEach(r=>r.onchange=()=>{save.disabled=false});ok.onchange=()=>{file.disabled=!ok.checked};
+  file.onchange=()=>{const f=file.files&&file.files[0];if(!f)return;const url=URL.createObjectURL(f),im=new Image();
+    im.onload=()=>{const k=Math.min(1,320/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);photo=c.toDataURL("image/jpeg",0.7);URL.revokeObjectURL(url)};im.src=url};
+  save.onclick=()=>{
+    const rating=+m.querySelector("input[name=tlr]:checked").value;
+    META.progress=[...(META.progress||[]),{stage:due.k,at:Date.now(),rating,concern:PROB,pid:ms&&ms.p.id}];
+    if(photo&&ok.checked&&keep.checked){photos.push({stage:due.k,lab:due.lab,img:photo});try{localStorage.setItem(PROGRESS_PHOTOS,JSON.stringify(photos.slice(-6)))}catch{}}
+    saveState();
+    if(DB.enabled&&DB.consented()&&ms)DB.saveCheckin({stage:"manual",results:{[ms.p.id]:`progress-${rating}`},planMadeAt:META.planAt});
+    const ex=ms&&TIMELINE.expectedBy(ms.t,weeks);const out=m.querySelector("[data-out]");
+    let h=`<p><b>You rated ${rating} of 5</b> after ${weeks<2?`${Math.round(weeks*7)} days`:`${Math.round(weeks)} weeks`}.</p>`;
+    if(!ms)h+=`<p>There isn't enough evidence for the products in your plan to say what to expect yet.</p>`;
+    else if(ex&&ex.weeks!=null){h+=`<p><b>Expected range vs your check-in:</b> by ${Math.round(ex.weeks)} weeks, studies of ${esc(ms.t.active)} saw: ${esc(ex.plain)}</p>`;
+      if(rating<=2)h+=`<p>You're seeing less than many people in studies by now. That happens, and you don't have to keep going with it.</p><div class="qactions"><button type="button" class="btn" data-swap>Try a different ${esc(PL.slots[ms.i].slot.role.toLowerCase())}</button></div>`;
+      else h+=`<p>You're on track with what studies saw.</p>`}
+    else h+=`<p>Studies of ${esc(ms.t.active)} first measured results at ${Math.round(ex&&ex.first||0)} weeks, so it's normal to see little change yet.</p>`;
+    out.innerHTML=h;save.disabled=true;
+    const sw=out.querySelector("[data-swap]");if(sw)sw.onclick=()=>{close();swap(ms.i);saveState()};
+  };
+}
 
 /* =====================================================================
    ACCOUNT + DATABASE (src/db.js). All of this is skipped when no database

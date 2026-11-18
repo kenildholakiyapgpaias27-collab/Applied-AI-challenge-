@@ -948,6 +948,42 @@ body{background:#fcfbfa;color:var(--ink);font:16px/1.55 var(--body);margin:0}
 .acct-note{margin:0 0 10px;padding:10px 14px;border-radius:12px;background:var(--accent-soft,#f6e6ee);font-size:14px;color:var(--ink)}
 .acct-line{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:13.5px;color:var(--muted)}
 .acct-line .acct-email{max-width:240px;padding:8px 12px;font-size:14px}
+/* Results timeline */
+.tl{margin:10px 0 4px;border-top:1px solid var(--line,#e7dfd6);padding-top:10px}
+.tl>summary{cursor:pointer;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;list-style:none}
+.tl>summary::-webkit-details-marker{display:none}.tl>summary::before{content:"▸";font-size:12px;transition:transform .15s}.tl[open]>summary::before{transform:rotate(90deg)}
+.tl-chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:600;line-height:1.5;white-space:nowrap}
+.tl-chip.gA{background:#e3efe1;color:#2f5a2a}.tl-chip.gB{background:#f3ead9;color:#6b4f19}.tl-chip.gC{background:#efe7f1;color:#5c3d66}.tl-chip.gD{background:#eee;color:#555}
+.tl-head{font-size:13.5px;margin:8px 0;color:var(--muted)}
+.tl-strip{list-style:none;margin:6px 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;position:relative}
+.tl-strip::before{content:"";position:absolute;left:4%;right:4%;top:30px;height:2px;background:var(--line,#e2d8cc)}
+.tl-stop{width:100%;height:100%;text-align:left;background:var(--surface,#fff);border:1px solid var(--line,#e7dfd6);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:6px;cursor:pointer;font:inherit;color:inherit;position:relative}
+.tl-stop[aria-expanded=true]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft,#f3e6d8)}
+.tl-when{font-size:12px;font-weight:700;letter-spacing:.02em}
+.tl-dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}.tl-stop.early .tl-dot,.tl-stop.gap .tl-dot{background:#cfc6bb}.tl-stop.maintenance .tl-dot{background:#8a9a7b}
+.tl-line{font-size:12.5px;line-height:1.35}
+.tl-detail{margin:8px 0;padding:10px 12px;border-radius:12px;background:var(--sunken,#f6f1ea);font-size:13.5px}.tl-detail p{margin:0 0 6px}
+.tl-notes{margin:6px 0;padding-left:18px;font-size:13px;color:var(--muted)}.tl-also{font-size:13px;margin:4px 0}.tl-none{font-size:13.5px;color:var(--muted);margin:8px 0}
+.tl-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.tl-plan{margin:16px 0;padding:16px 18px;border:1px solid var(--line,#e7dfd6);border-radius:18px;background:var(--surface,#fff)}.tl-plan h4{margin:0 0 4px}.tl-plan ul{margin:10px 0 0;padding-left:18px;display:grid;gap:8px;font-size:14px}
+.tl-modal .exbox{position:relative;max-width:560px;max-height:90vh;overflow:auto}.tl-modal.wide .exbox{max-width:960px}
+.tl-x{position:absolute;top:10px;right:12px;border:0;background:none;font-size:26px;line-height:1;cursor:pointer;color:var(--muted)}
+.tl-cmpwrap{overflow-x:auto}.tl-cmp{border-collapse:collapse;width:100%;font-size:13.5px;min-width:560px}
+.tl-cmp th,.tl-cmp td{border-bottom:1px solid var(--line,#e7dfd6);padding:8px;text-align:left;vertical-align:top}.tl-cmp thead th small{display:block;color:var(--muted);font-weight:400}
+.tl-cmp .best{background:#f2f6ef}.tl-best{display:inline-block;margin-bottom:4px;padding:2px 8px;border-radius:999px;background:#2f5a2a;color:#fff;font-size:11px}
+.tl-ilabel{margin:4px 0 8px;padding:8px 10px;border-radius:10px;background:#2b2520;color:#fff;font-size:13px;font-weight:600}
+.tl-canvas{display:flex;justify-content:center}.tl-canvas canvas{max-width:100%;height:auto;border-radius:14px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.tl-slider{display:flex;align-items:center;gap:10px;margin:10px 0;font-weight:700;font-size:14px}.tl-slider input{flex:1}.tl-slider span{min-width:76px}
+.tl-own{margin:8px 0;font-size:13.5px}.tl-own summary{cursor:pointer;font-weight:600}
+.tl-rate{border:0;padding:0;margin:8px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.tl-rate legend{font-weight:700;margin-bottom:6px}
+.tl-rate label{display:inline-flex}.tl-rate input{position:absolute;opacity:0}.tl-rate span{width:40px;height:40px;border-radius:50%;border:1px solid var(--line,#ddd);display:grid;place-items:center;cursor:pointer;font-weight:700}
+.tl-rate input:checked+span{background:var(--accent);color:#fff;border-color:var(--accent)}.tl-rate input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}.tl-rate small{width:100%;color:var(--muted)}
+.tl-photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.tl-photos figure{margin:0;width:96px}.tl-photos img{width:96px;border-radius:8px}.tl-photos figcaption{font-size:11.5px;color:var(--muted)}
+.pcard .tl-strip{grid-template-columns:1fr;gap:6px}.pcard .tl-strip::before{left:12px;right:auto;top:8px;bottom:8px;width:2px;height:auto}
+.pcard .tl-stop{display:grid;grid-template-columns:16px 1fr;column-gap:8px;row-gap:3px;align-items:center;padding:8px 10px}
+.pcard .tl-dot{grid-row:1;grid-column:1}.pcard .tl-when{grid-row:1;grid-column:2}.pcard .tl-line,.pcard .tl-stop .tl-chip{grid-column:2;justify-self:start}
+@media (max-width:640px){.tl-strip{grid-template-columns:1fr;gap:6px}.tl-strip::before{left:12px;right:auto;top:8px;bottom:8px;width:2px;height:auto}
+  .tl-stop{display:grid;grid-template-columns:16px 1fr;column-gap:8px;row-gap:3px;align-items:center}.tl-dot{grid-row:1;grid-column:1}.tl-when{grid-row:1;grid-column:2}.tl-line,.tl-stop .tl-chip{grid-column:2;justify-self:start}}
 /* sign-in panel: consent, then Continue with Google, then the email link */
 .acct-ways{display:flex;flex-direction:column;gap:8px;max-width:360px}
 .acct-gnote{margin:0;font-size:13px;color:var(--muted)}
@@ -2327,6 +2363,217 @@ const DB=(()=>{
     _toProduct:toProduct,_pkce:{makeVerifier,challengeFor,readCallback,cleanCallbackURL,PKCE_KEY,ROUTE_KEY}};
 })();
 
+const TIMELINE_EVIDENCE={"version":"2026-11-18","about":"Evidence for the Results timeline. Every checkpoint is a time point a cited study actually measured; numbers are only those reported in the PubMed abstract. change_* values are positive for improvement. kind: change (size of change in the named measure), responders (share of people who improved), ratio (times the plain-product improvement), protective (difference vs occasional use), qualitative (improvement reported without a size). Each checkpoint carries the grade of the study it cites (grade); the entry's evidence_strength is its best checkpoint.","grades":{"A":"randomised, vehicle-controlled, n≥50","B":"smaller or less controlled randomised study","C":"open-label, uncontrolled, review of low-quality trials, or a blend","D":"no suitable evidence: no timeline"},"entries":[{"id":"niacinamide-oil","active":"Niacinamide","match":["niacinamide","nicotinamide"],"concern":"oiliness and shine","concern_key":"oiliness","app_concerns":["oiliness","acne"],"region":"shine","evidence_strength":"A","population":{"n":130,"skin":"Japanese and white adults","country":"Japan, USA","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"2%","studied_pct":2,"checkpoints":[{"weeks":2,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"sebum excretion rate","plain":"In a study of 100 people, oil production was measurably lower than with a plain moisturiser after 2 weeks.","ref":"16766489","representative":true,"grade":"A"},{"weeks":4,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"sebum excretion rate","plain":"Oil production stayed lower than with a plain moisturiser at 4 weeks.","ref":"16766489","representative":true,"grade":"A"},{"weeks":6,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"casual sebum level","plain":"In a second, smaller study, surface oil was lower at 6 weeks (oil production itself did not change significantly).","ref":"16766489","representative":true,"grade":"A"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":false,"note":null,"refs":["16766489"]},{"id":"niacinamide-spots","active":"Niacinamide","match":["niacinamide","nicotinamide"],"concern":"appearance of dark spots","concern_key":"pigmentation","app_concerns":["pigmentation","tanning"],"region":"spots","evidence_strength":"A","population":{"n":188,"skin":"Japanese and white women","country":"Japan, USA","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"5% for dark spots (2% with sunscreen on tanned skin)","studied_pct":5,"checkpoints":[{"weeks":4,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"image analysis of facial spots","plain":"In studies, the look of dark spots was measurably reduced compared with a plain moisturiser after 4 weeks.","ref":"12100180","representative":true,"grade":"A"},{"weeks":12,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"image analysis of facial spots","plain":"At 12 weeks, the niacinamide side of the face showed fewer visible spots than the plain side.","ref":"16029679","representative":true,"grade":"A"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":false,"note":null,"refs":["12100180","16029679"]},{"id":"niacinamide-lines","active":"Niacinamide","match":["niacinamide","nicotinamide"],"concern":"fine lines","concern_key":"fine lines","app_concerns":["fine lines"],"region":"texture","evidence_strength":"A","population":{"n":50,"skin":"white women","country":"USA","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"5%","studied_pct":5,"checkpoints":[{"weeks":12,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"image analysis of fine lines","plain":"At 12 weeks, fine lines looked measurably softer on the niacinamide side than on the plain side.","ref":"16029679","representative":true,"grade":"A"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":false,"note":null,"refs":["16029679"]},{"id":"niacinamide-redness","active":"Niacinamide","match":["niacinamide","nicotinamide"],"concern":"visible redness and blotchiness","concern_key":"redness","app_concerns":["redness"],"region":"redness","evidence_strength":"A","population":{"n":50,"skin":"white women","country":"USA","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"5%","studied_pct":5,"checkpoints":[{"weeks":12,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"image analysis of red blotchiness","plain":"At 12 weeks, red blotchiness looked measurably reduced on the niacinamide side.","ref":"16029679","representative":true,"grade":"A"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":false,"note":null,"refs":["16029679"]},{"id":"txa-spots","active":"Tranexamic acid","match":["tranexamic"],"concern":"appearance of dark spots","concern_key":"pigmentation","app_concerns":["pigmentation","tanning"],"region":"spots","evidence_strength":"B","population":{"n":42,"skin":"Korean women (8-week study); Brazilian women, skin types I–IV (12-week study)","country":"Korea, Brazil","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"2–5%","studied_pct":2,"checkpoints":[{"weeks":2,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"expert grading","plain":"In a single-product study, a first improvement in the look of dark spots was seen from week 2.","ref":"31141852","representative":true,"grade":"C"},{"weeks":8,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"colour meter and expert grading","plain":"In a 42-person study, a cream with 2% tranexamic acid and 2% niacinamide reduced the look of uneven pigmentation more than a plain cream, on top of sunscreen.","ref":"24033822","representative":true,"grade":"B"},{"weeks":12,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"melanin index","plain":"By week 12, spot pigment readings were lower than at the start in a single-product study.","ref":"31141852","representative":true,"grade":"C"},{"weeks":12,"kind":"change","change_low":null,"change_typical":50.9,"change_high":null,"unit":"% reduction in severity score","measure":"severity score (MASI)","plain":"In 50 people with a diagnosed pigment condition (not typical shoppers), a 5% cream reduced a severity score by about half (−50.9%) at 12 weeks.","ref":"40923777","representative":false,"grade":"B"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":false,"note":null,"refs":["24033822","31141852","40923777"]},{"id":"arbutin-spots","active":"Alpha arbutin","match":["alpha arbutin","arbutin"],"concern":"appearance of dark spots","concern_key":"pigmentation","app_concerns":["pigmentation","tanning"],"region":"spots","evidence_strength":"C","population":{"n":120,"skin":"Indian women, skin types III–IV","country":"India","deeper_tones":"studied in Indian skin (types III–IV); no data for deeper tones"},"typical_concentration":"2% (with 10% THBG and daily sunscreen)","studied_pct":2,"checkpoints":[{"weeks":13,"kind":"change","change_low":null,"change_typical":16.3,"change_high":null,"unit":"% lower melanin in dark spots","measure":"melanin content of dark spots","plain":"In an open study of 120 Indian women (no comparison group), pigment in dark spots was about 16% lower after 3 months, using a product that also contained another active and a daily sunscreen.","ref":"39943675","representative":true,"grade":"C"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":false,"note":"The study product combined alpha arbutin with another active and sunscreen, so the effect can't be credited to arbutin alone.","refs":["39943675"]},{"id":"vitc-lines","active":"Vitamin C","match":["vitamin c","ascorbic","ascorbyl"],"concern":"fine lines and rough texture","concern_key":"fine lines","app_concerns":["fine lines","dullness"],"region":"texture","evidence_strength":"B","population":{"n":19,"skin":"skin types I–III","country":"USA","deeper_tones":"no data for deeper skin tones"},"typical_concentration":"high-strength L-ascorbic acid serum","studied_pct":null,"checkpoints":[{"weeks":12,"kind":"responders","change_low":null,"change_typical":73.7,"change_high":null,"unit":"% of participants improving more on the vitamin C side","measure":"skin-surface profilometry","plain":"In a small 19-person study, 14 people (74%) had smoother skin texture on the vitamin C side than on the plain side after 3 months.","ref":"10522500","representative":true,"grade":"B"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":true,"note":null,"refs":["10522500"]},{"id":"retinol-lines","active":"Retinol","match":["retinol","retinal","retinaldehyde"],"concern":"fine lines","concern_key":"fine lines","app_concerns":["fine lines"],"region":"texture","evidence_strength":"A","population":{"n":533,"skin":"women with mild-to-moderate sun-related ageing","country":"USA","deeper_tones":"skin types not reported in the abstracts; assume limited data for deeper tones"},"typical_concentration":"0.1%","studied_pct":0.1,"checkpoints":[{"weeks":4,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"dermatologist grading","plain":"In pooled studies of 471 women, fine lines and wrinkles improved more than with a plain cream from week 4.","ref":"38564380","representative":true,"grade":"A"},{"weeks":8,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"dermatologist grading","plain":"The improvement over a plain cream continued at week 8.","ref":"38564380","representative":true,"grade":"A"},{"weeks":12,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"dermatologist grading","plain":"The improvement over a plain cream continued at week 12.","ref":"38564380","representative":true,"grade":"A"},{"weeks":52,"kind":"change","change_low":null,"change_typical":44,"change_high":null,"unit":"% improvement from baseline","measure":"dermatologist grading of crow's-feet fine lines","plain":"In a one-year study of 62 people, crow's-feet fine lines were about 44% better than at the start.","ref":"25738849","representative":true,"grade":"A"}],"beyond_last_study":"one-year study is the longest; improvements continued up to 52 weeks","if_stopped":"not studied","can_irritate":true,"note":null,"refs":["38564380","25738849"]},{"id":"retinol-spots","active":"Retinol","match":["retinol","retinal","retinaldehyde"],"concern":"appearance of dark spots","concern_key":"pigmentation","app_concerns":["pigmentation","tanning"],"region":"spots","evidence_strength":"A","population":{"n":533,"skin":"women with mild-to-moderate sun-related ageing","country":"USA","deeper_tones":"skin types not reported in the abstracts; assume limited data for deeper tones"},"typical_concentration":"0.1%","studied_pct":0.1,"checkpoints":[{"weeks":4,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"dermatologist grading","plain":"In pooled studies, brown spots and uneven tone improved more than with a plain cream from week 4.","ref":"38564380","representative":true,"grade":"A"},{"weeks":12,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"dermatologist grading","plain":"The improvement over a plain cream continued at week 12.","ref":"38564380","representative":true,"grade":"A"},{"weeks":52,"kind":"change","change_low":null,"change_typical":84,"change_high":null,"unit":"% improvement from baseline","measure":"dermatologist grading of mottled pigmentation","plain":"In a one-year study, mottled pigmentation was graded about 84% better than at the start.","ref":"25738849","representative":true,"grade":"A"}],"beyond_last_study":"one-year study is the longest; improvements continued up to 52 weeks","if_stopped":"not studied","can_irritate":true,"note":null,"refs":["38564380","25738849"]},{"id":"bakuchiol-lines","active":"Bakuchiol","match":["bakuchiol"],"concern":"fine lines","concern_key":"fine lines","app_concerns":["fine lines","pigmentation"],"region":"texture","evidence_strength":"B","population":{"n":44,"skin":"adults with facial ageing","country":"USA","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"0.5%","studied_pct":0.5,"checkpoints":[{"weeks":12,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"photographic analysis","plain":"In a 44-person study, wrinkle area and spots decreased over 12 weeks, similar to a 0.5% retinol cream and with less stinging (no plain-cream comparison).","ref":"29947134","representative":true,"grade":"B"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":false,"note":null,"refs":["29947134"]},{"id":"glycolic-texture","active":"Glycolic acid","match":["glycolic"],"concern":"dullness and rough texture","concern_key":"dullness","app_concerns":["dullness","pigmentation","tanning"],"region":"texture","evidence_strength":"A","population":{"n":149,"skin":"adults with sun-related ageing","country":"USA","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"5–8%","studied_pct":5,"checkpoints":[{"weeks":12,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"physician assessment","plain":"In a 75-person study, skin texture and discolouration improved more than with a plain cream after 3 months (wrinkles did not change significantly).","ref":"9598014","representative":true,"grade":"A"},{"weeks":22,"kind":"responders","change_low":null,"change_typical":76,"change_high":null,"unit":"% of participants improving ≥1 grade (40% with plain cream)","measure":"physician grading of overall sun damage","plain":"In a 74-person study, 76% of people using 8% glycolic acid improved by at least one grade, vs 40% with a plain cream, at 22 weeks.","ref":"8651713","representative":true,"grade":"A"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":true,"note":null,"refs":["9598014","8651713"]},{"id":"lactic-texture","active":"Lactic acid","match":["lactic"],"concern":"dullness and rough texture","concern_key":"dullness","app_concerns":["dullness"],"region":"texture","evidence_strength":"A","population":{"n":74,"skin":"women aged 40–70 with sun-related ageing","country":"USA","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"8%","studied_pct":8,"checkpoints":[{"weeks":22,"kind":"responders","change_low":null,"change_typical":71,"change_high":null,"unit":"% of participants improving ≥1 grade (40% with plain cream)","measure":"physician grading of overall sun damage","plain":"In a 74-person study, 71% of people using 8% lactic acid improved by at least one grade, vs 40% with a plain cream, at 22 weeks.","ref":"8651713","representative":true,"grade":"A"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":true,"note":null,"refs":["8651713"]},{"id":"salicylic-blemish","active":"Salicylic acid","match":["salicylic"],"concern":"blemishes and clogged pores","concern_key":"acne","app_concerns":["acne","oiliness"],"region":"redness","evidence_strength":"C","population":{"n":132,"skin":"mostly young women with mild-to-moderate breakouts","country":"Europe, Asia, USA","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"0.5–2%","studied_pct":null,"checkpoints":[{"weeks":12,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"global self-assessment of improvement","plain":"A review of trials rated the evidence as low quality: salicylic acid may work about as well as a stronger comparison product, but no reliable size of change was reported.","ref":"32356369","representative":true,"grade":"C"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":true,"note":null,"refs":["32356369"]},{"id":"azelaic-spots","active":"Azelaic acid","match":["azelaic"],"concern":"appearance of dark spots","concern_key":"pigmentation","app_concerns":["pigmentation","tanning"],"region":"spots","evidence_strength":"B","population":{"n":null,"skin":"people with darker skin (types IV–VI)","country":"USA","deeper_tones":"studied in darker skin types IV–VI"},"typical_concentration":"20%","studied_pct":20,"checkpoints":[{"weeks":24,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"investigator scale and colour meter","plain":"In a study of people with darker skin, dark spots faded more than with a plain cream over 24 weeks; some burning or stinging at first.","ref":"9829446","representative":true,"grade":"B"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":true,"note":null,"refs":["9829446"]},{"id":"azelaic-blemish","active":"Azelaic acid","match":["azelaic"],"concern":"blemishes","concern_key":"acne","app_concerns":["acne"],"region":"redness","evidence_strength":"C","population":{"n":351,"skin":"mostly young people with mild-to-moderate breakouts","country":"Europe, Asia, USA","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"15–20%","studied_pct":15,"checkpoints":[{"weeks":12,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"global self-assessment of improvement","plain":"A review of trials found azelaic acid probably works a little less well than one stronger comparison product and about as well as another; no size of change was reported.","ref":"32356369","representative":true,"grade":"C"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":true,"note":null,"refs":["32356369"]},{"id":"teatree-blemish","active":"Tea tree oil","match":["tea tree","melaleuca"],"concern":"blemishes","concern_key":"acne","app_concerns":["acne"],"region":"redness","evidence_strength":"A","population":{"n":60,"skin":"people with mild-to-moderate breakouts","country":"Iran","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"5% gel","studied_pct":5,"checkpoints":[{"weeks":6.4,"kind":"ratio","change_low":null,"change_typical":3.55,"change_high":null,"unit":"times the improvement seen with a plain gel","measure":"total blemish count","plain":"In a 60-person study, blemish counts improved 3.6 times as much as with a plain gel after about 6 weeks.","ref":"17314442","representative":true,"grade":"A"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":true,"note":"Tea tree oil is an essential oil and a common irritant for sensitive skin.","refs":["17314442"]},{"id":"ha-dryness","active":"Hyaluronic acid","match":["hyaluronic","sodium hyaluronate"],"concern":"dryness","concern_key":"dehydration","app_concerns":["dehydration","fine lines"],"region":"texture","evidence_strength":"A","population":{"n":76,"skin":"women aged 30–60","country":"Slovakia","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"0.1%","studied_pct":0.1,"checkpoints":[{"weeks":4,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"corneometry and elasticity","plain":"In a 76-person study, skin hydration and elasticity were higher than with a plain cream after 30 days.","ref":"22052267","representative":true,"grade":"A"},{"weeks":8,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"corneometry and skin replicas","plain":"Hydration stayed higher at 60 days; lighter-weight forms also reduced wrinkle depth around the eyes.","ref":"22052267","representative":true,"grade":"A"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":false,"note":null,"refs":["22052267"]},{"id":"ceramide-dryness","active":"Ceramides","match":["ceramide"],"concern":"dryness","concern_key":"dehydration","app_concerns":["dehydration"],"region":"texture","evidence_strength":"C","population":{"n":44,"skin":"women with very dry skin (forearms, not face)","country":"Germany","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"barrier-lipid blend (with urea)","studied_pct":null,"checkpoints":[{"weeks":2,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"corneometry and water loss","plain":"In a 44-person study on the forearms, a moisturiser with barrier lipids and urea improved hydration and barrier function within 2 weeks.","ref":"34619676","representative":true,"grade":"C"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":false,"note":"Tested as a blend with urea on forearms, so the effect can't be credited to ceramides alone or to facial skin.","refs":["34619676"]},{"id":"peptide-lines","active":"Peptides","match":["peptide"],"concern":"fine lines","concern_key":"fine lines","app_concerns":["fine lines"],"region":"texture","evidence_strength":"A","population":{"n":93,"skin":"white women aged 35–55","country":"USA","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"3 ppm palmitoyl pentapeptide","studied_pct":null,"checkpoints":[{"weeks":12,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"image analysis and expert grading","plain":"In a 93-person study, fine lines looked measurably reduced on the peptide side after 12 weeks.","ref":"18492182","representative":true,"grade":"A"}],"beyond_last_study":"maintenance: results usually hold with continued use; no evidence of further change","if_stopped":"not studied","can_irritate":false,"note":"Evidence is for one specific peptide; this product's peptide type and amount may differ.","refs":["18492182"]},{"id":"sunscreen-protect","active":"Sunscreen","match":["spf","sunscreen"],"concern":"protection from visible sun damage","concern_key":"protection","app_concerns":["pigmentation","tanning","fine lines","dullness","redness","acne","oiliness","dehydration","dark circles"],"region":"spots","evidence_strength":"A","population":{"n":935,"skin":"mostly fair-skinned adults (4.5-year study); 32 adults (1-year study)","country":"Australia, USA","deeper_tones":"limited data for deeper skin tones"},"typical_concentration":"SPF 15–30 daily","studied_pct":null,"checkpoints":[{"weeks":12,"kind":"qualitative","change_low":null,"change_typical":null,"change_high":null,"unit":null,"measure":"dermatologist grading","plain":"In a small one-year study, daily SPF 30 improved the look of sun damage from week 12 (no comparison group).","ref":"27749441","representative":true,"grade":"C"},{"weeks":52,"kind":"change","change_low":40,"change_typical":null,"change_high":52,"unit":"% improvement from baseline","measure":"dermatologist grading","plain":"After a year of daily use, texture, clarity and pigmentation were rated 40–52% better than at the start (no comparison group).","ref":"27749441","representative":true,"grade":"C"},{"weeks":234,"kind":"protective","change_low":null,"change_typical":24,"change_high":null,"unit":"% less skin ageing than occasional use","measure":"skin-surface ageing grade","plain":"In a 4.5-year study of 903 adults, daily sunscreen users showed 24% less skin ageing than occasional users.","ref":"23732711","representative":true,"grade":"A"}],"beyond_last_study":"keeps protecting while you use it daily","if_stopped":"not studied","can_irritate":false,"note":null,"refs":["27749441","23732711"]},{"id":"licorice-none","active":"Licorice","match":["licorice","liquorice","glycyrrhiza"],"concern":"any","concern_key":"any","app_concerns":[],"region":null,"evidence_strength":"D","population":null,"typical_concentration":null,"studied_pct":null,"checkpoints":[],"beyond_last_study":null,"if_stopped":null,"can_irritate":false,"note":"We found no peer-reviewed controlled study of this ingredient on its own for a cosmetic concern, so no timeline is shown.","refs":[]},{"id":"centella-none","active":"Centella","match":["centella","cica","madecassoside"],"concern":"any","concern_key":"any","app_concerns":[],"region":null,"evidence_strength":"D","population":null,"typical_concentration":null,"studied_pct":null,"checkpoints":[],"beyond_last_study":null,"if_stopped":null,"can_irritate":false,"note":"We found no peer-reviewed controlled study of this ingredient on its own for a cosmetic concern, so no timeline is shown.","refs":[]},{"id":"zinc-pca-none","active":"Zinc PCA","match":["zinc pca"],"concern":"any","concern_key":"any","app_concerns":[],"region":null,"evidence_strength":"D","population":null,"typical_concentration":null,"studied_pct":null,"checkpoints":[],"beyond_last_study":null,"if_stopped":null,"can_irritate":false,"note":"We found no peer-reviewed controlled study of this ingredient on its own for a cosmetic concern, so no timeline is shown.","refs":[]},{"id":"caffeine-none","active":"Caffeine","match":["caffeine"],"concern":"any","concern_key":"any","app_concerns":[],"region":null,"evidence_strength":"D","population":null,"typical_concentration":null,"studied_pct":null,"checkpoints":[],"beyond_last_study":null,"if_stopped":null,"can_irritate":false,"note":"We found no peer-reviewed controlled study of this ingredient on its own for a cosmetic concern, so no timeline is shown.","refs":[]},{"id":"saffron-none","active":"Saffron","match":["saffron"],"concern":"any","concern_key":"any","app_concerns":[],"region":null,"evidence_strength":"D","population":null,"typical_concentration":null,"studied_pct":null,"checkpoints":[],"beyond_last_study":null,"if_stopped":null,"can_irritate":false,"note":"We found no peer-reviewed controlled study of this ingredient on its own for a cosmetic concern, so no timeline is shown.","refs":[]},{"id":"turmeric-none","active":"Turmeric","match":["turmeric","curcum"],"concern":"any","concern_key":"any","app_concerns":[],"region":null,"evidence_strength":"D","population":null,"typical_concentration":null,"studied_pct":null,"checkpoints":[],"beyond_last_study":null,"if_stopped":null,"can_irritate":false,"note":"We found no peer-reviewed controlled study of this ingredient on its own for a cosmetic concern, so no timeline is shown.","refs":[]}],"refs":{"12100180":{"pmid":"12100180","doi":"10.1046/j.1365-2133.2002.04834.x","title":"The effect of niacinamide on reducing cutaneous pigmentation and suppression of melanosome transfer","journal":"Br J Dermatol","year":2002,"first_author":"Hakozaki et al.","funder":"not stated in the PubMed record","design":"randomised, vehicle-controlled (n=18 paired; n=120 parallel)","url":"https://pubmed.ncbi.nlm.nih.gov/12100180/","study_weeks":8},"16766489":{"pmid":"16766489","doi":"10.1080/14764170600717704","title":"The effect of 2% niacinamide on facial sebum production","journal":"J Cosmet Laser Ther","year":2006,"first_author":"Draelos et al.","funder":"not stated in the PubMed record","design":"randomised, placebo-controlled (n=100) and split-face (n=30)","url":"https://pubmed.ncbi.nlm.nih.gov/16766489/","study_weeks":6},"16029679":{"pmid":"16029679","doi":"10.1111/j.1524-4725.2005.31732","title":"Niacinamide: A B vitamin that improves aging facial skin appearance","journal":"Dermatol Surg","year":2005,"first_author":"Bissett et al.","funder":"not stated in the PubMed record","design":"randomised, double-blind, split-face, vehicle-controlled","url":"https://pubmed.ncbi.nlm.nih.gov/16029679/","study_weeks":12},"24033822":{"pmid":"24033822","doi":"10.1111/srt.12107","title":"Reduction in facial hyperpigmentation after treatment with a combination of topical niacinamide and tranexamic acid: a randomized, double-blind, vehicle-controlled trial","journal":"Skin Res Technol","year":2014,"first_author":"Lee et al.","funder":"not stated in the PubMed record","design":"randomised, double-blind, vehicle-controlled","url":"https://pubmed.ncbi.nlm.nih.gov/24033822/","study_weeks":8},"31141852":{"pmid":"31141852","doi":null,"title":"Effect of a Tranexamic Acid, Kojic Acid, and Niacinamide Containing Serum on Facial Dyschromia: A Clinical Evaluation","journal":"J Drugs Dermatol","year":2019,"first_author":"Desai et al.","funder":"not stated in the PubMed record","design":"single-product clinical study (no vehicle arm reported)","url":"https://pubmed.ncbi.nlm.nih.gov/31141852/","study_weeks":12},"40923777":{"pmid":"40923777","doi":"10.1111/jocd.70428","title":"Randomized Clinical Trial on the Efficacy of Oral Tranexamic Acid Versus Topical Tranexamic Acid in Treatment of Melasma","journal":"J Cosmet Dermatol","year":2025,"first_author":"Heidary et al.","funder":"not stated in the PubMed record","design":"randomised, oral vs topical (no vehicle arm)","url":"https://pubmed.ncbi.nlm.nih.gov/40923777/","study_weeks":12},"39943675":{"pmid":"39943675","doi":"10.1111/jocd.70017","title":"Efficacy and Safety of a Topical Formulation Containing Trihydroxybenzoic Acid Glucoside and α-Arbutin, Applied Along With a Sunscreen: A Noncomparative, Prospective, Interventional Study in Indian Females With Facial Melasma or Dark Spots","journal":"J Cosmet Dermatol","year":2025,"first_author":"Gabhane et al.","funder":"not stated in the PubMed record","design":"open-label, single-arm, no control","url":"https://pubmed.ncbi.nlm.nih.gov/39943675/","study_weeks":13},"10522500":{"pmid":"10522500","doi":"10.1001/archotol.125.10.1091","title":"Use of topical ascorbic acid and its effects on photodamaged skin topography","journal":"Arch Otolaryngol Head Neck Surg","year":1999,"first_author":"Traikovich","funder":"not stated in the PubMed record","design":"randomised, double-blind, split-face, vehicle-controlled","url":"https://pubmed.ncbi.nlm.nih.gov/10522500/","study_weeks":12},"38564380":{"pmid":"38564380","doi":"10.36849/JDD.8124","title":"Efficacy and Tolerability of Topical 0.1% Stabilized Bioactive Retinol for Photoaging: A Vehicle-Controlled Integrated Analysis","journal":"J Drugs Dermatol","year":2024,"first_author":"Farris et al.","funder":"industry-funded per the team's source list; not stated in the PubMed record","design":"pooled analysis of 6 vehicle-controlled studies","url":"https://pubmed.ncbi.nlm.nih.gov/38564380/","study_weeks":12},"25738849":{"pmid":"25738849","doi":null,"title":"One-year topical stabilized retinol treatment improves photodamaged skin in a double-blind, vehicle-controlled trial","journal":"J Drugs Dermatol","year":2015,"first_author":"Randhawa et al.","funder":"not stated in the PubMed record","design":"double-blind, vehicle-controlled","url":"https://pubmed.ncbi.nlm.nih.gov/25738849/","study_weeks":52},"29947134":{"pmid":"29947134","doi":"10.1111/bjd.16918","title":"Prospective, randomized, double-blind assessment of topical bakuchiol and retinol for facial photoageing","journal":"Br J Dermatol","year":2019,"first_author":"Dhaliwal et al.","funder":"not stated in the PubMed record","design":"randomised, double-blind, active comparison (retinol), no vehicle","url":"https://pubmed.ncbi.nlm.nih.gov/29947134/","study_weeks":12},"9598014":{"pmid":"9598014","doi":"10.1111/j.1524-4725.1998.tb04209.x","title":"A double-blind randomized clinical trial on the effectiveness of a daily glycolic acid 5% formulation in the treatment of photoaging","journal":"Dermatol Surg","year":1998,"first_author":"Thibault et al.","funder":"not stated in the PubMed record","design":"randomised, double-blind, placebo-controlled","url":"https://pubmed.ncbi.nlm.nih.gov/9598014/","study_weeks":13},"8651713":{"pmid":"8651713","doi":null,"title":"Topical 8% glycolic acid and 8% L-lactic acid creams for the treatment of photodamaged skin. A double-blind vehicle-controlled clinical trial","journal":"Arch Dermatol","year":1996,"first_author":"Stiller et al.","funder":"not stated in the PubMed record","design":"randomised, double-blind, vehicle-controlled","url":"https://pubmed.ncbi.nlm.nih.gov/8651713/","study_weeks":22},"32356369":{"pmid":"32356369","doi":"10.1002/14651858.CD011368.pub2","title":"Topical azelaic acid, salicylic acid, nicotinamide, sulphur, zinc and fruit acid (alpha-hydroxy acid) for acne","journal":"Cochrane Database Syst Rev","year":2020,"first_author":"Liu et al.","funder":"not stated in the PubMed record","design":"Cochrane systematic review (49 trials)","url":"https://pubmed.ncbi.nlm.nih.gov/32356369/","study_weeks":156},"9829446":{"pmid":"9829446","doi":"10.1016/s0149-2918(98)80076-3","title":"Azelaic acid 20% cream in the treatment of facial hyperpigmentation in darker-skinned patients","journal":"Clin Ther","year":1998,"first_author":"Lowe et al.","funder":"not stated in the PubMed record","design":"randomised, double-masked, vehicle-controlled","url":"https://pubmed.ncbi.nlm.nih.gov/9829446/","study_weeks":24},"17314442":{"pmid":"17314442","doi":"10.4103/0378-6323.30646","title":"The efficacy of 5% topical tea tree oil gel in mild to moderate acne vulgaris: a randomized, double-blind placebo-controlled study","journal":"Indian J Dermatol Venereol Leprol","year":2007,"first_author":"Enshaieh et al.","funder":"not stated in the PubMed record","design":"randomised, double-blind, placebo-controlled","url":"https://pubmed.ncbi.nlm.nih.gov/17314442/","study_weeks":6.4},"22052267":{"pmid":"22052267","doi":null,"title":"Efficacy of cream-based novel formulations of hyaluronic acid of different molecular weights in anti-wrinkle treatment","journal":"J Drugs Dermatol","year":2011,"first_author":"Pavicic et al.","funder":"not stated in the PubMed record","design":"randomised, split-face, vehicle-controlled","url":"https://pubmed.ncbi.nlm.nih.gov/22052267/","study_weeks":8.6},"34619676":{"pmid":"34619676","doi":"10.1159/000520009","title":"A Biomimetic Combination of Actives Enhances Skin Hydration and Barrier Function via Modulation of Gene Expression: Results of Two Double-Blind, Vehicle-Controlled Clinical Studies","journal":"Skin Pharmacol Physiol","year":2022,"first_author":"Altgilbers et al.","funder":"not stated in the PubMed record","design":"double-blind, vehicle-controlled (forearms)","url":"https://pubmed.ncbi.nlm.nih.gov/34619676/","study_weeks":2},"18492182":{"pmid":"18492182","doi":"10.1111/j.1467-2494.2005.00261.x","title":"Topical palmitoyl pentapeptide provides improvement in photoaged human facial skin","journal":"Int J Cosmet Sci","year":2005,"first_author":"Robinson et al.","funder":"not stated in the PubMed record","design":"randomised, double-blind, split-face, placebo-controlled","url":"https://pubmed.ncbi.nlm.nih.gov/18492182/","study_weeks":12},"23732711":{"pmid":"23732711","doi":"10.7326/0003-4819-158-11-201306040-00002","title":"Sunscreen and prevention of skin aging: a randomized trial","journal":"Ann Intern Med","year":2013,"first_author":"Hughes et al.","funder":"National Health and Medical Research Council of Australia (public)","design":"randomised, community-based","url":"https://pubmed.ncbi.nlm.nih.gov/23732711/","study_weeks":234},"27749441":{"pmid":"27749441","doi":"10.1097/DSS.0000000000000879","title":"Daily Use of a Facial Broad Spectrum Sunscreen Over One-Year Significantly Improves Clinical Evaluation of Photoaging","journal":"Dermatol Surg","year":2016,"first_author":"Randhawa et al.","funder":"not stated in the PubMed record","design":"open-label, single-arm, no control","url":"https://pubmed.ncbi.nlm.nih.gov/27749441/","study_weeks":52}}};
+/* =====================================================================
+   Results timeline: what most people can realistically expect from a product at
+   2 weeks, 4 weeks, 3 months, 6 months and 1 year, from cited studies only.
+   Source of truth: data/evidence/actives_timeline.json (TIMELINE_EVIDENCE).
+   Rules:
+   - A number appears only at a time point a study measured, and only as reported.
+   - Scale down, never up: unknown or lower strength -> the low end, or no number at all.
+   - Past the last study point: "maintenance" or "not studied", never an invented number.
+   - Cosmetic wording only (see BANNED); nothing predicts a specific person's skin.
+   - The illustration changes only the concern's region, never overall tone or lightness.
+   ===================================================================== */
+const TIMELINE=(()=>{
+  const EV=(typeof TIMELINE_EVIDENCE!=="undefined"&&TIMELINE_EVIDENCE)||{entries:[],refs:{}};
+  const STOPS=[{w:2,label:"2 weeks"},{w:4,label:"4 weeks"},{w:12,label:"3 months"},{w:26,label:"6 months"},{w:52,label:"1 year"}];
+  const RANK={A:0,B:1,C:2,D:3};
+  const CONF={A:"Strong evidence",B:"Some evidence",C:"Early evidence"};
+  const RINSE_OFF=new Set(["Cleanser","Face mask"]);
+  const NUMERIC=new Set(["change","responders","ratio","protective"]);
+  // kept in step with tools/check_evidence.py; tests/timeline_unit_test.js scans every string we show
+  const BANNED=/\b(you will|guarantee\w*|cures?|cured|curing|removes?|removal|lighten\w*|brighten\w*|whiten\w*|fairer|fairness|treat(s|ed|ment|ing)?|heal\w*|eliminat\w*|permanent\w*|melasma|rosacea|eczema|psoriasis|dermatitis|acne|hyperpigmentation|PIH)\b/i;
+  const LABEL={pigmentation:"the look of dark spots",tanning:"uneven tone from the sun",acne:"blemishes",oiliness:"oiliness and shine",dullness:"dullness and rough texture",
+    dehydration:"dryness","fine lines":"fine lines",redness:"visible redness","dark circles":"under-eye darkness"};
+  const FX={pigmentation:"spots",tanning:"spots",oiliness:"shine",acne:"redness",redness:"redness","fine lines":"texture",dullness:"texture",dehydration:"texture"};
+  const fmt=v=>v==null?"":(Math.round(v*10)/10).toString().replace(/\.0$/,"");
+
+  /* ---------- which evidence applies to a product ---------- */
+  function strengthOf(p,e){   // the product's % of this active, if the key-actives line states it
+    const a=String(p.a||"").toLowerCase();
+    for(const m of e.match){const i=a.indexOf(m);if(i<0)continue;const seg=a.slice(i).split(/\s*\+\s*|,\s*/)[0];const x=/(\d+(?:\.\d+)?)\s*%/.exec(seg);if(x)return+x[1]}
+    return null;
+  }
+  function entriesFor(p){
+    if(!p||RINSE_OFF.has(p.c))return[];
+    const a=String(p.a||"").toLowerCase();
+    return EV.entries.filter(e=>e.active==="Sunscreen"?p.c==="Sunscreen":p.c!=="Sunscreen"||a?e.match.some(m=>a.includes(m)):false);
+  }
+  const numericCps=e=>e.checkpoints.filter(c=>c.representative!==false&&NUMERIC.has(c.kind));
+  const better=(x,y)=>RANK[x.evidence_strength]-RANK[y.evidence_strength]||numericCps(y).length-numericCps(x).length||y.checkpoints.length-x.checkpoints.length;
+  function noTimeline(p,reason){return{pid:p&&p.id,grade:"D",confidence:null,stops:null,reason,alsoHelps:[],notes:[]}}
+
+  /* ---------- the main call ---------- */
+  // productTimeline(product, P, {concern}) -> {grade, confidence, concern, active, stops[5], notes, alsoHelps, firstChangeWeek, at12}
+  function productTimeline(p,prof,opts={}){
+    prof=prof||{};
+    if(!p)return noTimeline(p,"No product.");
+    if(RINSE_OFF.has(p.c))return noTimeline(p,"This is a rinse-off product. The studies we rely on tested products left on the skin, so we can't show a fair timeline.");
+    const ents=entriesFor(p),usable=ents.filter(e=>e.evidence_strength!=="D");
+    if(!usable.length)return noTimeline(p,ents.length?`Not enough evidence: we found no suitable peer-reviewed study for ${uniq(ents.map(e=>e.active)).join(", ")}.`:p.a?"Not enough evidence for this product's key ingredients.":"This product doesn't list its key ingredients, so we can't match it to any study.");
+    const want=opts.concern||null;
+    let rel=want?usable.filter(e=>e.app_concerns.includes(want)):[];
+    let concern=want;
+    if(!rel.length){   // the product isn't studied for that concern: use what it is studied for, and say so
+      const cons=(p.con||[]).concat(prof.concerns||[]);
+      for(const c of cons){rel=usable.filter(e=>e.app_concerns.includes(c));if(rel.length){concern=c;break}}
+      if(!rel.length){rel=usable;concern=rel.slice().sort(better)[0].app_concerns[0]||rel[0].concern_key}
+    }
+    const best=rel.slice().sort(better)[0];
+    const alsoHelps=uniq(rel.filter(e=>e.active!==best.active).map(e=>e.active));
+    const label=LABEL[concern]||best.concern;
+    const pct=strengthOf(p,best),studied=best.studied_pct;
+    const scaleDown=best.active!=="Sunscreen"&&(pct==null||(studied!=null&&pct<studied));
+    const sensitive=!!(prof.sensitive&&best.can_irritate);
+    const notes=[];
+    if(scaleDown)notes.push(pct==null?`This product doesn't state how much ${best.active.toLowerCase()} it contains, so we show the lower end of study results (or no number).`
+      :`This product has ${fmt(pct)}% ${best.active.toLowerCase()}; studies used ${best.typical_concentration}, so results may be smaller.`);
+    if(sensitive)notes.push(`You told us your skin is sensitive. ${best.active} can sting or dry the skin at first, so start slowly, every other day, and give your skin time to adjust before judging results.`);
+    if(want&&concern!==want)notes.push(`This product isn't studied for ${LABEL[want]||want}; the timeline below is for ${label}.`);
+    if(best.note)notes.push(best.note);
+    const cps=best.checkpoints.filter(c=>c.representative!==false).slice().sort((a,b)=>a.weeks-b.weeks);
+    const side=best.checkpoints.filter(c=>c.representative===false);
+    const assign=c=>STOPS.findIndex(s=>c.weeks<=s.w+1);
+    const first=cps[0]&&cps[0].weeks,last=cps.length?cps[cps.length-1].weeks:0;
+    let lastValue=null;
+    const stops=STOPS.map((s,i)=>{
+      const here=cps.filter(c=>assign(c)===i);
+      const c=here[here.length-1]||null;
+      const base={w:s.w,label:s.label,confidence:CONF[best.evidence_strength],grade:best.evidence_strength};
+      if(c){
+        const v=valueOf(c,scaleDown);
+        if(c.kind==="change"&&v.value!=null)lastValue=v.value;
+        const at=Math.abs(c.weeks-s.w)>1.01?` (measured at ${weeksText(c.weeks)})`:"";
+        return{...base,grade:c.grade||best.evidence_strength,confidence:CONF[c.grade||best.evidence_strength],status:"measured",measuredAt:c.weeks,kind:c.kind,value:v.value,valueText:v.text,
+          short:shortLine(c,label,v,s)+at,detail:c.plain,half:halfLine(c,v),ref:c.ref,refInfo:EV.refs[c.ref]||null,
+          population:best.population,why:whyDiffers(best,prof,pct,scaleDown),illus:c.kind==="change"?v.value:null}
+      }
+      if(first==null||s.w<first-1)return{...base,status:"early",short:`Too early to judge: studies first measured results at ${weeksText(first)}.`,illus:0,value:null};
+      if(s.w>last+1)return{...base,status:"maintenance",short:best.active==="Sunscreen"?"Keeps protecting with daily use.":
+        /^maintenance/.test(best.beyond_last_study||"")?"Maintenance: results usually hold with continued use; no evidence of further change.":
+        `Not studied beyond ${weeksText(last)}: ${best.beyond_last_study||"no evidence either way"}.`,illus:lastValue,value:null};
+      return{...base,status:"gap",short:`Not measured at this point in studies; the next study point is ${weeksText(cps.find(x=>x.weeks>s.w).weeks)}.`,illus:lastValue,value:null};
+    });
+    const firstChange=cps[0]?cps[0].weeks:null;
+    const at12=stops[2];
+    return{pid:p.id,grade:best.evidence_strength,confidence:CONF[best.evidence_strength],concern,concernLabel:label,active:best.active,entryId:best.id,
+      stops,notes,alsoHelps,firstChangeWeek:firstChange,at12,region:FX[concern]||best.region,
+      hasNumeric:stops.some(x=>x.illus!=null&&x.illus>0),side:side.map(c=>({plain:c.plain,ref:c.ref,refInfo:EV.refs[c.ref]})),
+      protective:best.checkpoints.filter(c=>c.kind==="protective").map(c=>({plain:c.plain,ref:c.ref,refInfo:EV.refs[c.ref]})),
+      ifStopped:best.if_stopped||"not studied",refs:best.refs.map(r=>EV.refs[r]).filter(Boolean)};
+  }
+  function valueOf(c,scaleDown){
+    if(!NUMERIC.has(c.kind))return{value:null,text:""};
+    const lo=c.change_low,ty=c.change_typical,hi=c.change_high;
+    if(scaleDown){if(lo!=null)return{value:lo,text:unitText(c,lo)};return{value:null,text:"",withheld:true}}
+    if(ty!=null)return{value:ty,text:unitText(c,ty)};
+    if(lo!=null&&hi!=null)return{value:lo,text:`${fmt(lo)}–${fmt(hi)}${c.kind==="ratio"?"×":"%"}`};
+    return{value:lo??hi,text:unitText(c,lo??hi)};
+  }
+  const unitText=(c,v)=>c.kind==="ratio"?`${fmt(v)}×`:`${fmt(v)}%`;
+  function shortLine(c,label,v,s){
+    const when=s.w<=4?`Week ${s.w}`:s.label.replace(/^./,x=>x.toUpperCase());
+    if(v.withheld)return`${when}: studies saw ${label} improve; the size may be smaller at this product's strength.`;
+    switch(c.kind){
+      case"change":return`${when}: in studies, ${label} improved by about ${v.text} (${c.measure}).`;
+      case"responders":return`${when}: in studies, ${v.text} of people saw ${label} improve.`;
+      case"ratio":return`${when}: in a study, ${label} improved ${v.text} as much as with a plain product.`;
+      case"protective":return`${when}: daily use protects against further visible sun damage.`;
+      default:return`${when}: ${s.w<=4?"first":"a"} measurable change in ${label} for many people in studies.`;
+    }
+  }
+  function halfLine(c,v){
+    if(c.kind==="change"&&v.value!=null)return`If used about half the time: an estimated ${fmt(v.value/2)}% (our estimate, not a study result).`;
+    if(c.kind==="responders"||c.kind==="ratio")return"If used about half the time: likely fewer people see a change (our estimate).";
+    return"If used about half the time: results are likely smaller and slower (our estimate).";
+  }
+  function whyDiffers(e,prof,pct,scaleDown){
+    const w=[];const pop=e.population||{};
+    if(pop.deeper_tones)w.push(cap(pop.deeper_tones)+".");
+    if(pop.skin)w.push(`Studied in ${pop.skin}${pop.country?` (${pop.country})`:""}.`);
+    if(scaleDown)w.push(pct==null?"This product doesn't state its strength.":"This product's strength is lower than in the study.");
+    if(prof.sensitive&&e.can_irritate)w.push("Sensitive skin may need a slower start.");
+    w.push("Your skin, the rest of your routine, sun exposure and how often you use it all change results.");
+    return w.join(" ");
+  }
+  const weeksText=w=>w==null?"":w>=52?`${Math.round(w/52*10)/10} year${w>=104?"s":""}`.replace(/\.0 /," "):w>=12&&Math.abs(w/4.33-Math.round(w/4.33))<0.3?`${Math.round(w/4.33)} months`:`${Math.round(w)} weeks`;
+  const cap=s=>s?s[0].toUpperCase()+s.slice(1):s;
+  const uniq=a=>[...new Set(a)];
+
+  /* ---------- a whole plan: per concern, the best-evidenced product drives the line ---------- */
+  function planTimeline(products,prof,concerns){
+    const out=[];const ps=(products||[]).filter(Boolean);
+    for(const c of uniq(concerns||[])){
+      let best=null;
+      for(const p of ps){const t=productTimeline(p,prof,{concern:c});if(t.grade==="D"||t.concern!==c)continue;
+        if(!best||RANK[t.grade]<RANK[best.t.grade]||(t.grade===best.t.grade&&(t.firstChangeWeek??99)<(best.t.firstChangeWeek??99)))best={p,t}}
+      out.push({concern:c,label:LABEL[c]||c,product:best&&best.p,timeline:best&&best.t});
+    }
+    const spf=ps.find(p=>p.c==="Sunscreen");
+    const sun=spf?productTimeline(spf,prof,{concern:"pigmentation"}):null;
+    return{lines:out,sunscreen:spf?{product:spf,protective:sun&&sun.protective}:null};
+  }
+
+  /* ---------- what to expect at a given time since starting (for check-ins) ---------- */
+  function expectedBy(t,weeks){
+    if(!t||!t.stops)return null;
+    const e=EV.entries.find(x=>x.id===t.entryId);if(!e)return null;
+    const seen=e.checkpoints.filter(c=>c.representative!==false&&c.weeks<=weeks+0.5).sort((a,b)=>a.weeks-b.weeks);
+    return seen.length?{weeks:seen[seen.length-1].weeks,plain:seen[seen.length-1].plain,ref:seen[seen.length-1].ref}:{weeks:null,first:e.checkpoints[0]&&e.checkpoints[0].weeks};
+  }
+
+  /* ---------- illustration: pure pixel maths (testable without a browser) ----------
+     data: RGBA bytes, w x h. mask: Float32Array(w*h) 0..1 (the concern's region). s: 0..1 strength.
+     Only masked pixels change; local averages are kept, so overall tone and undertone stay put, and the
+     mean lightness inside the mask is never allowed to rise. */
+  function boxBlur(src,w,h,r){
+    const out=new Float32Array(src.length),tmp=new Float32Array(src.length);
+    for(let y=0;y<h;y++){let acc=0;const row=y*w;for(let x=-r;x<=r;x++)acc+=src[row+Math.min(w-1,Math.max(0,x))];
+      for(let x=0;x<w;x++){tmp[row+x]=acc/(2*r+1);acc+=src[row+Math.min(w-1,x+r+1)]-src[row+Math.max(0,x-r)]}}
+    for(let x=0;x<w;x++){let acc=0;for(let y=-r;y<=r;y++)acc+=tmp[Math.min(h-1,Math.max(0,y))*w+x];
+      for(let y=0;y<h;y++){out[y*w+x]=acc/(2*r+1);acc+=tmp[Math.min(h-1,y+r+1)*w+x]-tmp[Math.max(0,y-r)*w+x]}}
+    return out;
+  }
+  function illustrate(data,w,h,mask,type,s){
+    const out=new Uint8ClampedArray(data);s=Math.max(0,Math.min(0.9,s||0));if(!s)return out;
+    const n=w*h,ch=[0,1,2].map(c=>{const a=new Float32Array(n);for(let i=0;i<n;i++)a[i]=data[i*4+c];return a});
+    const r=Math.max(2,Math.round(Math.min(w,h)*(type==="texture"?0.008:type==="shine"?0.02:0.03)));
+    const M=ch.map(a=>boxBlur(a,w,h,r));
+    const Y=(R,G,B)=>0.2126*R+0.7152*G+0.0722*B;
+    let y0=0,y1=0,mw=0,mw2=0;const res=[new Float32Array(n),new Float32Array(n),new Float32Array(n)];
+    for(let i=0;i<n;i++){
+      const m=mask[i];let R=ch[0][i],G=ch[1][i],B=ch[2][i];
+      if(m>0){
+        const k=s*m;
+        if(type==="spots"||type==="texture"){R=M[0][i]+(R-M[0][i])*(1-k);G=M[1][i]+(G-M[1][i])*(1-k);B=M[2][i]+(B-M[2][i])*(1-k)}
+        else if(type==="shine"){if(Y(R,G,B)>Y(M[0][i],M[1][i],M[2][i])){R-=k*Math.max(0,R-M[0][i]);G-=k*Math.max(0,G-M[1][i]);B-=k*Math.max(0,B-M[2][i])}}
+        else if(type==="redness"){const e=(R-M[0][i])-((G-M[1][i])+(B-M[2][i]))/2;if(e>0)R-=k*e}
+        y0+=m*Y(ch[0][i],ch[1][i],ch[2][i]);y1+=m*Y(R,G,B);mw+=m;mw2+=m*m;
+      }
+      res[0][i]=R;res[1][i]=G;res[2][i]=B;
+    }
+    const lift=mw?(y1-y0)/mw2:0;   // never let the region get lighter on average
+    for(let i=0;i<n;i++){const m=mask[i];if(m<=0)continue;const d=lift>0?lift*m:0;
+      out[i*4]=res[0][i]-d;out[i*4+1]=res[1][i]-d;out[i*4+2]=res[2][i]-d}
+    return out;
+  }
+  // concern region from face landmarks (browser): face skin, without eyes, brows and lips
+  function maskFromLandmarks(w,h,lm,type){
+    if(typeof document==="undefined"||!lm||typeof TRYON_LM==="undefined")return null;
+    const L=TRYON_LM,c=document.createElement("canvas");c.width=w;c.height=h;const g=c.getContext("2d");
+    const pt=i=>[lm[i][0]*w,lm[i][1]*h];const poly=ids=>{const p=new Path2D();ids.forEach((i,k)=>{const[x,y]=pt(i);k?p.lineTo(x,y):p.moveTo(x,y)});p.closePath();return p};
+    const eye=e=>poly(e.up.concat(e.lo.slice().reverse()));
+    g.filter=`blur(${Math.round(w*0.01)}px)`;g.fillStyle="#fff";g.fill(poly(L.oval));
+    g.globalCompositeOperation="destination-out";[eye(L.eyeR),eye(L.eyeL),poly(L.browR),poly(L.browL),poly(L.lipsOut)].forEach(p=>{g.lineWidth=w*0.02;g.stroke(p);g.fill(p)});
+    const d=g.getImageData(0,0,w,h).data,m=new Float32Array(w*h);for(let i=0;i<w*h;i++)m[i]=d[i*4+3]/255;
+    return m;
+  }
+  const textsOf=t=>!t||!t.stops?[t&&t.reason].filter(Boolean):[...t.stops.flatMap(s=>[s.short,s.detail,s.half,s.why]),...t.notes,t.concernLabel].filter(Boolean);
+
+  return{STOPS,CONF,LABEL,BANNED,productTimeline,planTimeline,expectedBy,illustrate,maskFromLandmarks,entriesFor,strengthOf,textsOf,evidence:EV};
+})();
+
 /* =====================================================================
    Aaina AI Skin Advisor: problem first, 3-product plan, full explanation
    ===================================================================== */
@@ -3406,6 +3653,7 @@ function cardHTML(i,s){
     ${act.length?`<div class="keyact">${act.map(a=>`<span>${esc(a.name)}</span>`).join("")}${p.spf?`<span>SPF ${p.spf}${p.pa?" "+esc(p.pa):""}</span>`:""}</div>`:p.spf?`<div class="keyact"><span>SPF ${p.spf}${p.pa?" "+esc(p.pa):""}</span></div>`:""}
     ${s.slot.shade?shadeLineHTML(p):""}
     <p class="why1">${lineHTML(p,s.slot)}</p>
+    ${expectHTML(p,i)}
     <div class="pfoot">
       <span class="price">${rupee(p.p)}</span>
       ${p.s&&p.s.length?`<button type="button" class="tryon-btn" data-tryon="${p.id}">Try it on</button>`:""}
@@ -3474,6 +3722,7 @@ function renderPlan(){
   </div>
   ${tuneHTML()}
   <div class="pcards">${PL.slots.map((s,i)=>cardHTML(i,s)).join("")}</div>
+  ${planExpectHTML()}
   <div class="acq-bar">
     <div class="acq-left">
       <div class="eyebrow">Acquire The Full Ritual</div>
@@ -3506,10 +3755,11 @@ function renderPlan(){
   if(P.goal&&P.goal!=="routine")add("Look for something else",()=>{meSay("Look for something else");DONE.delete("about");botSay(`Sure${nm(", ")}. I'll keep your safety answers.`);next()},true);
   else add("Plan for another concern",()=>{meSay("Plan for another concern");DONE.delete("concerns");P.concerns=[];P.concernFU={};PROB=null;botSay(`Of course${nm(", ")}. I'll keep your safety, location and skin answers, so this one is quicker.`);next()},true);
   add("How's it going? Check in",()=>openCheckin());
+  if(P.goal!=="makeup")add("Track my progress",()=>openProgress());
   add("Check a product",()=>{$("askInput").focus();$("askInput").placeholder="Type a product name or code, e.g. P1025"});
   box.appendChild(nx);
   const ac=accountCard();if(ac)box.insertBefore(ac,nx);
-  box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));wireShare(box);wireUpgrades(box);wireTune(box);wireFeedback(box);
+  box.querySelectorAll(".swap").forEach(b=>b.onclick=()=>swap(+b.dataset.i));wireTimeline(box);wireShare(box);wireUpgrades(box);wireTune(box);wireFeedback(box);
   const acqBtn=box.querySelector("[data-acq-btn]");if(acqBtn)acqBtn.onclick=()=>openCheckin();
   const vAM=box.querySelector('[data-vanity="am"]');
   const vPM=box.querySelector('[data-vanity="pm"]');
@@ -3649,7 +3899,7 @@ function goBack(){
   CUR_BLOCK=null;next();saveState();
 }
 if($("newBtn"))$("newBtn").onclick=()=>{if($("advisor").hidden){$("nameInput").focus();return}meSay("Start over");STEPS=[...DEFAULT_STEPS];P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;lockAll();botSay(NAME?`Fresh start, ${esc(NAME)}. Let's go again.`:"Fresh start. Let's go again.");next();return;botSay("Okay, starting fresh.");next()};
-function wipeLocal(msg){clearState();META={planAt:null,planProb:null,checks:[]};FOLLOW_IDX=null;P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;NAME=null;nameAsked=false;STEPS=[...DEFAULT_STEPS];LAST_PLAN=null;lockAll();toggleSide(false);botSay(msg||"Done. I've deleted all your answers.");next()}
+function wipeLocal(msg){clearState();try{localStorage.removeItem(PROGRESS_PHOTOS)}catch{};META={planAt:null,planProb:null,checks:[]};FOLLOW_IDX=null;P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;NAME=null;nameAsked=false;STEPS=[...DEFAULT_STEPS];LAST_PLAN=null;lockAll();toggleSide(false);botSay(msg||"Done. I've deleted all your answers.");next()}
 $("deleteBtn").onclick=()=>confirmDelete();
 
 /* =====================================================================
@@ -4390,19 +4640,19 @@ function renderResume(){
   const dp=Object.assign({},d.P||{}),dd=new Set(d.DONE||[]);migrateAbout(dp,dd);
   const steps=stepsFor(dp.goal,dp.gender),done=steps.filter(k=>dd.has(k)).length,finished=done>=steps.length&&d.PROB;
   const nextIdx=steps.findIndex(k=>!dd.has(k))+1;const prob=d.PROB&&PROBLEMS[d.PROB]?PROBLEMS[d.PROB].label.toLowerCase():null;
-  const due=finished?dueCheck(d.META):null;
+  const due=finished?dueCheck(d.META):null,pdue=finished&&!due?dueProgress(d.META):null;
   const sNow=finished&&d.P?.seasonAlert&&d.P?.state?seasonFor(d.P.state,d.P.climate):null,sChanged=sNow&&d.META?.planSeason&&sNow.key!==d.META.planSeason;
   box.hidden=false;
   box.innerHTML=finished
-    ?`<div class="rs-ic">${SVG('<path d="M5 12l4 4 10-10"/>')}</div><div class="rs-tx"><b>Welcome back, ${esc(d.NAME)}.</b> Your plan for <b>${esc(prob)}</b> is saved${d.META?.planAt?` (made ${agoText(d.META.planAt)})`:""}.${due?`<span class="rs-due">${due==="week2"?"Two weeks in! Time for a quick check-in.":"It's been 3 days. How are your products going?"}</span>`:""}${sChanged?`<span class="rs-due rs-season">${SEASON_IC[sNow.key]||""}${esc(sNow.label)} has started in ${esc(d.P.city)}. Want to refresh your plan for it?</span>`:""}</div>
-       <div class="rs-act">${sChanged?`<button type="button" class="btn primary" data-rs="season">Refresh for ${esc(sNow.label.toLowerCase())}</button>`:""}${due?`<button type="button" class="btn${sChanged?"":" primary"}" data-rs="check">Check in now</button><button type="button" class="btn" data-rs="plan">View my plan</button>`:`<button type="button" class="btn${sChanged?"":" primary"}" data-rs="plan">View my plan</button><button type="button" class="btn" data-rs="check">Report how it's going</button>`}<button type="button" class="btn ghost" data-rs="fresh">Start fresh</button></div>`
+    ?`<div class="rs-ic">${SVG('<path d="M5 12l4 4 10-10"/>')}</div><div class="rs-tx"><b>Welcome back, ${esc(d.NAME)}.</b> Your plan for <b>${esc(prob)}</b> is saved${d.META?.planAt?` (made ${agoText(d.META.planAt)})`:""}.${due?`<span class="rs-due">${due==="week2"?"Two weeks in! Time for a quick check-in.":"It's been 3 days. How are your products going?"}</span>`:""}${pdue?`<span class="rs-due">${esc(pdue.lab)} progress check: how is it looking?</span>`:""}${sChanged?`<span class="rs-due rs-season">${SEASON_IC[sNow.key]||""}${esc(sNow.label)} has started in ${esc(d.P.city)}. Want to refresh your plan for it?</span>`:""}</div>
+       <div class="rs-act">${sChanged?`<button type="button" class="btn primary" data-rs="season">Refresh for ${esc(sNow.label.toLowerCase())}</button>`:""}${due?`<button type="button" class="btn${sChanged?"":" primary"}" data-rs="check">Check in now</button><button type="button" class="btn" data-rs="plan">View my plan</button>`:`<button type="button" class="btn${sChanged?"":" primary"}" data-rs="plan">View my plan</button><button type="button" class="btn" data-rs="check">Report how it's going</button>`}${pdue?`<button type="button" class="btn" data-rs="progress">Progress check</button>`:""}<button type="button" class="btn ghost" data-rs="fresh">Start fresh</button></div>`
     :`<div class="rs-ic">${SVG('<path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/>')}</div><div class="rs-tx"><b>Welcome back, ${esc(d.NAME)}.</b> You were on <b>question ${nextIdx} of ${steps.length}</b>${prob?` of your plan for ${esc(prob)}`:""}. Your answers are saved.<div class="rs-bar" aria-hidden="true"><span style="width:${Math.round(100*done/steps.length)}%"></span></div></div>
        <div class="rs-act"><button type="button" class="btn primary" data-rs="go">Continue where I left off</button><button type="button" class="btn ghost" data-rs="fresh">Start fresh</button></div>`;
   box.querySelectorAll("[data-rs]").forEach(b=>b.onclick=()=>{const a=b.dataset.rs;
     if(a==="fresh"){clearState();resetAll();renderResume();$("nameInput").focus();return}
-    resumeFrom(d,a==="check",a==="season")});
+    resumeFrom(d,a==="check",a==="season",a==="progress")});
 }
-async function resumeFrom(d,thenCheck,seasonRefresh){
+async function resumeFrom(d,thenCheck,seasonRefresh,thenProgress){
   restoreState(d);P.month=new Date().getMonth();
   if(seasonRefresh){const before=(d.planIds||[]).map(id=>id&&id!=="keep"?BY_ID[id]:null);RESTORE_IDS=(d.planIds||[]).map(id=>id==="keep"?"keep":null);
     $("welcome").hidden=true;$("advisor").hidden=false;thread.innerHTML="";CUR_BLOCK=null;
@@ -4415,6 +4665,7 @@ async function resumeFrom(d,thenCheck,seasonRefresh){
   botSay(left?`<p>Welcome back, <b>${esc(NAME)}</b>! I've kept all your answers, so let's pick up at <b>question ${STEPS.length-left+1}</b>.</p>`:`<p>Welcome back, <b>${esc(NAME)}</b>! Here's the plan we made${META.planAt?` ${agoText(META.planAt)}`:""}.</p>`);
   updateTitle();next();
   if(thenCheck&&PL)openCheckin();
+  if(thenProgress&&PL)openProgress();
 }
 function resetAll(){P=emptyProfile();PREF={boost:[]};DONE.clear();PROB=null;SUB=null;FOLLOW_IDX=null;PL=null;RESTORE_IDS=null;META={planAt:null,planProb:null,checks:[]};NAME=null;nameAsked=false;STEPS=[...DEFAULT_STEPS];thread.innerHTML="";CUR_BLOCK=null}
 
@@ -4552,6 +4803,182 @@ function handleTyped(text){
 function refocus(){const q=thread.querySelector(".q:not(.answered)");if(q){thread.appendChild(q);focusEl(q)}}
 function findCity(t){const low=t.toLowerCase();for(const[st,s]of Object.entries(INDIA))for(const c of Object.keys(s.c))if(new RegExp("\\b"+c.toLowerCase().replace(/[()]/g,"")+"\\b").test(low))return{state:st,city:c,climate:s.c[c]||s.d};return null}
 $("askForm").addEventListener("submit",e=>{e.preventDefault();const v=$("askInput").value;$("askInput").value="";handleTyped(v.slice(0,400))});
+
+/* =====================================================================
+   RESULTS TIMELINE (src/timeline.js): what studies saw at 2w / 4w / 3m / 6m / 1y,
+   a side-by-side compare, an optional illustration, and progress check-ins
+   ===================================================================== */
+const MAKEUP_CATS=new Set(["Foundation","Concealer","Compact powder","BB / CC cream","Lipstick","Blush","Kajal / eyeliner","Primer"]);
+const tlFor=(p,concern)=>TIMELINE.productTimeline(p,P,{concern:concern||PROB});
+const gradeChip=t=>t&&t.confidence?`<span class="tl-chip g${t.grade}">${esc(t.confidence)}</span>`:"";
+function expectHTML(p,i){
+  if(!p||MAKEUP_CATS.has(p.c)||typeof TIMELINE==="undefined")return"";
+  const t=tlFor(p);
+  return`<details class="tl" data-tl="${esc(p.id)}" data-slot="${i}"><summary>What to expect ${t.grade==="D"?`<span class="tl-chip gD">Not enough evidence</span>`:gradeChip(t)}</summary>${timelineBody(t,p,i)}</details>`;
+}
+function timelineBody(t,p,i){
+  if(t.grade==="D")return`<p class="tl-none">${esc(t.reason)} We'd rather show nothing than guess.</p>${i!=null?`<button type="button" class="link small" data-tl-compare="${i}">Compare with alternatives</button>`:""}`;
+  return`<p class="tl-head">Studies of <b>${esc(t.active)}</b> for <b>${esc(t.concernLabel)}</b>. What many people noticed, not a promise for your skin.</p>
+    <ol class="tl-strip">${t.stops.map((s,k)=>`<li><button type="button" class="tl-stop ${s.status}" data-tl-stop="${k}" aria-expanded="false"><span class="tl-when">${esc(s.label)}</span><span class="tl-dot" aria-hidden="true"></span>
+      <span class="tl-line">${esc(s.short)}</span>${s.status==="measured"?`<span class="tl-chip g${s.grade}">${esc(s.confidence)}</span>`:""}</button></li>`).join("")}</ol>
+    <div class="tl-detail" data-tl-detail hidden></div>
+    ${t.notes.length?`<ul class="tl-notes">${t.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul>`:""}
+    ${t.alsoHelps.length?`<p class="tl-also">May also help: ${esc(t.alsoHelps.join(", "))} (less evidence for this concern).</p>`:""}
+    <p class="tl-half small muted">If used as directed: the lines above. ${esc((t.stops.find(s=>s.status==="measured"&&s.value!=null)||t.stops.find(s=>s.status==="measured")||{}).half||"")}</p>
+    <div class="tl-acts">${i!=null?`<button type="button" class="btn small" data-tl-compare="${i}">Compare with alternatives</button>`:""}${t.hasNumeric?`<button type="button" class="btn small ghost" data-tl-illus="${esc(p.id)}">See an illustration</button>`:""}</div>`;
+}
+function stopDetailHTML(t,s){
+  const r=s.refInfo;
+  return`${s.detail?`<p>${esc(s.detail)}</p>`:`<p>${esc(s.short)}</p>`}
+    ${r?`<p class="small"><b>Study:</b> <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.first_author)} (${r.year}), ${esc(r.journal)}</a> · ${esc(r.design)} · funding: ${esc(r.funder)}</p>`:""}
+    ${s.population?`<p class="small"><b>Who was studied:</b> ${s.population.n?`${s.population.n} people, `:""}${esc(s.population.skin||"")}${s.population.country?`, ${esc(s.population.country)}`:""}.</p>`:""}
+    ${s.why?`<p class="small"><b>Why this might differ for you:</b> ${esc(s.why)}</p>`:""}`;
+}
+function planExpectHTML(){
+  if(!PL||P.goal==="makeup"||typeof TIMELINE==="undefined")return"";
+  const ps=PL.slots.map(s=>s.p).filter(Boolean).concat((PL.extras||[]).map(x=>x.p));
+  const concerns=[PROB,...(P.concerns||[])].filter(c=>c&&!PROBLEMS[c]?.goal);
+  const pt=TIMELINE.planTimeline(ps,P,concerns.length?concerns:[PROB]);
+  const lines=pt.lines.map(l=>{
+    if(!l.timeline)return`<li><b>${esc(cap(l.label))}:</b> <span class="muted">not enough evidence for the products in this plan.</span></li>`;
+    const t=l.timeline,firstM=t.stops.find(s=>s.status==="measured");
+    return`<li><b>${esc(cap(l.label))}:</b> ${esc(l.product.n)} (${esc(t.active)}) ${gradeChip(t)}<br><span class="small">${esc(firstM?firstM.short:"")}</span></li>`});
+  const sun=pt.sunscreen&&pt.sunscreen.protective&&pt.sunscreen.protective[0];
+  return`<section class="tl-plan"><h4>What to expect from this plan</h4><p class="small muted">From published studies of the key ingredients. Many people notice these changes; results vary and nothing here is a promise.</p>
+    <ul>${lines.join("")}${sun?`<li><b>Sunscreen, every morning:</b> ${esc(sun.plain)} <span class="tl-chip gA">Strong evidence</span></li>`:""}</ul></section>`;
+}
+function wireTimeline(box){
+  box.addEventListener("click",e=>{
+    const st=e.target.closest("[data-tl-stop]");
+    if(st){const d=st.closest(".tl"),p=BY_ID[d.dataset.tl],t=tlFor(p),k=+st.dataset.tlStop,det=d.querySelector("[data-tl-detail]");
+      const open=st.getAttribute("aria-expanded")==="true";d.querySelectorAll("[data-tl-stop]").forEach(b=>b.setAttribute("aria-expanded","false"));
+      if(open){det.hidden=true;return}st.setAttribute("aria-expanded","true");det.innerHTML=stopDetailHTML(t,t.stops[k]);det.hidden=false;return}
+    const cmp=e.target.closest("[data-tl-compare]");if(cmp){openCompare(+cmp.dataset.tlCompare);return}
+    const il=e.target.closest("[data-tl-illus]");if(il){openIllustration(BY_ID[il.dataset.tlIllus]);return}
+  });
+}
+function tlModal(title,html,cls){
+  const m=document.createElement("div");m.className="exitm tl-modal "+(cls||"");m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");m.setAttribute("aria-label",title);
+  m.innerHTML=`<div class="exbox"><button type="button" class="tl-x" aria-label="Close">×</button><h3>${esc(title)}</h3>${html}</div>`;
+  document.body.appendChild(m);const close=()=>{m.remove();document.removeEventListener("keydown",onKey)};const onKey=e=>{if(e.key==="Escape")close()};
+  document.addEventListener("keydown",onKey);m.addEventListener("click",e=>{if(e.target===m)close()});m.querySelector(".tl-x").onclick=close;m.querySelector(".tl-x").focus();
+  return{m,close};
+}
+/* price per month: rough amounts people use, by category (an estimate, labelled as such) */
+const MONTHLY_USE={Serum:9,Moisturiser:30,Sunscreen:37,Toner:60,Exfoliant:15,"Spot treatment":5,"Eye cream":5,"Face oil":9,Cleanser:45,"Face mask":25,"Lip care":3};
+function perMonth(p){const m=/(\d+(?:\.\d+)?)\s*(ml|g)\b/i.exec(p.sz||"");const use=MONTHLY_USE[p.c];if(!m||!use||!p.p)return null;return Math.round(p.p/Math.max(1,(+m[1])/use))}
+function irritation(p){
+  let s=0;const a=String(p.a||"").toLowerCase();
+  if(p.ret)s+=2;if(p.aha)s+=2;if(p.bha&&p.leaveOn)s+=1;if(/azelaic|ascorb|vitamin c|tea tree|benzoyl/.test(a))s+=1;if(p.frag||p.eo)s+=1;if(P.sensitive&&s)s+=1;
+  return s>=3?"Higher at first":s>=1?"Some":"Low";
+}
+function openCompare(i){
+  const s=PL&&PL.slots[i];if(!s)return;
+  const used=new Set(PL.slots.filter((x,j)=>j!==i&&x.p).map(x=>x.p.id));
+  const list=[s.p,...s.list.filter(p=>p&&p!==s.p&&!used.has(p.id))].filter(Boolean).slice(0,3);
+  const rows=list.map(p=>{const t=tlFor(p),ok=check(p).ok,pm=perMonth(p);return{p,t,ok,pm,irr:irritation(p)}});
+  const fits=rows.filter(r=>r.ok&&r.t.grade!=="D"&&r.t.concern===PROB);
+  const RK={A:0,B:1,C:2,D:3},IR={"Low":0,"Some":1,"Higher at first":2};
+  fits.sort((a,b)=>RK[a.t.grade]-RK[b.t.grade]||(a.t.firstChangeWeek??99)-(b.t.firstChangeWeek??99)||(P.sensitive?IR[a.irr]-IR[b.irr]:0)||(a.pm??9e9)-(b.pm??9e9));
+  const best=fits[0]&&fits[0].p.id;
+  const cell=r=>{const t=r.t,s12=t.stops&&t.stops[2];return[
+    t.grade==="D"?"Not enough evidence":t.firstChangeWeek!=null?`${t.firstChangeWeek<=4?"About "+Math.round(t.firstChangeWeek)+" weeks":"About "+Math.round(t.firstChangeWeek/4.33)+" months"} (first study point)`:"Not studied",
+    t.grade==="D"?"—":s12&&s12.status==="measured"?(s12.valueText?`${s12.valueText} (${s12.kind==="responders"?"of people improved":s12.kind==="ratio"?"vs plain product":"change"})`:"Improvement measured, no size reported"):s12?s12.short:"—",
+    t.grade==="D"?"D: not enough evidence":`${t.grade}: ${t.confidence}`+(t.concern!==PROB?` (for ${t.concernLabel}, not ${PROBLEMS[PROB].label.toLowerCase()})`:""),
+    r.irr,r.pm!=null?`${rupee(r.pm)} a month (estimate)`:"Size not listed",r.ok?"✓ Passes your checks":"✗ Doesn't pass your checks"]};
+  const heads=["First visible change","Typical change at 3 months","Evidence","Irritation risk","Cost per month of use","Your safety check"];
+  const html=`<p class="small muted">Best fit for <b>${esc(PROBLEMS[PROB].label.toLowerCase())}</b> means the strongest evidence for that concern, then the earliest change, ${P.sensitive?"then lower irritation, ":""}then price. Not the biggest number.</p>
+    <div class="tl-cmpwrap"><table class="tl-cmp"><thead><tr><th></th>${rows.map(r=>`<th class="${r.p.id===best?"best":""}">${r.p.id===best?`<span class="tl-best">Best fit for you</span>`:""}<b>${esc(r.p.n)}</b><small>${esc(r.p.c)} · ${rupee(r.p.p)}</small></th>`).join("")}</tr></thead>
+    <tbody>${heads.map((h,k)=>`<tr><th scope="row">${esc(h)}</th>${rows.map(r=>`<td class="${r.p.id===best?"best":""}">${esc(cell(r)[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    <p class="small muted">Monthly cost assumes typical amounts for a ${esc(s.p.c.toLowerCase())}. Evidence is for the ingredient in studies, not a claim about any brand.</p>`;
+  tlModal(`Compare: ${s.slot.role}`,html,"wide");
+}
+/* ---------- illustration: a model face (or your own photo, with consent), changed only where the concern is ---------- */
+const ILLUS_LABEL="Illustration of typical study results, not a prediction of your skin.";
+async function openIllustration(p){
+  const t=tlFor(p);if(!t||t.grade==="D"||!t.hasNumeric)return;
+  const models=(typeof TRYON_MODELS!=="undefined"&&TRYON_MODELS.models)||[];
+  const mi=Math.max(0,typeof TRYON!=="undefined"&&TRYON?TRYON.closestModel():0);
+  const steps=[{label:"Start",stop:null},...t.stops.map(s=>({label:s.label,stop:s}))];
+  const {m}=tlModal(`${t.active}: ${t.concernLabel}`,`<p class="tl-ilabel" role="note">${esc(ILLUS_LABEL)}</p>
+    <div class="tl-canvas"><canvas width="640" height="800" aria-label="${esc(ILLUS_LABEL)}"></canvas></div>
+    <label class="tl-slider"><span data-when>Start</span><input type="range" min="0" max="${steps.length-1}" step="1" value="0" aria-label="Time since starting"></label>
+    <p class="small" data-say aria-live="polite"></p>
+    <details class="tl-own"><summary>Use my own photo instead</summary><label class="agree"><input type="checkbox" data-ok> I agree to use my photo for this illustration. It stays on this device and is never uploaded or saved.</label>
+      <input type="file" accept="image/*" data-file disabled></details>
+    <p class="small muted">Only ${esc(t.concernLabel)} in the face area changes, by the size studies reported at each point. Skin tone, lightness and face shape are never changed. There's no download, so it can't be used as a before/after photo.</p>`,"illus");
+  const cv=m.querySelector("canvas"),g=cv.getContext("2d",{willReadFrequently:true}),range=m.querySelector("input[type=range]"),say=m.querySelector("[data-say]"),when=m.querySelector("[data-when]");
+  cv.addEventListener("contextmenu",e=>e.preventDefault());
+  let base=null,mask=null;
+  const loadImg=src=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=src});
+  async function useSource(img,lm){
+    const k=Math.min(1,640/img.width,800/img.height);cv.width=Math.round(img.width*k);cv.height=Math.round(img.height*k);
+    g.drawImage(img,0,0,cv.width,cv.height);base=g.getImageData(0,0,cv.width,cv.height);
+    mask=TIMELINE.maskFromLandmarks(cv.width,cv.height,lm,t.region);draw()}
+  function draw(){
+    if(!base)return;const k=+range.value,st=steps[k].stop;when.textContent=steps[k].label;
+    const v=st?st.illus:0,sN=v?v/100:0;
+    const out=sN&&mask?TIMELINE.illustrate(base.data,base.width,base.height,mask,t.region,sN):base.data;
+    g.putImageData(new ImageData(new Uint8ClampedArray(out),base.width,base.height),0,0);
+    g.fillStyle="rgba(20,16,12,.62)";g.fillRect(0,cv.height-34,cv.width,34);g.fillStyle="#fff";g.font=`${Math.max(11,Math.round(cv.width/48))}px Arial,sans-serif`;g.fillText(ILLUS_LABEL,10,cv.height-12);
+    say.textContent=!st?"Starting point.":st.status==="early"?"Too early: studies hadn't measured anything yet, so nothing changes.":
+      st.status==="maintenance"?"Maintenance: held at the last measured result. No evidence of further change.":
+      st.status==="gap"?"Not measured at this point: held at the last measured result.":v?`Showing a ${Math.round(v)}% change in ${t.concernLabel}, as measured in the study at this point.`:"Studies saw a change here but reported no size, so nothing is drawn.";
+  }
+  range.oninput=draw;
+  const ok=m.querySelector("[data-ok]"),file=m.querySelector("[data-file]");ok.onchange=()=>{file.disabled=!ok.checked};
+  file.onchange=async()=>{const f=file.files&&file.files[0];if(!f||!ok.checked)return;const url=URL.createObjectURL(f);
+    try{const img=await loadImg(url);say.textContent="Finding your face on this device…";
+      const c=document.createElement("canvas");c.width=img.width;c.height=img.height;c.getContext("2d").drawImage(img,0,0);
+      const lm=typeof TRYON!=="undefined"&&TRYON&&TRYON.landmarksFor?await TRYON.landmarksFor(c):null;
+      if(!lm){say.textContent="I couldn't find a face in that photo, so I'm keeping the model face.";return}
+      await useSource(img,lm)}finally{URL.revokeObjectURL(url);file.value=""}};
+  const md=models[mi]||models[0];if(md)await useSource(await loadImg(md.src),md.landmarks);
+}
+/* ---------- progress check-ins: day 10, week 4, week 8 ---------- */
+const PROGRESS_PHOTOS="aaina.progress.photos.v1";
+const PROGRESS_STAGES=[["d10",10,"Day 10"],["w4",28,"Week 4"],["w8",56,"Week 8"]];
+function dueProgress(meta){
+  if(!meta||!meta.planAt)return null;const d=daysSince(meta.planAt),done=new Set((meta.progress||[]).map(x=>x.stage));
+  for(const[k,days,lab] of PROGRESS_STAGES.slice().reverse())if(d>=days&&!done.has(k))return{k,lab};return null;
+}
+function mainSlot(){
+  let best=null;PL.slots.forEach((s,i)=>{if(!s.p)return;const t=tlFor(s.p);if(t.grade==="D"||t.concern!==PROB)return;const R={A:0,B:1,C:2};if(!best||R[t.grade]<R[best.t.grade])best={i,p:s.p,t}});return best;
+}
+function openProgress(){
+  if(!PL)return;const due=dueProgress(META)||{k:"manual",lab:"Progress check"};
+  const ms=mainSlot(),weeks=META.planAt?daysSince(META.planAt)/7:0,label=(PROBLEMS[PROB]?.label||"your concern").toLowerCase();
+  let photos=[];try{photos=JSON.parse(localStorage.getItem(PROGRESS_PHOTOS)||"[]")}catch{}
+  const {m,close}=tlModal(`${due.lab}: how is ${label} looking?`,`
+    <fieldset class="tl-rate"><legend>How much change have you noticed?</legend>${[1,2,3,4,5].map(n=>`<label><input type="radio" name="tlr" value="${n}"><span>${n}</span></label>`).join("")}<small>1 = none yet, 5 = a lot</small></fieldset>
+    <details class="tl-own"><summary>Add a progress photo (optional)</summary>
+      <p class="small">Same light every time: face a window, no filter, no makeup. The photo stays on this device and is never uploaded.</p>
+      <label class="agree"><input type="checkbox" data-ok> I agree to use a photo for my progress. It stays on this device.</label>
+      <input type="file" accept="image/*" capture="user" data-file disabled>
+      <label class="agree"><input type="checkbox" data-keep> Keep this photo on this device to compare next time (deleted with "Delete my answers").</label>
+      ${photos.length?`<div class="tl-photos">${photos.map(x=>`<figure><img src="${x.img}" alt="Your earlier progress photo"><figcaption>${esc(x.lab)}</figcaption></figure>`).join("")}</div>`:""}</details>
+    <div class="qactions"><button type="button" class="btn primary" data-save disabled>Save</button></div><div data-out aria-live="polite"></div>`);
+  const save=m.querySelector("[data-save]"),ok=m.querySelector("[data-ok]"),file=m.querySelector("[data-file]"),keep=m.querySelector("[data-keep]");let photo=null;
+  m.querySelectorAll("input[name=tlr]").forEach(r=>r.onchange=()=>{save.disabled=false});ok.onchange=()=>{file.disabled=!ok.checked};
+  file.onchange=()=>{const f=file.files&&file.files[0];if(!f)return;const url=URL.createObjectURL(f),im=new Image();
+    im.onload=()=>{const k=Math.min(1,320/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);photo=c.toDataURL("image/jpeg",0.7);URL.revokeObjectURL(url)};im.src=url};
+  save.onclick=()=>{
+    const rating=+m.querySelector("input[name=tlr]:checked").value;
+    META.progress=[...(META.progress||[]),{stage:due.k,at:Date.now(),rating,concern:PROB,pid:ms&&ms.p.id}];
+    if(photo&&ok.checked&&keep.checked){photos.push({stage:due.k,lab:due.lab,img:photo});try{localStorage.setItem(PROGRESS_PHOTOS,JSON.stringify(photos.slice(-6)))}catch{}}
+    saveState();
+    if(DB.enabled&&DB.consented()&&ms)DB.saveCheckin({stage:"manual",results:{[ms.p.id]:`progress-${rating}`},planMadeAt:META.planAt});
+    const ex=ms&&TIMELINE.expectedBy(ms.t,weeks);const out=m.querySelector("[data-out]");
+    let h=`<p><b>You rated ${rating} of 5</b> after ${weeks<2?`${Math.round(weeks*7)} days`:`${Math.round(weeks)} weeks`}.</p>`;
+    if(!ms)h+=`<p>There isn't enough evidence for the products in your plan to say what to expect yet.</p>`;
+    else if(ex&&ex.weeks!=null){h+=`<p><b>Expected range vs your check-in:</b> by ${Math.round(ex.weeks)} weeks, studies of ${esc(ms.t.active)} saw: ${esc(ex.plain)}</p>`;
+      if(rating<=2)h+=`<p>You're seeing less than many people in studies by now. That happens, and you don't have to keep going with it.</p><div class="qactions"><button type="button" class="btn" data-swap>Try a different ${esc(PL.slots[ms.i].slot.role.toLowerCase())}</button></div>`;
+      else h+=`<p>You're on track with what studies saw.</p>`}
+    else h+=`<p>Studies of ${esc(ms.t.active)} first measured results at ${Math.round(ex&&ex.first||0)} weeks, so it's normal to see little change yet.</p>`;
+    out.innerHTML=h;save.disabled=true;
+    const sw=out.querySelector("[data-swap]");if(sw)sw.onclick=()=>{close();swap(ms.i);saveState()};
+  };
+}
 
 /* =====================================================================
    ACCOUNT + DATABASE (src/db.js). All of this is skipped when no database
@@ -9647,7 +10074,9 @@ void main(){vec2 t=vec2(uMirror>0.5?1.-uv.x:uv.x,uv.y);vec3 S=s2l(texture2D(uTex
   window.addEventListener("resize",()=>{if(S.open&&S.src){layout();kick()}});
   document.addEventListener("click",ev=>{const b=ev.target.closest&&ev.target.closest("[data-tryon]");if(!b||(root&&root.contains(b)))return;ev.preventDefault();open(b.dataset.tryon==="base"?{base:true}:{pid:b.dataset.tryon||null})});
   if(location.hash==="#try-on")setTimeout(()=>open(),0);
-  return{open,close,setSplit,closestModel,state:S,_draw:draw,_products:products,_status:status};
+  /* face landmarks for any image, on this device (used by the Results timeline illustration) */
+  async function landmarksFor(img){const tr=await tracker("IMAGE");if(!tr)return null;let r=null;try{r=tr.detect(img)}catch{}const lm=r&&r.faceLandmarks&&r.faceLandmarks[0];return lm?lm.map(p=>[p.x,p.y]):null}
+  return{open,close,setSplit,closestModel,landmarksFor,state:S,_draw:draw,_products:products,_status:status};
 })();
 
 </script>
