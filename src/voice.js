@@ -43,7 +43,47 @@
   var GENDER_VALUES = ["woman", "man"];
   var SKIN_VALUES = ["dry", "normal", "combination", "oily"];
   var BUDGET_VALUES = [500, 1000, 2000, null]; // null = no limit
-  var CONCERN_VALUES = []; // filled on first run from window.PROBLEMS
+  var CONCERN_VALUES = []; // filled on first run from PROBLEMS
+
+  // The ONLY categories Aaina's catalogue carries. Anything outside this
+  // list is "out of scope" — the chat must say so, not silently show a
+  // skincare plan.
+  var IN_SCOPE_CATEGORIES = [
+    "Cleanser","Toner","Serum","Moisturiser","Sunscreen","Face oil",
+    "Mask","Eye cream","Lip balm","Foundation","Concealer",
+    "Compact powder","BB / CC cream"
+  ];
+
+  // Common out-of-scope asks that would trip up a vague LLM:
+  // if the user's message contains any of these words and no in-scope
+  // category, we decline in chat with a friendly suggestion.
+  var OUT_OF_SCOPE_PATTERNS = [
+    /\beye ?liner/i, /\bmascara/i, /\blipstick/i, /\blip liner/i, /\blip gloss/i,
+    /\bperfume/i, /\bfragrance\b(?!-free)/i, /\bdeodorant/i, /\bcologne/i,
+    /\bshampoo/i, /\bconditioner\b/i, /\bhair\s+(oil|serum|mask|colou?r|dye|gel|spray)/i,
+    /\bbody\s+(lotion|wash|butter|oil)/i, /\bhand\s+(cream|wash|sanitiz)/i,
+    /\bnail\s+(polish|paint)/i, /\bblush/i, /\bbronzer/i, /\bhighlighter/i,
+    /\beye\s*shadow/i, /\bbrow\s+(pencil|gel)/i, /\bsetting\s+(spray|powder)/i,
+    /\bfoot\s+cream/i, /\btoothpaste/i, /\brazor/i, /\bshaving/i
+  ];
+
+  // Map a plain-English category word in the user's message to the right
+  // app "goal" bucket so the plan page shows the right section.
+  function detectGoalFromText(text){
+    var t = (text || "").toLowerCase();
+    if (/\bsunscreen|\bspf\b|sunblock/.test(t)) return "sunscreen";
+    if (/\bfoundation|\bconcealer|\bcompact|\bbb\s*cream|\bcc\s*cream|\bbase (make ?up|makeup)/.test(t)) return "makeup";
+    // every other in-scope word maps to the routine (3-step skincare) flow
+    if (/\bcleanser|\bface ?wash|\btoner|\bserum|\bmoisturi[sz]er|\bcream\b|\bface oil|\bmask|\beye cream|\blip balm/.test(t)) return "routine";
+    return null; // unknown — let the model decide
+  }
+  function isOutOfScope(text){
+    if (!text) return false;
+    for (var i = 0; i < OUT_OF_SCOPE_PATTERNS.length; i++) {
+      if (OUT_OF_SCOPE_PATTERNS[i].test(text)) return true;
+    }
+    return false;
+  }
 
   function allowedConcerns(){
     if (CONCERN_VALUES.length) return CONCERN_VALUES;
@@ -225,10 +265,27 @@
   // -------- main turn: user text → RAG candidates → extraction → engine → plan --------
   function handleUserInput(text){
     meSay(text);
-    var stop = typing();
 
+    // Guard 1: hard decline for anything the catalogue cannot deliver.
+    // Done in-chat so the user understands WHY we're not showing products,
+    // instead of being handed a confusing skincare plan.
+    if (isOutOfScope(text) && !detectGoalFromText(text)) {
+      botSay("Aaina's catalogue is skincare and base makeup only — we don’t carry that kind of product. I can suggest something for your skin or a foundation / concealer / sunscreen if that’s helpful.");
+      showChips([
+        "A cleanser under ₹500",
+        "A moisturiser for oily skin",
+        "A sunscreen for Mumbai",
+        "Foundation for medium-tan skin"
+      ]);
+      return;
+    }
+
+    var stop = typing();
     var key = getKey();
     if (!key) { stop(); askForKey(function(){ handleUserInput(text); }); return; }
+
+    // Stash the text so triggerPlan can read the user's category hint
+    try { window.AAINA_LAST_QUERY = text; } catch(e){}
 
     // Step 1: pull a semantic shortlist from the embedding index (if present).
     // Hand the shortlist to the engine as a hint; the engine still filters
@@ -274,16 +331,25 @@
   }
 
   function handleModelOutput(out){
-    // Expected shape: { profile_updates: {...}, reply: "...", action: "plan"|"safety_escalate" }
-    // Per the guardrails doc §7, we go STRAIGHT to the plan whenever safe —
-    // missing fields are treated as "no constraint", not as "needs asking".
+    // Expected shape: { profile_updates: {...}, reply: "...", action: "plan"|"ask"|"safety_escalate" }
     var updates = out.profile_updates || {};
     applyProfileUpdates(updates);
     if (out.action === "safety_escalate") {
       botSay(out.reply || "Please see a dermatologist or doctor about this — I can’t safely recommend products for it.");
       return;
     }
-    // Default: always route to the plan. The engine handles missing fields with sensible defaults.
+    if (out.action === "ask") {
+      // out-of-scope ask or safety basics — stay in chat
+      botSay(out.reply || "Could you tell me a little more?");
+      showChips(out.chips || [
+        "A cleanser under ₹500",
+        "A moisturiser for oily skin",
+        "A sunscreen for Mumbai",
+        "Foundation for medium-tan skin"
+      ]);
+      return;
+    }
+    // Default: route to the plan with current profile + sensible defaults.
     if (out.reply) botSay(out.reply);
     triggerPlan();
   }
@@ -376,6 +442,12 @@
 
   function triggerPlan(){
     try {
+      // Route the plan to the category the user actually asked for:
+      // sunscreen / makeup / routine. Reading the raw user text is more
+      // reliable than hoping the model picked the right goal enum.
+      var hint = detectGoalFromText(window.AAINA_LAST_QUERY || "");
+      if (hint) P.goal = hint;
+
       // No-constraint defaults (guardrails §7): unset fields = "no constraint"
       if (P.pregnancy === undefined || P.pregnancy === null) P.pregnancy = false;
       if (P.budget === undefined) P.budget = null;
@@ -383,8 +455,16 @@
       if (P.avoidFrag === null || P.avoidFrag === undefined) P.avoidFrag = false;
       if (P.avoidEO === null || P.avoidEO === undefined) P.avoidEO = false;
       if (!P.reactions) P.reactions = [];
-      if (!P.concerns || !P.concerns.length) P.concerns = [DEFAULT_PROB];
-      if (!PROB || !PROBLEMS[PROB]) PROB = P.concerns[0];
+
+      // For makeup / sunscreen goals, PROB uses the goal key itself
+      // (that's how the quiz wires it in app.js). For routine, we need an
+      // actual concern.
+      if (P.goal === "makeup")          { PROB = "makeup"; }
+      else if (P.goal === "sunscreen")  { PROB = "sunscreen"; }
+      else {
+        if (!P.concerns || !P.concerns.length) P.concerns = [DEFAULT_PROB];
+        PROB = P.concerns[0];
+      }
       if (!PROBLEMS[PROB]) PROB = DEFAULT_PROB;
 
       enterAdvisorView();
@@ -408,6 +488,16 @@
       "You are the extraction layer for Aaina, an Indian skin & makeup advisor.",
       "You NEVER pick, rank, invent or describe products, shades, ingredients, prices or brands. The app's engine does that.",
       "Your ONLY job: read the user's message (English, Hindi or Hinglish) and update the profile.",
+      "",
+      "Aaina's catalogue carries ONLY these categories:",
+      "Cleanser, Toner, Serum, Moisturiser, Sunscreen, Face oil, Mask, Eye cream, Lip balm,",
+      "Foundation, Concealer, Compact powder, BB / CC cream.",
+      "It does NOT carry: eyeliner, mascara, lipstick, lip liner, perfume, deodorant,",
+      "shampoo, conditioner, hair products, body lotion, nail polish, blush, bronzer,",
+      "highlighter, eyeshadow, brow pencil, setting spray, toothpaste, or any other",
+      "category not listed above. If the user asks for one of those, do NOT set",
+      "action='plan' — set reply to a short, warm note saying Aaina doesn't carry",
+      "that, and action='ask' so we stay in chat.",
       "",
       "Return STRICT JSON with this shape:",
       "{",
