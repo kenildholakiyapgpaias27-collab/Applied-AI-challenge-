@@ -47,7 +47,7 @@ page = (read("src/shell.html")
         .replace("__INDIA__", read("src/india.js") + "\n" + read("src/climate.js"))
         .replace("__ENGINE__", "const AAINA_CAL=" + (read("data/calibration.json") if (ROOT / "data/calibration.json").exists() else "null") + ";\n" + read("src/engine.js")
                   + "\nconst AAINA_DB_CONFIG=" + json.dumps(db_cfg) + ";\nconst CAT_VERSION=" + json.dumps(cat_version) + ";\n" + read("src/db.js")
-                  + "\nconst TIMELINE_EVIDENCE=" + json.dumps(json.loads(read("data/evidence/actives_timeline.json")), separators=(",", ":"), ensure_ascii=False) + ";\n" + read("src/timeline.js"))
+                  + "\nconst TIMELINE_EVIDENCE=" + json.dumps(json.loads(read("data/evidence/actives_timeline.json")), separators=(",", ":"), ensure_ascii=False) + ";\nconst TIMELINE_SAMPLES=" + read("data/evidence/sample_product_studies.json").strip() + ";\n" + read("src/timeline.js"))
         .replace("__APP__", read("src/app.js") + "\n" + voice_js)
         .replace("__TRYON__", tryon_js))
 

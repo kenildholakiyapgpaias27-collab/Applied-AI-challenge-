@@ -61,7 +61,7 @@ def main():
         for k in range(tl.count()):
             if tl.nth(k).locator(".tl-stop").count() == 5: first = tl.nth(k); break
         check("A: a product shows 5 stops: 2 weeks, 4 weeks, 3 months, 6 months, 1 year", first is not None)
-        first.locator("summary").click(); pg.wait_for_timeout(200)
+        first.locator(":scope > summary").click(); pg.wait_for_timeout(200)
         labels = [first.locator(".tl-when").nth(i).inner_text() for i in range(5)]
         check("A: stop labels", labels == ["2 weeks", "4 weeks", "3 months", "6 months", "1 year"], labels)
         meas = first.locator(".tl-stop.measured").first; meas.click(); pg.wait_for_timeout(200)
@@ -72,6 +72,10 @@ def main():
               pg.locator(".tl-plan").count() == 1 and "Sunscreen, every morning" in pg.locator(".tl-plan").inner_text(), pg.locator(".tl-plan").inner_text()[:300] if pg.locator(".tl-plan").count() else "")
         txt = " ".join(pg.locator(sel).inner_text() for sel in [".plan:not(.old) .pcards", ".tl-plan"])
         check("A: no banned words in any timeline text on the page", not BANNED.search(txt), BANNED.search(txt).group(0) if BANNED.search(txt) else "")
+        sm = first.locator(".tl-sample")
+        check("A: the brand's own test is shown, badged 'Sample data · fictional'", sm.count() == 1 and "Sample data · fictional" in sm.inner_text())
+        sm.locator("summary").click(); pg.wait_for_timeout(150)
+        check("A: the sample test says it's fictional and isn't used in the timeline", "not real research" in sm.inner_text() and "never used in the timeline" in sm.inner_text())
         if shots: first.screenshot(path=str(shots / "timeline_card.png"))
 
         # B. compare up to 3 products
@@ -81,7 +85,9 @@ def main():
         check("B: compare shows up to 3 products side by side", m.count() == 1 and 1 <= cols <= 3, cols)
         rows = [m.locator("tbody th").nth(i).inner_text() for i in range(m.locator("tbody th").count())]
         check("B: rows: first change, 3-month change, evidence, irritation, cost per month, safety check",
-              rows == ["First visible change", "Typical change at 3 months", "Evidence", "Irritation risk", "Cost per month of use", "Your safety check"], rows)
+              rows[:6] == ["First visible change", "Typical change at 3 months", "Evidence", "Irritation risk", "Cost per month of use", "Your safety check"], rows)
+        check("B: the sample study is a separate, labelled row that doesn't pick the best fit", any("sample data, fictional" in r.lower() and "not used to pick" in r for r in rows), rows[-1:])
+        rows = rows[:6]
         check("B: best fit for the main concern is highlighted (not the biggest number)", m.locator(".tl-best").count() <= 1 and "Not the biggest number" in m.inner_text())
         if shots: m.locator(".exbox").screenshot(path=str(shots / "timeline_compare.png"))
         m.locator(".tl-x").click()
@@ -131,7 +137,7 @@ def main():
 
         # E. mobile layout
         ctx, pg = fresh(390, 844); plan(pg)
-        t = pg.locator(".plan:not(.old) .tl").first; t.locator("summary").click(); pg.wait_for_timeout(200)
+        t = pg.locator(".plan:not(.old) .tl").first; t.locator(":scope > summary").click(); pg.wait_for_timeout(200)
         over = pg.evaluate("document.documentElement.scrollWidth>window.innerWidth+1")
         check("E: phone: timeline fits the screen (no sideways scroll)", not over)
         if shots: t.screenshot(path=str(shots / "timeline_card_mobile.png"))

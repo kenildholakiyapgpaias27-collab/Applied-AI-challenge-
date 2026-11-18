@@ -98,5 +98,28 @@ const sp = T.illustrate(data, W, H, mask, "spots", 0.5), spotSel = i => { const 
 check("illustration (spots): spots become less contrasting with the skin around them", stats(sp, spotSel).L > stats(data, spotSel).L);
 check("illustration: zero strength returns the image untouched", T.illustrate(data, W, H, mask, "spots", 0).every((v, i) => v === data[i]));
 
+// ---------- fictional product studies: present for every product, always marked, never mixed with real evidence ----------
+const SAM = JSON.parse(fs.readFileSync(path.join(ROOT, "data/evidence/sample_product_studies.json"), "utf8"));
+const ctx2 = { console, Math, JSON, Set, Map, Float32Array, Uint8ClampedArray, Number, String, Object, Array, RegExp };
+vm.createContext(ctx2);
+vm.runInContext("const TIMELINE_EVIDENCE=" + JSON.stringify(EV) + ";\nconst TIMELINE_SAMPLES=" + JSON.stringify(SAM) + ";\n" + fs.readFileSync(path.join(ROOT, "src/timeline.js"), "utf8") + "\nthis.T=TIMELINE;", ctx2);
+const T2 = ctx2.T, skin = CAT.filter(p => SKIN.has(p.c));
+check("every skincare product has a sample study, and the file is marked fictional", SAM.fictional === true && skin.every(p => SAM.studies[p.id]), skin.filter(p => !SAM.studies[p.id]).length);
+const leaks = JSON.stringify(SAM).match(/pmid|doi|pubmed|journal|author|ncbi/i);
+check("sample studies carry nothing that could pass for a real citation (no PMID, DOI, journal, author)", !leaks, leaks && leaks[0]);
+let same = true, marked = true, sbanned = [];
+for (const p of skin) for (const c of ["pigmentation", "acne", "dehydration"]) {
+  const a = T.productTimeline(p, {}, { concern: c }), b = T2.productTimeline(p, {}, { concern: c });
+  const strip = t => JSON.stringify({ g: t.grade, s: t.stops, n: t.notes, h: t.hasNumeric });
+  if (strip(a) !== strip(b)) same = false;
+  if (!b.sample || b.sample.fictional !== true || !/fictional/i.test(b.sample.label)) marked = false;
+  for (const x of T2.textsOf(b)) if (T2.BANNED.test(x)) sbanned.push(`${p.id}: ${x.match(T2.BANNED)[0]}`);
+}
+check("sample studies never change the real timeline (grade, stops, numbers, illustration)", same);
+check("every sample study is labelled 'Sample data · fictional'", marked);
+check("wording lint passes for every sample-study sentence", !sbanned.length, sbanned.slice(0, 3));
+const app = fs.readFileSync(path.join(ROOT, "src/app.js"), "utf8");
+check("the compare view never ranks by the sample study (best fit uses real evidence only)", /fits\.sort\(\(a,b\)=>RK\[a\.t\.grade\]/.test(app) && !/fits\.sort[^;]*sample/.test(app));
+
 console.log(`\n${pass}/${pass + fail} passed`);
 process.exit(fail ? 1 : 0);

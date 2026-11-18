@@ -70,6 +70,13 @@ Actives with no suitable peer-reviewed study (no timeline shown): **Licorice, Ce
 - **No study** in this table measures "if stopped"; every entry says "not studied".
 - The safety guide says the advisor should repeat only claims brands make. The timeline describes **ingredient studies**, labelled as such, not claims about any product.
 
+## Sample product studies (fictional)
+The catalogue's products and brands are fictional, so they have no real product studies. `tools/make_sample_studies.py` generates one **fictional in-house consumer test per skincare product** (614): sample size, test weeks, and the share of people who agreed with a statement like "dark spots looked less noticeable". The output is `data/evidence/sample_product_studies.json`.
+- **Clearly marked:** they always show with a **"Sample data · fictional"** badge, inside a separate dashed box. The box says the product and test are made up, not real research and not real people.
+- **No fake citations:** no PubMed ID, DOI, journal or author.
+- **Never mixed with real evidence:** they never change the real timeline's grade, numbers, comparison ranking or illustration. The unit tests check this for every product.
+- **Product only, never ingredients:** they describe the fictional *product*. Real ingredients keep only their real evidence; no made-up results are attached to an ingredient (licorice, centella and the others still say "not enough evidence").
+
 ## Screenshots
 - What to expect on a product card: ![timeline](timeline/timeline_card.png)
 - On a phone: ![timeline on a phone](timeline/timeline_card_mobile.png)

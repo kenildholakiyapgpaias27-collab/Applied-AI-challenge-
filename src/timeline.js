@@ -11,6 +11,22 @@
    ===================================================================== */
 const TIMELINE=(()=>{
   const EV=(typeof TIMELINE_EVIDENCE!=="undefined"&&TIMELINE_EVIDENCE)||{entries:[],refs:{}};
+  // FICTIONAL in-house product tests for the demo catalogue (data/evidence/sample_product_studies.json).
+  // Kept apart on purpose: they never change a grade, a number, a comparison or the illustration.
+  const SAMPLES=(typeof TIMELINE_SAMPLES!=="undefined"&&TIMELINE_SAMPLES)||{studies:{}};
+  const SAMPLE_SAY={pigmentation:"dark spots looked less noticeable",tanning:"their skin tone looked more even",acne:"they had fewer new blemishes",
+    oiliness:"their skin looked less shiny by midday",dullness:"their skin felt smoother",dehydration:"their skin felt more hydrated",
+    "fine lines":"fine lines looked softer",redness:"their skin looked less red","dark circles":"the under-eye area looked more rested",
+    comfort:"it was comfortable to wear every day",lips:"their lips felt softer"};
+  function sampleStudy(p,concern){
+    const st=p&&SAMPLES.studies[p.id];if(!st)return null;
+    const c=concern&&SAMPLE_SAY[concern]&&(p.con||[]).includes(concern)&&!/^(comfort|lips)$/.test(st.concern)?concern:st.concern;   // match the timeline's concern when the product is tagged for it
+    const say=SAMPLE_SAY[c]||SAMPLE_SAY.dehydration;
+    return{fictional:true,label:SAMPLES.label||"Sample data · fictional",design:SAMPLES.design,n:st.n,weeks:st.weeks[st.weeks.length-1],
+      who:`${st.n} adults in ${st.cities.join(", ")}, skin tones ${st.tones}`,
+      lines:st.weeks.map((w,i)=>({weeks:w,pct:st.agree[i],text:`Week ${w}: ${st.agree[i]}% agreed ${say}.`})),
+      summary:`${st.agree[st.agree.length-1]}% agreed ${say} after ${st.weeks[st.weeks.length-1]} weeks`}
+  }
   const STOPS=[{w:2,label:"2 weeks"},{w:4,label:"4 weeks"},{w:12,label:"3 months"},{w:26,label:"6 months"},{w:52,label:"1 year"}];
   const RANK={A:0,B:1,C:2,D:3};
   const CONF={A:"Strong evidence",B:"Some evidence",C:"Early evidence"};
@@ -36,16 +52,16 @@ const TIMELINE=(()=>{
   }
   const numericCps=e=>e.checkpoints.filter(c=>c.representative!==false&&NUMERIC.has(c.kind));
   const better=(x,y)=>RANK[x.evidence_strength]-RANK[y.evidence_strength]||numericCps(y).length-numericCps(x).length||y.checkpoints.length-x.checkpoints.length;
-  function noTimeline(p,reason){return{pid:p&&p.id,grade:"D",confidence:null,stops:null,reason,alsoHelps:[],notes:[]}}
+  function noTimeline(p,reason,concern){return{pid:p&&p.id,grade:"D",confidence:null,stops:null,reason,alsoHelps:[],notes:[],sample:sampleStudy(p,concern)}}
 
   /* ---------- the main call ---------- */
   // productTimeline(product, P, {concern}) -> {grade, confidence, concern, active, stops[5], notes, alsoHelps, firstChangeWeek, at12}
   function productTimeline(p,prof,opts={}){
     prof=prof||{};
     if(!p)return noTimeline(p,"No product.");
-    if(RINSE_OFF.has(p.c))return noTimeline(p,"This is a rinse-off product. The studies we rely on tested products left on the skin, so we can't show a fair timeline.");
+    if(RINSE_OFF.has(p.c))return noTimeline(p,"This is a rinse-off product. The studies we rely on tested products left on the skin, so we can't show a fair timeline.",opts.concern);
     const ents=entriesFor(p),usable=ents.filter(e=>e.evidence_strength!=="D");
-    if(!usable.length)return noTimeline(p,ents.length?`Not enough evidence: we found no suitable peer-reviewed study for ${uniq(ents.map(e=>e.active)).join(", ")}.`:p.a?"Not enough evidence for this product's key ingredients.":"This product doesn't list its key ingredients, so we can't match it to any study.");
+    if(!usable.length)return noTimeline(p,ents.length?`Not enough evidence: we found no suitable peer-reviewed study for ${uniq(ents.map(e=>e.active)).join(", ")}.`:p.a?"Not enough evidence for this product's key ingredients.":"This product doesn't list its key ingredients, so we can't match it to any study.",opts.concern);
     const want=opts.concern||null;
     let rel=want?usable.filter(e=>e.app_concerns.includes(want)):[];
     let concern=want;
@@ -95,7 +111,7 @@ const TIMELINE=(()=>{
       stops,notes,alsoHelps,firstChangeWeek:firstChange,at12,region:FX[concern]||best.region,
       hasNumeric:stops.some(x=>x.illus!=null&&x.illus>0),side:side.map(c=>({plain:c.plain,ref:c.ref,refInfo:EV.refs[c.ref]})),
       protective:best.checkpoints.filter(c=>c.kind==="protective").map(c=>({plain:c.plain,ref:c.ref,refInfo:EV.refs[c.ref]})),
-      ifStopped:best.if_stopped||"not studied",refs:best.refs.map(r=>EV.refs[r]).filter(Boolean)};
+      ifStopped:best.if_stopped||"not studied",refs:best.refs.map(r=>EV.refs[r]).filter(Boolean),sample:sampleStudy(p,concern)};
   }
   function valueOf(c,scaleDown){
     if(!NUMERIC.has(c.kind))return{value:null,text:""};
@@ -203,7 +219,8 @@ const TIMELINE=(()=>{
     const d=g.getImageData(0,0,w,h).data,m=new Float32Array(w*h);for(let i=0;i<w*h;i++)m[i]=d[i*4+3]/255;
     return m;
   }
-  const textsOf=t=>!t||!t.stops?[t&&t.reason].filter(Boolean):[...t.stops.flatMap(s=>[s.short,s.detail,s.half,s.why]),...t.notes,t.concernLabel].filter(Boolean);
+  const sampleTexts=t=>t&&t.sample?[t.sample.summary,t.sample.who,t.sample.design,...t.sample.lines.map(l=>l.text)]:[];
+  const textsOf=t=>!t||!t.stops?[t&&t.reason,...sampleTexts(t)].filter(Boolean):[...t.stops.flatMap(s=>[s.short,s.detail,s.half,s.why]),...t.notes,t.concernLabel,...sampleTexts(t)].filter(Boolean);
 
-  return{STOPS,CONF,LABEL,BANNED,productTimeline,planTimeline,expectedBy,illustrate,maskFromLandmarks,entriesFor,strengthOf,textsOf,evidence:EV};
+  return{STOPS,CONF,LABEL,BANNED,SAMPLES,sampleStudy,productTimeline,planTimeline,expectedBy,illustrate,maskFromLandmarks,entriesFor,strengthOf,textsOf,evidence:EV};
 })();

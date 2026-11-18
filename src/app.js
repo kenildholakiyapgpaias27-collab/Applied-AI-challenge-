@@ -2241,15 +2241,24 @@ function expectHTML(p,i){
   return`<details class="tl" data-tl="${esc(p.id)}" data-slot="${i}"><summary>What to expect ${t.grade==="D"?`<span class="tl-chip gD">Not enough evidence</span>`:gradeChip(t)}</summary>${timelineBody(t,p,i)}</details>`;
 }
 function timelineBody(t,p,i){
-  if(t.grade==="D")return`<p class="tl-none">${esc(t.reason)} We'd rather show nothing than guess.</p>${i!=null?`<button type="button" class="link small" data-tl-compare="${i}">Compare with alternatives</button>`:""}`;
+  if(t.grade==="D")return`<p class="tl-none">${esc(t.reason)} We'd rather show nothing than guess.</p>${sampleHTML(t)}${i!=null?`<button type="button" class="link small" data-tl-compare="${i}">Compare with alternatives</button>`:""}`;
   return`<p class="tl-head">Studies of <b>${esc(t.active)}</b> for <b>${esc(t.concernLabel)}</b>. What many people noticed, not a promise for your skin.</p>
     <ol class="tl-strip">${t.stops.map((s,k)=>`<li><button type="button" class="tl-stop ${s.status}" data-tl-stop="${k}" aria-expanded="false"><span class="tl-when">${esc(s.label)}</span><span class="tl-dot" aria-hidden="true"></span>
       <span class="tl-line">${esc(s.short)}</span>${s.status==="measured"?`<span class="tl-chip g${s.grade}">${esc(s.confidence)}</span>`:""}</button></li>`).join("")}</ol>
     <div class="tl-detail" data-tl-detail hidden></div>
     ${t.notes.length?`<ul class="tl-notes">${t.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul>`:""}
     ${t.alsoHelps.length?`<p class="tl-also">May also help: ${esc(t.alsoHelps.join(", "))} (less evidence for this concern).</p>`:""}
+    ${sampleHTML(t)}
     <p class="tl-half small muted">If used as directed: the lines above. ${esc((t.stops.find(s=>s.status==="measured"&&s.value!=null)||t.stops.find(s=>s.status==="measured")||{}).half||"")}</p>
     <div class="tl-acts">${i!=null?`<button type="button" class="btn small" data-tl-compare="${i}">Compare with alternatives</button>`:""}${t.hasNumeric?`<button type="button" class="btn small ghost" data-tl-illus="${esc(p.id)}">See an illustration</button>`:""}</div>`;
+}
+// the fictional brand test: always badged, never mixed into the evidence above
+function sampleHTML(t){
+  const sm=t&&t.sample;if(!sm)return"";
+  return`<details class="tl-sample"><summary><span class="tl-chip gS">${esc(sm.label)}</span> Brand's own in-house test</summary>
+    <p class="small"><b>${esc(sm.summary)}</b> (${esc(sm.design)}; ${esc(sm.who)}).</p>
+    <ul class="small">${sm.lines.map(l=>`<li>${esc(l.text)}</li>`).join("")}</ul>
+    <p class="small muted">This product and this test are fictional, made up for the PS-14 demo: not real research and not real people. Self-reported tests with no comparison group are the weakest kind of evidence, so this is never used in the timeline, the comparison or the illustration.</p></details>`;
 }
 function stopDetailHTML(t,s){
   const r=s.refInfo;
@@ -2309,8 +2318,9 @@ function openCompare(i){
     t.grade==="D"?"Not enough evidence":t.firstChangeWeek!=null?`${t.firstChangeWeek<=4?"About "+Math.round(t.firstChangeWeek)+" weeks":"About "+Math.round(t.firstChangeWeek/4.33)+" months"} (first study point)`:"Not studied",
     t.grade==="D"?"—":s12&&s12.status==="measured"?(s12.valueText?`${s12.valueText} (${s12.kind==="responders"?"of people improved":s12.kind==="ratio"?"vs plain product":"change"})`:"Improvement measured, no size reported"):s12?s12.short:"—",
     t.grade==="D"?"D: not enough evidence":`${t.grade}: ${t.confidence}`+(t.concern!==PROB?` (for ${t.concernLabel}, not ${PROBLEMS[PROB].label.toLowerCase()})`:""),
-    r.irr,r.pm!=null?`${rupee(r.pm)} a month (estimate)`:"Size not listed",r.ok?"✓ Passes your checks":"✗ Doesn't pass your checks"]};
-  const heads=["First visible change","Typical change at 3 months","Evidence","Irritation risk","Cost per month of use","Your safety check"];
+    r.irr,r.pm!=null?`${rupee(r.pm)} a month (estimate)`:"Size not listed",r.ok?"✓ Passes your checks":"✗ Doesn't pass your checks",
+    t.sample?`${t.sample.summary} (sample, fictional)`:"None"]};
+  const heads=["First visible change","Typical change at 3 months","Evidence","Irritation risk","Cost per month of use","Your safety check","Brand's own test (sample data, fictional; not used to pick the best fit)"];
   const html=`<p class="small muted">Best fit for <b>${esc(PROBLEMS[PROB].label.toLowerCase())}</b> means the strongest evidence for that concern, then the earliest change, ${P.sensitive?"then lower irritation, ":""}then price. Not the biggest number.</p>
     <div class="tl-cmpwrap"><table class="tl-cmp"><thead><tr><th></th>${rows.map(r=>`<th class="${r.p.id===best?"best":""}">${r.p.id===best?`<span class="tl-best">Best fit for you</span>`:""}<b>${esc(r.p.n)}</b><small>${esc(r.p.c)} · ${rupee(r.p.p)}</small></th>`).join("")}</tr></thead>
     <tbody>${heads.map((h,k)=>`<tr><th scope="row">${esc(h)}</th>${rows.map(r=>`<td class="${r.p.id===best?"best":""}">${esc(cell(r)[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
