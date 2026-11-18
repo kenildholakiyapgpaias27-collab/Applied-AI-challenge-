@@ -19,12 +19,24 @@
   "use strict";
 
   var CFG = (typeof AAINA_OPENAI_CONFIG !== "undefined") ? AAINA_OPENAI_CONFIG : {};
-  if (!CFG || !CFG.apiKey) { return; } // silent no-op when key absent
+  var CHAT_MODEL = (CFG && CFG.chatModel) || "gpt-4o-mini";
+  var STT_MODEL  = (CFG && CFG.sttModel)  || "whisper-1";
+  var MAX_REC_MS = (CFG && CFG.maxRecordingMs) || 15000;
 
-  var OPENAI_KEY = CFG.apiKey;
-  var CHAT_MODEL = CFG.chatModel || "gpt-4o-mini";
-  var STT_MODEL  = CFG.sttModel  || "whisper-1";
-  var MAX_REC_MS = CFG.maxRecordingMs || 15000;
+  // Key resolution order: build-time config -> localStorage -> prompt user on first send.
+  // This keeps the key out of the repo while still letting the UI render for everyone.
+  function getKey(){
+    if (CFG && CFG.apiKey) return CFG.apiKey;
+    try { return window.localStorage.getItem("aaina_openai_key") || ""; } catch(e) { return ""; }
+  }
+  function setKey(k){
+    try { window.localStorage.setItem("aaina_openai_key", k); } catch(e){}
+  }
+  function askForKey(cb){
+    var k = window.prompt("Paste your OpenAI API key (stored only in this browser):", "");
+    if (k && /^sk-/.test(k.trim())) { setKey(k.trim()); cb(k.trim()); }
+    else if (k) { botSay("That doesn’t look like a valid OpenAI key. It should start with ‘sk-’."); }
+  }
 
   // -------- allowed values (mirror the quiz) --------
   var GOAL_VALUES = ["routine", "sunscreen", "makeup"];
@@ -192,9 +204,11 @@
     form.append("file", blob, "audio.webm");
     form.append("model", STT_MODEL);
     // Whisper auto-detects language; don't lock to English so Hindi/Hinglish works.
+    var key = getKey();
+    if (!key) { stop(); askForKey(function(){ transcribeAndSend(blob); }); return; }
     fetch("https://api.openai.com/v1/audio/transcriptions", {
       method: "POST",
-      headers: { "Authorization": "Bearer " + OPENAI_KEY },
+      headers: { "Authorization": "Bearer " + key },
       body: form
     }).then(function(r){ return r.json(); }).then(function(data){
       stop();
@@ -216,9 +230,11 @@
     var sys = systemPrompt();
     var user = "Current profile: " + JSON.stringify(profileSnapshot) + "\n\nUser message: " + text;
 
+    var key = getKey();
+    if (!key) { stop(); askForKey(function(){ handleUserInput(text); }); return; }
     fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type":"application/json", "Authorization": "Bearer " + OPENAI_KEY },
+      headers: { "Content-Type":"application/json", "Authorization": "Bearer " + key },
       body: JSON.stringify({
         model: CHAT_MODEL,
         temperature: 0.1,
