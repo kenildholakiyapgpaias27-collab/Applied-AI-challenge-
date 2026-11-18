@@ -169,7 +169,9 @@
 '.aa-card-top span{font-weight:600;color:#6a4a2a;white-space:nowrap}' +
 '.aa-card-meta{color:#666;font-size:11px;margin-top:3px;text-transform:capitalize}' +
 '.aa-card-actives{color:#6a4a2a;font-size:11px;margin-top:4px;font-style:italic}' +
-'.aa-card-spons{color:#888;font-size:10px;margin-top:4px;letter-spacing:.5px;text-transform:uppercase}';
+'.aa-card-spons{color:#888;font-size:10px;margin-top:4px;letter-spacing:.5px;text-transform:uppercase}' +
+'.aa-card-shade{display:flex;align-items:center;gap:8px;margin-top:6px;padding:6px 8px;background:#faf6f0;border-radius:8px;font-size:12px;color:#333}' +
+'.aa-shade-sw{display:inline-block;width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.1);flex:none}';
 
   // -------- DOM bootstrap --------
   function el(tag, cls, html){ var e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; }
@@ -313,14 +315,58 @@
       var card = el("div","aa-card");
       var spf   = p.spf ? ' · SPF ' + p.spf : '';
       var fin   = p.fin ? ' · ' + p.fin : '';
+      var shadeRow = "";
+      if (p._matchedShade) {
+        var s = p._matchedShade;
+        shadeRow = '<div class="aa-card-shade"><span class="aa-shade-sw" style="background:' + escapeHtml(s.hex) + '"></span>' +
+                   '<b>' + escapeHtml(s.nm) + '</b> · tone ' + s.d + ' · ' + escapeHtml(s.u) + ' undertone' +
+                   (s.cov ? ' · ' + escapeHtml(s.cov) + ' coverage' : '') + '</div>';
+      }
       card.innerHTML =
         '<div class="aa-card-top"><b>' + escapeHtml(p.n) + '</b><span>₹' + (p.p == null ? "?" : p.p) + '</span></div>' +
         '<div class="aa-card-meta">' + escapeHtml(p.b || "") + ' · ' + escapeHtml(p.c) + (p.sz ? ' · ' + escapeHtml(p.sz) : '') + spf + fin + '</div>' +
+        shadeRow +
         (p.a ? '<div class="aa-card-actives">' + escapeHtml(p.a) + '</div>' : '') +
         (p.sp ? '<div class="aa-card-spons">Sponsored</div>' : '');
       wrap.appendChild(card);
     });
     msgs().appendChild(wrap); scroll();
+  }
+
+  // -------- shade detection --------
+  // Undertone words → the enum used in catalogue.json: warm|cool|neutral|olive
+  function detectUndertoneFromText(text){
+    var t = (text || "").toLowerCase();
+    if (/\bwarm\b/.test(t)) return "warm";
+    if (/\bcool\b/.test(t)) return "cool";
+    if (/\bneutral\b/.test(t)) return "neutral";
+    if (/\bolive\b/.test(t)) return "olive";
+    return null;
+  }
+  // Depth band → min/max on the 1-10 Monk scale
+  function detectDepthFromText(text){
+    var t = (text || "").toLowerCase();
+    // explicit "shade 5", "depth 7", "tone 3"
+    var m = t.match(/\b(?:shade|depth|tone|monk)\s*(\d{1,2})\b/);
+    if (m) { var n = +m[1]; return [Math.max(1, n-1), Math.min(10, n+1)]; }
+    if (/\bvery (light|fair|pale)|\bporcelain\b/.test(t))   return [1, 2];
+    if (/\b(fair|light)\s+(skin|tone)|\blight\b/.test(t))   return [1, 4];
+    if (/\b(light[- ]?medium|medium[- ]?light)\b/.test(t))  return [3, 5];
+    if (/\bmedium\s*tan|\btan\b/.test(t))                   return [5, 7];
+    if (/\bmedium\b/.test(t))                               return [4, 6];
+    if (/\b(deep|dark)\b/.test(t))                          return [7, 10];
+    return null;
+  }
+
+  function shadesMatching(product, depthRange, undertone){
+    var out = (product.s || []).map(function(s, i){
+      // s is [name, depth, undertone, hex, coverage]
+      return { sid: product.id + "-S" + String(i+1).padStart(2,"0"),
+               nm: s[0], d: s[1], u: s[2], hex: s[3], cov: s[4] };
+    });
+    if (depthRange) out = out.filter(function(s){ return s.d >= depthRange[0] && s.d <= depthRange[1]; });
+    if (undertone)  out = out.filter(function(s){ return s.u === undertone; });
+    return out;
   }
 
   // -------- direct catalogue search (bypasses the quiz plan) --------
@@ -333,6 +379,8 @@
     var concerns= opts.concerns || [];        // array of concern keys
     var avoidF  = !!opts.avoidFrag;
     var avoidE  = !!opts.avoidEO;
+    var depth   = opts.depth || null;         // [min,max] on 1-10 scale, or null
+    var undert  = opts.undertone || null;     // warm|cool|neutral|olive|null
     var limit   = opts.limit || 6;
 
     var candidates = CAT.slice();
@@ -341,6 +389,20 @@
     if (skin)  candidates = candidates.filter(function(p){ return !p.st || !p.st.length || p.st.indexOf(skin) !== -1; });
     if (avoidF)candidates = candidates.filter(function(p){ return !p.frag && !p.eo; });
     if (avoidE)candidates = candidates.filter(function(p){ return !p.eo; });
+
+    // Shade filter: only applies to products that actually have shades.
+    // For those products, require at least one shade that matches.
+    if (depth || undert) {
+      candidates = candidates.filter(function(p){
+        if (!p.s || !p.s.length) return !(depth || undert); // no shades => drop when shade asked
+        return shadesMatching(p, depth, undert).length > 0;
+      });
+      // Attach the first matching shade for rendering
+      candidates.forEach(function(p){
+        var m = shadesMatching(p, depth, undert);
+        if (m.length) p._matchedShade = m[0];
+      });
+    }
 
     // Rank: concern matches first, then non-sponsored, then price ascending.
     candidates.sort(function(a,b){
@@ -372,6 +434,8 @@
       else if (/\bnormal skin/.test(lower)) skin = "normal";
       var avoidFrag = /no fragrance|fragrance[- ]free|without fragrance/.test(lower);
       var avoidEO   = /no essential oil/.test(lower);
+      var undert    = detectUndertoneFromText(text);
+      var depth     = detectDepthFromText(text);
 
       // Concern hints (best-effort, lowercased string match)
       var cTerms = {
@@ -385,21 +449,35 @@
         if (new RegExp(cTerms[k]).test(lower)) concerns.push(k);
       }
 
-      var hits = directSearch({ category: cat, maxPrice: maxP, skin: skin, concerns: concerns, avoidFrag: avoidFrag, avoidEO: avoidEO, limit: 6 });
+      var hits = directSearch({ category: cat, maxPrice: maxP, skin: skin, concerns: concerns, avoidFrag: avoidFrag, avoidEO: avoidEO, depth: depth, undertone: undert, limit: 6 });
 
       var bits = [cat.toLowerCase()];
       if (skin) bits.push("suits " + skin + " skin");
       if (maxP) bits.push("under ₹" + maxP);
       if (avoidFrag) bits.push("fragrance-free");
+      if (undert) bits.push(undert + " undertone");
+      if (depth) bits.push("depth " + depth[0] + "–" + depth[1]);
       var brief = bits.join(", ");
 
       if (hits.length) {
         renderProductCards(hits, "Found " + hits.length + " " + (hits.length === 1 ? "match" : "matches") + " for " + brief + ":");
       } else {
-        // Nothing in the exact slice — offer the closest alternative
-        var nearest = directSearch({ category: cat, limit: 3 });
-        if (nearest.length) {
-          renderProductCards(nearest, "No " + cat.toLowerCase() + " matches " + brief + " exactly. The closest I have in that category:");
+        // Nothing fits every constraint. Progressively relax, in this order:
+        // drop shade -> drop skin -> drop budget -> show anything in category
+        var trials = [
+          { label: "ignoring shade",   opts: { category: cat, maxPrice: maxP, skin: skin, concerns: concerns, avoidFrag: avoidFrag, avoidEO: avoidEO, limit: 3 }, used: (depth||undert) },
+          { label: "ignoring skin fit",opts: { category: cat, maxPrice: maxP, concerns: concerns, avoidFrag: avoidFrag, avoidEO: avoidEO, depth: depth, undertone: undert, limit: 3 }, used: !!skin },
+          { label: "ignoring budget",  opts: { category: cat, skin: skin, concerns: concerns, avoidFrag: avoidFrag, avoidEO: avoidEO, depth: depth, undertone: undert, limit: 3 }, used: !!maxP },
+          { label: "in that category", opts: { category: cat, limit: 3 }, used: true },
+        ];
+        var fallback = null, used = null;
+        for (var i = 0; i < trials.length; i++) {
+          if (!trials[i].used) continue;
+          var r = directSearch(trials[i].opts);
+          if (r.length) { fallback = r; used = trials[i].label; break; }
+        }
+        if (fallback) {
+          renderProductCards(fallback, "No " + cat.toLowerCase() + " matches " + brief + " exactly. Closest I have, " + used + ":");
         } else {
           botSay("I couldn’t find any " + cat.toLowerCase() + " in the catalogue.");
         }
