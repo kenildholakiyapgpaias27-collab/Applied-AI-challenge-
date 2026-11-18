@@ -171,7 +171,17 @@
 '.aa-card-actives{color:#6a4a2a;font-size:11px;margin-top:4px;font-style:italic}' +
 '.aa-card-spons{color:#888;font-size:10px;margin-top:4px;letter-spacing:.5px;text-transform:uppercase}' +
 '.aa-card-shade{display:flex;align-items:center;gap:8px;margin-top:6px;padding:6px 8px;background:#faf6f0;border-radius:8px;font-size:12px;color:#333}' +
-'.aa-shade-sw{display:inline-block;width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.1);flex:none}';
+'.aa-shade-sw{display:inline-block;width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.1);flex:none}' +
+'.aa-card{cursor:pointer;transition:border-color .15s, box-shadow .15s}' +
+'.aa-card:hover{border-color:#111;box-shadow:0 4px 12px rgba(0,0,0,.08)}' +
+'.aa-card:focus{outline:2px solid #111;outline-offset:2px}' +
+'.aa-card.open{border-color:#111}' +
+'.aa-card-hint{color:#999;font-size:10px;margin-top:6px;letter-spacing:.3px;text-transform:uppercase}' +
+'.aa-card.open .aa-card-hint{display:none}' +
+'.aa-card-details{margin-top:10px;padding-top:10px;border-top:1px solid #eee;font-size:12px;color:#333}' +
+'.aa-det-section{margin:6px 0}' +
+'.aa-inci{color:#555;margin-top:3px;max-height:140px;overflow-y:auto;font-size:11px;line-height:1.5}' +
+'.aa-sh-row{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px}';
 
   // -------- DOM bootstrap --------
   function el(tag, cls, html){ var e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; }
@@ -313,6 +323,9 @@
     var wrap = el("div","aa-cards");
     products.forEach(function(p){
       var card = el("div","aa-card");
+      card.setAttribute("role","button");
+      card.setAttribute("tabindex","0");
+      card.setAttribute("aria-label","Show details for " + p.n);
       var spf   = p.spf ? ' · SPF ' + p.spf : '';
       var fin   = p.fin ? ' · ' + p.fin : '';
       var shadeRow = "";
@@ -327,10 +340,51 @@
         '<div class="aa-card-meta">' + escapeHtml(p.b || "") + ' · ' + escapeHtml(p.c) + (p.sz ? ' · ' + escapeHtml(p.sz) : '') + spf + fin + '</div>' +
         shadeRow +
         (p.a ? '<div class="aa-card-actives">' + escapeHtml(p.a) + '</div>' : '') +
-        (p.sp ? '<div class="aa-card-spons">Sponsored</div>' : '');
+        (p.sp ? '<div class="aa-card-spons">Sponsored</div>' : '') +
+        '<div class="aa-card-hint">Tap for details</div>';
+      card.addEventListener("click", function(){ toggleCardDetails(card, p); });
+      card.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleCardDetails(card, p); } });
       wrap.appendChild(card);
     });
     msgs().appendChild(wrap); scroll();
+  }
+
+  function toggleCardDetails(card, p){
+    var existing = card.querySelector(".aa-card-details");
+    if (existing) { existing.remove(); card.classList.remove("open"); return; }
+    card.classList.add("open");
+    var d = el("div","aa-card-details");
+    var concernStr = (p.con && p.con.length) ? p.con.join(", ") : "general care";
+    var skinStr    = (p.st && p.st.length) ? p.st.join(", ") : "all skin types";
+    var flagBits = [];
+    if (p.frag)   flagBits.push("contains fragrance"); else flagBits.push("fragrance-free");
+    if (p.eo)     flagBits.push("contains essential oils"); else flagBits.push("no essential oils");
+    if (p.dryAlc) flagBits.push("contains drying alcohol");
+    if (p.ret)    flagBits.push("contains retinoid");
+    if (p.aha)    flagBits.push("contains AHA");
+    if (p.bha)    flagBits.push("contains BHA");
+    if (p.preg)   flagBits.push("pregnancy-cautioned");
+    if (p.com)    flagBits.push(p.com + " comedogenic risk");
+
+    // All shades (not only matched) when the product has shades
+    var allShades = "";
+    if (p.s && p.s.length) {
+      var rows = p.s.slice(0, 20).map(function(sh){
+        return '<div class="aa-sh-row"><span class="aa-shade-sw" style="background:' + escapeHtml(sh[3]) + '"></span>' +
+               '<span><b>' + escapeHtml(sh[0]) + '</b> · tone ' + sh[1] + ' · ' + escapeHtml(sh[2]) + ' · ' + escapeHtml(sh[4]) + '</span></div>';
+      }).join("");
+      allShades = '<div class="aa-det-section"><b>Shades (' + p.s.length + '):</b>' + rows + '</div>';
+    }
+
+    d.innerHTML =
+      '<div class="aa-det-section"><b>ID:</b> ' + escapeHtml(p.id) + '</div>' +
+      '<div class="aa-det-section"><b>Targets:</b> ' + escapeHtml(concernStr) + '</div>' +
+      '<div class="aa-det-section"><b>Suits:</b> ' + escapeHtml(skinStr) + ' skin</div>' +
+      '<div class="aa-det-section"><b>Flags:</b> ' + escapeHtml(flagBits.join(", ")) + '</div>' +
+      allShades +
+      '<div class="aa-det-section"><b>Ingredients (INCI):</b><div class="aa-inci">' + escapeHtml(p.i || "Not listed") + '</div></div>';
+    card.appendChild(d);
+    scroll();
   }
 
   // -------- shade detection --------
@@ -422,6 +476,33 @@
 
     var lower = (text || "").toLowerCase();
 
+    // 0. Budget-only follow-up ("budget 200-300", "under 500", "₹1000-2000"):
+    //    re-run the LAST direct search with the new budget cap.
+    //    Prevents "Something went wrong" when there's no category context.
+    var budgetOnly = detectBudgetFromText(text);
+    if (budgetOnly == null) {
+      // also accept "budget is 1000-2000" / "between 200 and 300" shapes
+      var m = lower.match(/\b(?:budget\s*(?:is|=)?\s*|between\s+)?(\d{2,5})\s*[-–to]+\s*(\d{2,5})\b/);
+      if (m) budgetOnly = +m[2]; // use the upper bound as the cap
+    }
+    var looksBudgetOnly = !detectCategoryFromText(text) && budgetOnly &&
+                         !isOutOfScope(text) &&
+                         /budget|under|below|rupee|rs\.?|₹|less than|upto|up to|between|k\s*andar|tak/.test(lower);
+    if (looksBudgetOnly && window.AAINA_LAST_SEARCH) {
+      var prev = window.AAINA_LAST_SEARCH;
+      var newOpts = Object.assign({}, prev.opts, { maxPrice: budgetOnly });
+      var hits2 = directSearch(newOpts);
+      if (hits2.length) {
+        renderProductCards(hits2, "Updated to budget ₹" + budgetOnly + ":");
+      } else {
+        var relaxed = directSearch(Object.assign({}, newOpts, { skin: null }));
+        if (relaxed.length) renderProductCards(relaxed, "Nothing under ₹" + budgetOnly + " with your other filters. Closest I have, ignoring skin fit:");
+        else botSay("Nothing in that category sits under ₹" + budgetOnly + ".");
+      }
+      window.AAINA_LAST_SEARCH = { opts: newOpts };
+      return;
+    }
+
     // 1. Direct category search — the fast path, no LLM round-trip needed.
     //    "eyeliner", "eyeliner under 500", "lipstick", "serum oily skin", etc.
     var cat = detectCategoryFromText(text);
@@ -449,7 +530,9 @@
         if (new RegExp(cTerms[k]).test(lower)) concerns.push(k);
       }
 
-      var hits = directSearch({ category: cat, maxPrice: maxP, skin: skin, concerns: concerns, avoidFrag: avoidFrag, avoidEO: avoidEO, depth: depth, undertone: undert, limit: 6 });
+      var searchOpts = { category: cat, maxPrice: maxP, skin: skin, concerns: concerns, avoidFrag: avoidFrag, avoidEO: avoidEO, depth: depth, undertone: undert, limit: 6 };
+      var hits = directSearch(searchOpts);
+      try { window.AAINA_LAST_SEARCH = { opts: searchOpts }; } catch(e){}
 
       var bits = [cat.toLowerCase()];
       if (skin) bits.push("suits " + skin + " skin");
@@ -794,7 +877,14 @@
       close(); // close chat so the plan is visible
     } catch(e) {
       console.error("[ask-aaina] triggerPlan failed:", e);
-      botSay("Something went wrong building your plan. Please use the guided quiz.");
+      // Graceful fallback: show a sample from the catalogue so the user
+      // isn't left with a dead end. Also log the error for debugging.
+      try {
+        var sample = CAT.filter(function(p){ return !p.sp; }).slice(0, 4);
+        renderProductCards(sample, "I couldn’t assemble a full plan from that, but here are some popular picks from the catalogue:");
+      } catch(e2) {
+        botSay("I couldn’t build a plan from that. Try naming a category — cleanser, serum, sunscreen, foundation, lipstick, eyeliner, etc.");
+      }
     }
   }
 
