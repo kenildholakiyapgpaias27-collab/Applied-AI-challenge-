@@ -59,6 +59,8 @@
 '.aa-fab{position:fixed;right:18px;bottom:18px;z-index:9998;display:inline-flex;align-items:center;gap:8px;padding:12px 16px;border-radius:999px;background:#111;color:#fff;border:0;font:600 14px/1 system-ui,-apple-system,"Segoe UI",sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.25);cursor:pointer;letter-spacing:.3px}' +
 '.aa-fab:hover{transform:translateY(-1px);box-shadow:0 12px 36px rgba(0,0,0,.3)}' +
 '.aa-fab svg{width:16px;height:16px}' +
+// the try-on and dialogs have their own buttons in that corner ("Add look to my plan", Delete, Save): step aside while they're open
+'body:has(#tryon:not([hidden])) .aa-fab,body:has(.exitm) .aa-fab{display:none}' +
 '.aa-panel{position:fixed;right:0;bottom:0;top:0;width:400px;max-width:100vw;z-index:9999;background:#fff;box-shadow:-10px 0 40px rgba(0,0,0,.18);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease}' +
 '.aa-panel.open{transform:translateX(0)}' +
 '@media (max-width:520px){.aa-panel{width:100vw;top:0}}' +
