@@ -518,7 +518,7 @@ body{background:#fcfbfa;color:var(--ink);font:16px/1.55 var(--body);margin:0}
 .thread>*{max-width:1440px;width:100%;margin-left:auto;margin-right:auto}
 .stepblock{display:flex;flex-direction:column;gap:18px;animation:qin .28s ease}
 @keyframes qin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.stepblock>.carried,.row.me,.row.qhead>.av,#advisor .ask{display:none !important}
+.stepblock>.carried,.row.me,.row.qhead>.av{display:none !important}
 .thread>.past{display:none !important}
 
 /* question header */
@@ -906,6 +906,9 @@ body{background:#fcfbfa;color:var(--ink);font:16px/1.55 var(--body);margin:0}
 #advisor .ask{padding:16px clamp(20px, 3.5vw, 56px);gap:14px;align-items:center;border-top:1px solid var(--line);background:var(--surface);border-radius:0 0 24px 24px;margin-top:auto}
 #advisor .ask input{height:50px;padding:0 22px;font-size:15.5px;font-weight:400}
 #advisor .ask .btn{height:50px;padding:0 26px;font-size:15.5px;font-weight:750;flex:none}
+#advisor .ask .mic{width:50px;height:50px;padding:0;border-radius:999px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+#advisor .ask .mic.listening{background:var(--bad);border-color:var(--bad);color:#fff;animation:micpulse 1.1s ease-in-out infinite}
+@keyframes micpulse{0%,100%{box-shadow:0 0 0 0 rgba(200,60,60,.35)}50%{box-shadow:0 0 0 8px rgba(200,60,60,0)}}
 .frame-foot{font-size:12px;font-weight:400;padding:12px 26px 14px}
 .frame-foot .link{font-size:12px;font-weight:600}
 /* -- welcome: balanced spacing, lighter supporting copy -- */
@@ -929,6 +932,7 @@ body{background:#fcfbfa;color:var(--ink);font:16px/1.55 var(--body);margin:0}
   #advisor .ask{padding:10px 12px;gap:8px}
   #advisor .ask input{height:44px;padding:0 16px;font-size:14px}
   #advisor .ask .btn{height:44px;padding:0 16px;font-size:14px}
+  #advisor .ask .mic{width:44px;height:44px}
   .frame-foot{padding:8px 16px 10px}
 }
 
@@ -1220,7 +1224,8 @@ html.to-lock,html.to-lock body{overflow:hidden}
   <div class="body" id="advisor" hidden>
     <section class="chat" aria-label="Chat with the skin advisor">
       <div class="thread" id="thread" aria-live="polite"></div>
-      <form class="ask" id="askForm" style="display:none !important">
+      <form class="ask" id="askForm">
+        <button class="btn mic" id="askMic" type="button" hidden aria-label="Speak instead of typing" aria-pressed="false"></button>
         <input id="askInput" type="text" maxlength="400" placeholder="Describe your skin concern, or type a product name" aria-label="Type a message">
         <button class="btn primary" type="submit">Send <span aria-hidden="true">→</span></button>
       </form>
@@ -2022,12 +2027,17 @@ const BANNED_OUT=/\b(cure[sd]?|heal(s|ed)?|guarantee(d)?|100 ?%|permanent(ly)?|w
 /* =====================================================================
    8. Slot parsing from free text
    ===================================================================== */
-const CONCERN_WORDS=[["acne",/acne|pimple|breakout|zit/i],["pigmentation",/pigment|dark spot|spots|uneven (skin )?tone|blemish/i],["dullness",/dull|glow|radian/i],["dehydration",/dehydrat|tight|flak/i],["oiliness",/oiliness|too oily|shine|greasy/i],["tanning",/\btan(ning|ned)?\b|sun ?tan/i],["redness",/redness|\bred\b(?! patch)/i],["fine lines",/fine line|wrinkle|anti-?ag|ageing|aging/i],["dark circles",/dark circle|under ?eye/i]];
+const CONCERN_WORDS=[["acne",/acne|pimple|break(?:ing)? ?out|zit/i],["pigmentation",/pigment|dark spot|spots|uneven (skin )?tone|blemish/i],["dullness",/dull|glow|radian/i],["dehydration",/dehydrat|tight|flak/i],["oiliness",/oiliness|too oily|shine|greasy/i],["tanning",/\btan(ning|ned)?\b|sun ?tan/i],["redness",/redness|\bred\b(?! patch)/i],["fine lines",/fine line|wrinkle|anti-?ag|ageing|aging/i],["dark circles",/dark circle|under ?eye/i]];
 const CATEGORY_WORDS=[["Serum",/serum/i],["Moisturiser",/moistu?ri[sz]er|cream for|night cream|face cream/i],["Sunscreen",/sunscreen|sun ?block|spf/i],["Cleanser",/cleanser|face ?wash/i],["Toner",/toner/i],["Exfoliant",/exfoli/i],["Face mask",/\bmask\b/i],["Eye cream",/eye cream/i],["Spot treatment",/spot treatment|spot gel/i],["Face oil",/face oil/i],["Primer",/primer/i],["Lip care",/lip balm|lip care/i],["Lipstick",/lipstick/i],["Kajal / eyeliner",/kajal|eyeliner/i],["Blush",/blush/i],["Foundation",/foundation/i],["Concealer",/concealer/i],["Compact powder",/compact|pressed powder/i],["BB / CC cream",/\b(bb|cc)( \/ cc)? cream\b/i]];
 function parseSlots(t){
   const s={},low=t.toLowerCase();
   const sk=/\b(oily|dry|combination|combo|normal)\b(?=[^.]*\bskin)|\bskin (is|type is|feels)? ?(oily|dry|combination|normal)\b/i.exec(t);
   if(sk){const v=(sk[1]||sk[3]||"").toLowerCase();s.skin=v==="combo"?"combination":v}
+  else if(/\bskin\b|\bface\b|\bmidday\b|by (the )?afternoon/i.test(t)){
+    // the same descriptions the skin-type question itself prompts for ("shiny all over", "tight, rough or flaky"...), not just the label words
+    const desc=[["oily",/shin(?:y|e|ing)|greasy/i],["combination",/\bt-?zone\b/i],["dry",/\btight\b|flak(?:y|e|ing)|\brough\b|parch/i],["normal",/\bcomfortable\b|no real issues/i]].find(([,re])=>re.test(t));
+    if(desc)s.skin=desc[0];
+  }
   const cons=CONCERN_WORDS.filter(([,re])=>re.test(t)).map(([c])=>c);if(cons.length)s.concerns=cons;
   if(/(fragrance|perfume|scent)[- ]?(free|sensitive)|avoid (fragrance|perfume|scent)|no (fragrance|perfume)|fragrance (irritates|bothers)/i.test(t))s.avoidFrag=true;
   if(/essential oil/i.test(t)&&/avoid|no |free|react|allerg/i.test(t))s.avoidEO=true;
@@ -2541,8 +2551,8 @@ const STEP={
     show:()=>[STEP.avoid.show(),P.reactions.length?P.reactions.map(cap).join(", "):"",P.pregnancy===false?"":"Pregnancy-cautious",(P.redflags||[]).length?"Warning signs":""].filter(x=>x&&x!=="Nothing").join(" · ")||"No restrictions"},
   location:{title:"Location",side:"Location",q:()=>({ask:"Which state and city do you live in?",help:"**Humidity and winter dryness** change which textures work for you.",location:true}),
     show:()=>P.city?`${P.city}, ${P.state}`:"Skipped"},
-  skin:{title:"Your skin",side:"Skin type",q:()=>({ask:"How does your skin feel by midday, without products?",help:"Think of **midday, before any products**. Describing what you notice is more reliable than picking a label.",
-      opts:FACE_SKIN.map(([label,sub,value])=>({label,sub,value}))}),
+  skin:{title:"Your skin",side:"Skin type",q:()=>{const pre=TYPED_SKIN;TYPED_SKIN=null;return{ask:"How does your skin feel by midday, without products?",help:"Think of **midday, before any products**. Describing what you notice is more reliable than picking a label.",
+      opts:FACE_SKIN.map(([label,sub,value])=>({label,sub,value})),pre}},
     apply:v=>{P.skin=v;P.skinConfirmed=true},show:()=>cap(P.skin)||"–"},
   tone:{title:"Your skin",side:"Skin tone",q:()=>({ask:"What's your skin tone?",help:"Tap **the closest shade**. Deeper skin marks more easily, so this changes **which ingredients and sunscreens** I pick.",tone:true}),
     show:()=>{if(!P.tone)return"Skipped";const src=P.toneSource||"";const m=/(\d) selfies/.exec(src);return`Tone ${P.tone} (${TONE_NAME[P.tone]})${m?`, from ${m[1]} selfies`:/selfie/.test(src)?", from selfie":""}`}},
@@ -2821,7 +2831,8 @@ function optionsWidget(key,Q){
   for(const o of Q.opts){const b=document.createElement("button");b.type="button";b.className="opt";
     const art=artFor(key,o);if(!o.sub&&art)b.classList.add("nosub");b.innerHTML=`${art?`<i class="art">${art}</i>`:""}<b>${esc(o.label)}</b>${o.sub?`<span>${esc(o.sub)}</span>`:""}`;
     if(Q.multi){b.setAttribute("aria-pressed",String(picked.has(o.value)));b.onclick=()=>{if(picked.has(o.value))picked.delete(o.value);else{if(Q.max&&picked.size>=Q.max)return;picked.add(o.value)}b.setAttribute("aria-pressed",String(picked.has(o.value)));update()}}
-    else b.onclick=()=>{b.setAttribute("aria-pressed","true");answer(key,o.value,o.label)};
+    else{if(Q.pre!=null&&o.value===Q.pre)b.setAttribute("aria-pressed","true");   // guessed from what they typed/said; tap to confirm or pick another
+      b.onclick=()=>{b.setAttribute("aria-pressed","true");answer(key,o.value,o.label)}}
     grid.appendChild(b)}
   w.appendChild(grid);
   if(Q.multi){update();const a=document.createElement("div");a.className="qactions";done.onclick=()=>{const v=[...picked];answer(key,v,v.length?Q.opts.filter(o=>picked.has(o.value)).map(o=>o.label).join(", "):Q.none)};
@@ -2889,6 +2900,7 @@ const PHOTO_TIPS=[
   "Pull hair back from your forehead and cheeks, and take one straight on.",
 ];
 const CAM=SVG('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>');
+const MIC=SVG('<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/>');
 function swBtn(t,{size="",pressed=false,label=true,onClick}={}){const b=document.createElement("button");b.type="button";b.className="tsw "+size;b.style.background=MONK_HEX[t];b.style.color=t>=6?"#fff":"#2a1f1a";b.textContent=label?t:"";b.setAttribute("aria-label",`Skin tone ${t}, ${TONE_NAME[t]}`);b.setAttribute("aria-pressed",String(pressed));if(onClick)b.onclick=onClick;return b}
 function thumbOf(src){const c=document.createElement("canvas");const s=96/Math.max(src.width,src.height);c.width=Math.round(src.width*s);c.height=Math.round(src.height*s);c.getContext("2d").drawImage(src,0,0,c.width,c.height);return c}
 
@@ -3923,7 +3935,7 @@ function wireUpgrades(box){
    ===================================================================== */
 const SYMPTOMS=[["pain","Painful or swollen"],["spread","Spreading"],["bleed","Bleeding, pus or open sores"],["mole","A mole that's changing"],["fever","With fever"]];
 const REACT_TOP=["glycolic acid","salicylic acid","vitamin c","retinoids","niacinamide"];
-let TYPED_CONCERNS=null;
+let TYPED_CONCERNS=null,TYPED_SKIN=null;
 function concernsWidget(){
   const w=document.createElement("div");w.className="qbody concerns";
   let order=TYPED_CONCERNS?[...TYPED_CONCERNS]:(P.concerns||[]).filter(k=>PROBLEMS[k]);
@@ -4542,6 +4554,7 @@ function handleTyped(text){
   const p=findProduct(t);if(p){productCheck(p);return refocus()}
   const slots=parseSlots(t);
   if(stepNow==="concerns"&&slots.concerns&&slots.concerns.length){const cs=uniq(slots.concerns.filter(x=>PROBLEMS[x])).slice(0,MAX_CONCERNS);if(cs.length){TYPED_CONCERNS=cs;botSay(`I've ticked <b>${esc(cs.map(k=>PROBLEMS[k].label.toLowerCase()).join(" and "))}</b>. Answer the quick follow-up inside ${cs.length>1?"each":"it"} and tap Continue.`);return ask("concerns")}}
+  if(stepNow==="skin"&&slots.skin){const f=FACE_SKIN.find(([,,v])=>v===slots.skin);if(f){TYPED_SKIN=slots.skin;botSay(`Sounds like <b>${esc(f[1].toLowerCase())}</b> to me. Tap it to confirm, or pick another if I've got it wrong.`);return ask("skin")}}
   if(stepNow==="problem"&&slots.concerns&&slots.concerns.length){const c=slots.concerns.find(x=>PROBLEMS[x]);if(c){STEP.problem.apply(c);DONE.add("problem");P.concerns=uniq([c,...slots.concerns.filter(x=>PROBLEMS[x])]).slice(0,3);if(P.concerns.length>1)DONE.add("extra");botSay(afterNote("problem")[0]);return next()}}
   if(stepNow==="location"){const hit=findCity(t);if(hit){P.state=hit.state;P.city=hit.city;P.climate=hit.climate;DONE.add("location");botSay(afterNote("location")[0]);return next()}}
   if(stepNow==="react"&&slots.reactions){P.reactions=uniq([...P.reactions,...slots.reactions]);DONE.add("react");botSay(`Noted: I'll avoid ${esc(slots.reactions.join(", "))}.`);return next()}
@@ -4552,6 +4565,23 @@ function handleTyped(text){
 function refocus(){const q=thread.querySelector(".q:not(.answered)");if(q){thread.appendChild(q);focusEl(q)}}
 function findCity(t){const low=t.toLowerCase();for(const[st,s]of Object.entries(INDIA))for(const c of Object.keys(s.c))if(new RegExp("\\b"+c.toLowerCase().replace(/[()]/g,"")+"\\b").test(low))return{state:st,city:c,climate:s.c[c]||s.d};return null}
 $("askForm").addEventListener("submit",e=>{e.preventDefault();const v=$("askInput").value;$("askInput").value="";handleTyped(v.slice(0,400))});
+
+/* ---------- speak instead of typing: browser speech-to-text feeds the same chat input, nothing is sent until the user hits Send ---------- */
+(function initMic(){
+  const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;const btn=$("askMic");if(!Rec||!btn)return;
+  btn.innerHTML=MIC;btn.hidden=false;
+  const input=$("askInput"),basePlaceholder=input.placeholder;
+  let rec=null,listening=false;
+  const stop=()=>{listening=false;btn.classList.remove("listening");btn.setAttribute("aria-pressed","false");input.placeholder=basePlaceholder;try{rec&&rec.stop()}catch{}};
+  btn.onclick=()=>{
+    if(listening){stop();return}
+    if(!rec){rec=new Rec();rec.lang="en-IN";rec.interimResults=true;rec.continuous=false;
+      rec.onresult=e=>{let t="";for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;input.value=t};
+      rec.onerror=stop;rec.onend=stop}
+    listening=true;btn.classList.add("listening");btn.setAttribute("aria-pressed","true");input.placeholder="Listening… speak now";input.value="";
+    try{rec.start()}catch{stop()}
+  };
+})();
 
 /* =====================================================================
    ACCOUNT + DATABASE (src/db.js). All of this is skipped when no database
@@ -9080,10 +9110,6 @@ const TRYON=(()=>{
   const MP_MODEL="https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
   const DEMO=(typeof TRYON_DEMO!=="undefined"&&TRYON_DEMO&&TRYON_DEMO.products)||{};
   const MODELS=(typeof TRYON_MODELS!=="undefined"&&TRYON_MODELS&&TRYON_MODELS.models)||[];
-  /* round thumbnail framed on the face itself, from its landmarks (photos differ in framing) */
-  function thumbStyle(m){const L=m.landmarks;if(!L||!L.length)return"";const xs=L.map(p=>p[0]),ys=L.map(p=>p[1]);
-    const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),w=82/Math.max(0.05,x1-x0),ar=(TRYON_MODELS.size?TRYON_MODELS.size[1]/TRYON_MODELS.size[0]:1.25);
-    const f=v=>v.toFixed(1)+"%";return`width:${f(w)};left:${f(50-(x0+x1)/2*w)};top:${f(52-(y0+y1)/2*w*ar)}`}
   const e=s=>typeof esc==="function"?esc(s):String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const money=v=>typeof rupee==="function"?rupee(v):"₹"+v;
   const TABS=[["face","Face",["Foundation","BB / CC cream","Concealer","Compact powder"]],["lips","Lips",["Lipstick"]],["cheeks","Cheeks",["Blush"]],["eyes","Eyes",["Kajal / eyeliner"]]];
@@ -9144,11 +9170,11 @@ const TRYON=(()=>{
             <div class="to-ways">
               <button type="button" class="to-way" data-to="consent"><span class="to-wayic">${ICON.camera}</span><b>Use my camera</b><small>A live mirror that follows your face</small></button>
               <label class="to-way" tabindex="0"><span class="to-wayic">${ICON.upload}</span><b>Upload a photo</b><small>A clear, front-facing photo works best</small><input type="file" accept="image/*" data-to="file" hidden></label>
-              <div class="to-way to-way-models"><span class="to-wayic">${ICON.face}</span><b>Try on a model</b><small>${MODELS.length} faces, fair to deep: women and men</small>
-                <div class="to-models">${MODELS.map((m,i)=>`<button type="button" class="to-model" data-to="model" data-i="${i}" aria-label="Model face: ${e(m.label)}, about Monk tone ${m.monk}"><span class="to-mimg"><img src="${m.src}" alt="" style="${thumbStyle(m)}"></span><span class="to-mlab">${e(m.label)}</span><span class="to-mclose">Closest to you</span></button>`).join("")}</div></div>
+              <div class="to-way to-way-models"><span class="to-wayic">${ICON.face}</span><b>Try on a model</b><small>Six faces, fair to very deep</small>
+                <div class="to-models">${MODELS.map((m,i)=>`<button type="button" class="to-model" data-to="model" data-i="${i}" aria-label="Model face: ${e(m.label)}, about Monk tone ${m.monk}"><span class="to-mimg"><img src="${m.src}" alt=""></span><span class="to-mlab">${e(m.label)}</span><span class="to-mclose">Closest to you</span></button>`).join("")}</div></div>
             </div>
             <p class="to-consentnote">${ICON.lock}<span>Your camera and photos stay on this device. Frames are processed in your browser and never uploaded or stored.</span></p>
-            <p class="to-tip">Tip: face a window or soft, even light, with no beauty filter.</p>
+            <p class="to-tip">Tip: face a window or soft, even light, with no beauty filter. Model faces are computer-rendered, not photos of real people.</p>
           </section>
           <section class="to-consent" data-pane="consent" hidden>
             <h3 class="to-h">Before your camera turns on</h3>
@@ -9206,8 +9232,7 @@ const TRYON=(()=>{
   /* the model face closest to the user's tone and undertone, if we know them */
   function closestModel(){
     const tone=typeof P!=="undefined"&&P.tone;if(!tone||!MODELS.length)return -1;const ut=P.undertone||null;
-    const g=typeof P!=="undefined"&&(P.gender==="woman"||P.gender==="man")?P.gender:null;   // prefer a face of the shopper's gender
-    let best=-1,bs=1e9;MODELS.forEach((m,i)=>{const sc=(g&&m.gender&&m.gender!==g?100:0)+Math.abs(m.monk-tone)+(ut&&m.undertone!==ut?(typeof utPenalty==="function"?utPenalty(ut,m.undertone)*0.4:0.6):0);if(sc<bs){bs=sc;best=i}});return best}
+    let best=-1,bs=1e9;MODELS.forEach((m,i)=>{const sc=Math.abs(m.monk-tone)+(ut&&m.undertone!==ut?(typeof utPenalty==="function"?utPenalty(ut,m.undertone)*0.4:0.6):0);if(sc<bs){bs=sc;best=i}});return best}
   function markClosest(){const k=closestModel();root.querySelectorAll(".to-model").forEach((b,i)=>{const on=i===k;b.classList.toggle("closest",on);const l=b.getAttribute("aria-label").replace(/ \(closest to you\)$/,"");b.setAttribute("aria-label",on?l+" (closest to you)":l)})}
   function onClick(ev){
     const t=ev.target.closest("[data-to],[data-tab],[data-cat],[data-pid],[data-shade],[data-rm],[data-pick]");if(!t||!root.contains(t))return;
@@ -9605,7 +9630,9 @@ void main(){vec2 t=vec2(uMirror>0.5?1.-uv.x:uv.x,uv.y);vec3 S=s2l(texture2D(uTex
     const W=cv.width,H=cv.height,L=looks();
     gl.clearColor(0.96,0.94,0.92,1);gl.clear(gl.COLOR_BUFFER_BIT);
     if(!S.compare){
-      gl.viewport(0,0,W,H);gl.uniform4f(U.uCrop,0,0,1,1);gl.uniform1f(U.uTileW,W);gl.uniform1f(U.uTileX0,0);
+      // texture y is flipped (UNPACK_FLIP_Y), so crop y is measured from the bottom
+      const cr=has?faceCrop():[0,0,1,1],crop=has?[S.mode==="camera"?1-cr[0]-cr[2]:cr[0],1-cr[1]-cr[3],cr[2],cr[3]]:cr;
+      gl.viewport(0,0,W,H);gl.uniform4f(U.uCrop,...crop);gl.uniform1f(U.uTileW,W);gl.uniform1f(U.uTileX0,0);
       gl.uniform1f(U.uSplit,has?S.split:2);setLook(U,gl,has?L[0]:{});gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
     }else{
       const cr=faceCrop(),tw=Math.floor(W/2),th=Math.floor(H/2);

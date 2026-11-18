@@ -212,8 +212,8 @@ const STEP={
     show:()=>[STEP.avoid.show(),P.reactions.length?P.reactions.map(cap).join(", "):"",P.pregnancy===false?"":"Pregnancy-cautious",(P.redflags||[]).length?"Warning signs":""].filter(x=>x&&x!=="Nothing").join(" · ")||"No restrictions"},
   location:{title:"Location",side:"Location",q:()=>({ask:"Which state and city do you live in?",help:"**Humidity and winter dryness** change which textures work for you.",location:true}),
     show:()=>P.city?`${P.city}, ${P.state}`:"Skipped"},
-  skin:{title:"Your skin",side:"Skin type",q:()=>({ask:"How does your skin feel by midday, without products?",help:"Think of **midday, before any products**. Describing what you notice is more reliable than picking a label.",
-      opts:FACE_SKIN.map(([label,sub,value])=>({label,sub,value}))}),
+  skin:{title:"Your skin",side:"Skin type",q:()=>{const pre=TYPED_SKIN;TYPED_SKIN=null;return{ask:"How does your skin feel by midday, without products?",help:"Think of **midday, before any products**. Describing what you notice is more reliable than picking a label.",
+      opts:FACE_SKIN.map(([label,sub,value])=>({label,sub,value})),pre}},
     apply:v=>{P.skin=v;P.skinConfirmed=true},show:()=>cap(P.skin)||"–"},
   tone:{title:"Your skin",side:"Skin tone",q:()=>({ask:"What's your skin tone?",help:"Tap **the closest shade**. Deeper skin marks more easily, so this changes **which ingredients and sunscreens** I pick.",tone:true}),
     show:()=>{if(!P.tone)return"Skipped";const src=P.toneSource||"";const m=/(\d) selfies/.exec(src);return`Tone ${P.tone} (${TONE_NAME[P.tone]})${m?`, from ${m[1]} selfies`:/selfie/.test(src)?", from selfie":""}`}},
@@ -492,7 +492,8 @@ function optionsWidget(key,Q){
   for(const o of Q.opts){const b=document.createElement("button");b.type="button";b.className="opt";
     const art=artFor(key,o);if(!o.sub&&art)b.classList.add("nosub");b.innerHTML=`${art?`<i class="art">${art}</i>`:""}<b>${esc(o.label)}</b>${o.sub?`<span>${esc(o.sub)}</span>`:""}`;
     if(Q.multi){b.setAttribute("aria-pressed",String(picked.has(o.value)));b.onclick=()=>{if(picked.has(o.value))picked.delete(o.value);else{if(Q.max&&picked.size>=Q.max)return;picked.add(o.value)}b.setAttribute("aria-pressed",String(picked.has(o.value)));update()}}
-    else b.onclick=()=>{b.setAttribute("aria-pressed","true");answer(key,o.value,o.label)};
+    else{if(Q.pre!=null&&o.value===Q.pre)b.setAttribute("aria-pressed","true");   // guessed from what they typed/said; tap to confirm or pick another
+      b.onclick=()=>{b.setAttribute("aria-pressed","true");answer(key,o.value,o.label)}}
     grid.appendChild(b)}
   w.appendChild(grid);
   if(Q.multi){update();const a=document.createElement("div");a.className="qactions";done.onclick=()=>{const v=[...picked];answer(key,v,v.length?Q.opts.filter(o=>picked.has(o.value)).map(o=>o.label).join(", "):Q.none)};
@@ -560,6 +561,7 @@ const PHOTO_TIPS=[
   "Pull hair back from your forehead and cheeks, and take one straight on.",
 ];
 const CAM=SVG('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>');
+const MIC=SVG('<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/>');
 function swBtn(t,{size="",pressed=false,label=true,onClick}={}){const b=document.createElement("button");b.type="button";b.className="tsw "+size;b.style.background=MONK_HEX[t];b.style.color=t>=6?"#fff":"#2a1f1a";b.textContent=label?t:"";b.setAttribute("aria-label",`Skin tone ${t}, ${TONE_NAME[t]}`);b.setAttribute("aria-pressed",String(pressed));if(onClick)b.onclick=onClick;return b}
 function thumbOf(src){const c=document.createElement("canvas");const s=96/Math.max(src.width,src.height);c.width=Math.round(src.width*s);c.height=Math.round(src.height*s);c.getContext("2d").drawImage(src,0,0,c.width,c.height);return c}
 
@@ -1594,7 +1596,7 @@ function wireUpgrades(box){
    ===================================================================== */
 const SYMPTOMS=[["pain","Painful or swollen"],["spread","Spreading"],["bleed","Bleeding, pus or open sores"],["mole","A mole that's changing"],["fever","With fever"]];
 const REACT_TOP=["glycolic acid","salicylic acid","vitamin c","retinoids","niacinamide"];
-let TYPED_CONCERNS=null;
+let TYPED_CONCERNS=null,TYPED_SKIN=null;
 function concernsWidget(){
   const w=document.createElement("div");w.className="qbody concerns";
   let order=TYPED_CONCERNS?[...TYPED_CONCERNS]:(P.concerns||[]).filter(k=>PROBLEMS[k]);
@@ -2213,6 +2215,7 @@ function handleTyped(text){
   const p=findProduct(t);if(p){productCheck(p);return refocus()}
   const slots=parseSlots(t);
   if(stepNow==="concerns"&&slots.concerns&&slots.concerns.length){const cs=uniq(slots.concerns.filter(x=>PROBLEMS[x])).slice(0,MAX_CONCERNS);if(cs.length){TYPED_CONCERNS=cs;botSay(`I've ticked <b>${esc(cs.map(k=>PROBLEMS[k].label.toLowerCase()).join(" and "))}</b>. Answer the quick follow-up inside ${cs.length>1?"each":"it"} and tap Continue.`);return ask("concerns")}}
+  if(stepNow==="skin"&&slots.skin){const f=FACE_SKIN.find(([,,v])=>v===slots.skin);if(f){TYPED_SKIN=slots.skin;botSay(`Sounds like <b>${esc(f[1].toLowerCase())}</b> to me. Tap it to confirm, or pick another if I've got it wrong.`);return ask("skin")}}
   if(stepNow==="problem"&&slots.concerns&&slots.concerns.length){const c=slots.concerns.find(x=>PROBLEMS[x]);if(c){STEP.problem.apply(c);DONE.add("problem");P.concerns=uniq([c,...slots.concerns.filter(x=>PROBLEMS[x])]).slice(0,3);if(P.concerns.length>1)DONE.add("extra");botSay(afterNote("problem")[0]);return next()}}
   if(stepNow==="location"){const hit=findCity(t);if(hit){P.state=hit.state;P.city=hit.city;P.climate=hit.climate;DONE.add("location");botSay(afterNote("location")[0]);return next()}}
   if(stepNow==="react"&&slots.reactions){P.reactions=uniq([...P.reactions,...slots.reactions]);DONE.add("react");botSay(`Noted: I'll avoid ${esc(slots.reactions.join(", "))}.`);return next()}
@@ -2223,6 +2226,23 @@ function handleTyped(text){
 function refocus(){const q=thread.querySelector(".q:not(.answered)");if(q){thread.appendChild(q);focusEl(q)}}
 function findCity(t){const low=t.toLowerCase();for(const[st,s]of Object.entries(INDIA))for(const c of Object.keys(s.c))if(new RegExp("\\b"+c.toLowerCase().replace(/[()]/g,"")+"\\b").test(low))return{state:st,city:c,climate:s.c[c]||s.d};return null}
 $("askForm").addEventListener("submit",e=>{e.preventDefault();const v=$("askInput").value;$("askInput").value="";handleTyped(v.slice(0,400))});
+
+/* ---------- speak instead of typing: browser speech-to-text feeds the same chat input, nothing is sent until the user hits Send ---------- */
+(function initMic(){
+  const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;const btn=$("askMic");if(!Rec||!btn)return;
+  btn.innerHTML=MIC;btn.hidden=false;
+  const input=$("askInput"),basePlaceholder=input.placeholder;
+  let rec=null,listening=false;
+  const stop=()=>{listening=false;btn.classList.remove("listening");btn.setAttribute("aria-pressed","false");input.placeholder=basePlaceholder;try{rec&&rec.stop()}catch{}};
+  btn.onclick=()=>{
+    if(listening){stop();return}
+    if(!rec){rec=new Rec();rec.lang="en-IN";rec.interimResults=true;rec.continuous=false;
+      rec.onresult=e=>{let t="";for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;input.value=t};
+      rec.onerror=stop;rec.onend=stop}
+    listening=true;btn.classList.add("listening");btn.setAttribute("aria-pressed","true");input.placeholder="Listening… speak now";input.value="";
+    try{rec.start()}catch{stop()}
+  };
+})();
 
 /* =====================================================================
    ACCOUNT + DATABASE (src/db.js). All of this is skipped when no database

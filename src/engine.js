@@ -635,12 +635,17 @@ const BANNED_OUT=/\b(cure[sd]?|heal(s|ed)?|guarantee(d)?|100 ?%|permanent(ly)?|w
 /* =====================================================================
    8. Slot parsing from free text
    ===================================================================== */
-const CONCERN_WORDS=[["acne",/acne|pimple|breakout|zit/i],["pigmentation",/pigment|dark spot|spots|uneven (skin )?tone|blemish/i],["dullness",/dull|glow|radian/i],["dehydration",/dehydrat|tight|flak/i],["oiliness",/oiliness|too oily|shine|greasy/i],["tanning",/\btan(ning|ned)?\b|sun ?tan/i],["redness",/redness|\bred\b(?! patch)/i],["fine lines",/fine line|wrinkle|anti-?ag|ageing|aging/i],["dark circles",/dark circle|under ?eye/i]];
+const CONCERN_WORDS=[["acne",/acne|pimple|break(?:ing)? ?out|zit/i],["pigmentation",/pigment|dark spot|spots|uneven (skin )?tone|blemish/i],["dullness",/dull|glow|radian/i],["dehydration",/dehydrat|tight|flak/i],["oiliness",/oiliness|too oily|shine|greasy/i],["tanning",/\btan(ning|ned)?\b|sun ?tan/i],["redness",/redness|\bred\b(?! patch)/i],["fine lines",/fine line|wrinkle|anti-?ag|ageing|aging/i],["dark circles",/dark circle|under ?eye/i]];
 const CATEGORY_WORDS=[["Serum",/serum/i],["Moisturiser",/moistu?ri[sz]er|cream for|night cream|face cream/i],["Sunscreen",/sunscreen|sun ?block|spf/i],["Cleanser",/cleanser|face ?wash/i],["Toner",/toner/i],["Exfoliant",/exfoli/i],["Face mask",/\bmask\b/i],["Eye cream",/eye cream/i],["Spot treatment",/spot treatment|spot gel/i],["Face oil",/face oil/i],["Primer",/primer/i],["Lip care",/lip balm|lip care/i],["Lipstick",/lipstick/i],["Kajal / eyeliner",/kajal|eyeliner/i],["Blush",/blush/i],["Foundation",/foundation/i],["Concealer",/concealer/i],["Compact powder",/compact|pressed powder/i],["BB / CC cream",/\b(bb|cc)( \/ cc)? cream\b/i]];
 function parseSlots(t){
   const s={},low=t.toLowerCase();
   const sk=/\b(oily|dry|combination|combo|normal)\b(?=[^.]*\bskin)|\bskin (is|type is|feels)? ?(oily|dry|combination|normal)\b/i.exec(t);
   if(sk){const v=(sk[1]||sk[3]||"").toLowerCase();s.skin=v==="combo"?"combination":v}
+  else if(/\bskin\b|\bface\b|\bmidday\b|by (the )?afternoon/i.test(t)){
+    // the same descriptions the skin-type question itself prompts for ("shiny all over", "tight, rough or flaky"...), not just the label words
+    const desc=[["oily",/shin(?:y|e|ing)|greasy/i],["combination",/\bt-?zone\b/i],["dry",/\btight\b|flak(?:y|e|ing)|\brough\b|parch/i],["normal",/\bcomfortable\b|no real issues/i]].find(([,re])=>re.test(t));
+    if(desc)s.skin=desc[0];
+  }
   const cons=CONCERN_WORDS.filter(([,re])=>re.test(t)).map(([c])=>c);if(cons.length)s.concerns=cons;
   if(/(fragrance|perfume|scent)[- ]?(free|sensitive)|avoid (fragrance|perfume|scent)|no (fragrance|perfume)|fragrance (irritates|bothers)/i.test(t))s.avoidFrag=true;
   if(/essential oil/i.test(t)&&/avoid|no |free|react|allerg/i.test(t))s.avoidEO=true;
