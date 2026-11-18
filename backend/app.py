@@ -7,9 +7,10 @@ undertone, and Fitzpatrick phototype classification using the Monk Skin Tone Sca
 from __future__ import annotations
 
 import base64
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -22,6 +23,9 @@ from backend.monk_service import (
     process_image_for_monk_tone,
     rgb_to_lab_8bit,
 )
+
+from backend.rag_service import ask as rag_ask, rag_mode
+from backend.understand_service import llm_enabled, understand
 
 ROOT_DIR = Path(__file__).parent.parent
 
@@ -127,6 +131,59 @@ def classify_direct_color(payload: DirectColorRequest) -> Dict[str, Any]:
         "measured_lab": [round(c, 2) for c in lab],
         **match_result,
     }
+
+
+class UnderstandRequest(BaseModel):
+    text: str
+    vocab: Dict[str, Any]  # the app's own concern keys / follow-up options / reaction names
+
+
+_UNDERSTAND_HITS: Dict[str, List[float]] = {}
+
+
+def _rate_limited(ip: str, limit: int = 20, window: float = 60.0) -> bool:
+    """Tiny in-memory per-IP limiter so a leaked page can't run up the API bill."""
+    now = time.monotonic()
+    hits = [t for t in _UNDERSTAND_HITS.get(ip, []) if now - t < window]
+    if len(hits) >= limit:
+        _UNDERSTAND_HITS[ip] = hits
+        return True
+    hits.append(now)
+    _UNDERSTAND_HITS[ip] = hits
+    return False
+
+
+@app.get("/api/understand/status")
+def understand_status() -> Dict[str, Any]:
+    """Lets the page learn (without sending any text) whether the meaning layer is switched on, and which retrievers the Q&A uses."""
+    return {"enabled": llm_enabled(), "rag": rag_mode() if llm_enabled() else None}
+
+
+class AskRequest(BaseModel):
+    text: str
+    profile: Optional[Dict[str, Any]] = None
+    history: Optional[List[Dict[str, Any]]] = None
+    blocked_ids: Optional[List[str]] = None  # products that fail THIS customer's checks: removed before retrieval
+
+
+@app.post("/api/ask")
+def ask_catalogue(payload: AskRequest, request: Request) -> Dict[str, Any]:
+    """Hybrid RAG answer (BM25 + embeddings, fused) grounded in the catalogue. ok=false means 'the page keeps its built-in behaviour'."""
+    ip = request.client.host if request.client else "?"
+    if _rate_limited(ip):
+        return {"ok": False, "reason": "rate_limited"}
+    if not llm_enabled():
+        return {"ok": False, "reason": "disabled"}
+    return rag_ask(payload.text, payload.profile, payload.history, payload.blocked_ids)
+
+
+@app.post("/api/understand")
+def understand_text(payload: UnderstandRequest, request: Request) -> Dict[str, Any]:
+    """Turn a free-form sentence into the quiz's structured answers. Always 200; ok=false means 'use the built-in parser'."""
+    ip = request.client.host if request.client else "?"
+    if _rate_limited(ip):
+        return {"ok": False, "reason": "rate_limited"}
+    return understand(payload.text, payload.vocab)
 
 
 # Serve the static AAINA application so frontend + backend run on one unified server

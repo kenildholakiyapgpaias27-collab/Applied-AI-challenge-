@@ -212,8 +212,8 @@ const STEP={
     show:()=>[STEP.avoid.show(),P.reactions.length?P.reactions.map(cap).join(", "):"",P.pregnancy===false?"":"Pregnancy-cautious",(P.redflags||[]).length?"Warning signs":""].filter(x=>x&&x!=="Nothing").join(" · ")||"No restrictions"},
   location:{title:"Location",side:"Location",q:()=>({ask:"Which state and city do you live in?",help:"**Humidity and winter dryness** change which textures work for you.",location:true}),
     show:()=>P.city?`${P.city}, ${P.state}`:"Skipped"},
-  skin:{title:"Your skin",side:"Skin type",q:()=>({ask:"How does your skin feel by midday, without products?",help:"Think of **midday, before any products**. Describing what you notice is more reliable than picking a label.",
-      opts:FACE_SKIN.map(([label,sub,value])=>({label,sub,value}))}),
+  skin:{title:"Your skin",side:"Skin type",q:()=>{const pre=TYPED_SKIN;TYPED_SKIN=null;return{ask:"How does your skin feel by midday, without products?",help:"Think of **midday, before any products**. Describing what you notice is more reliable than picking a label.",
+      opts:FACE_SKIN.map(([label,sub,value])=>({label,sub,value})),pre}},
     apply:v=>{P.skin=v;P.skinConfirmed=true},show:()=>cap(P.skin)||"–"},
   tone:{title:"Your skin",side:"Skin tone",q:()=>({ask:"What's your skin tone?",help:"Tap **the closest shade**. Deeper skin marks more easily, so this changes **which ingredients and sunscreens** I pick.",tone:true}),
     show:()=>{if(!P.tone)return"Skipped";const src=P.toneSource||"";const m=/(\d) selfies/.exec(src);return`Tone ${P.tone} (${TONE_NAME[P.tone]})${m?`, from ${m[1]} selfies`:/selfie/.test(src)?", from selfie":""}`}},
@@ -321,7 +321,7 @@ let OPEN_SELFIE=false;
 /* ---------- a warm, personal line at the top of every question ---------- */
 function stepGreeting(key){
   const n=NAME?esc(NAME):"",N=n?`, ${n}`:"",prob=PROB&&PROBLEMS[PROB]?PROBLEMS[PROB].label.toLowerCase():null;
-  const left=STEPS.filter(k=>!DONE.has(k)).length,matched=SL_PREV?SL_PREV.size:0,city=P.city?esc(P.city):null;
+  const left=STEPS.filter(k=>!DONE.has(k)&&ASKED(k)).length,matched=SL_PREV?SL_PREV.size:0,city=P.city?esc(P.city):null;
   const others=(P.concerns||[]).slice(1).map(k=>PROBLEMS[k].label.toLowerCase());
   switch(key){
     case"concerns":return PROB?`Let's look at this again${N}. Take your time; nothing you've told me is lost.`:`This little moment is just for you${N}. There are no wrong answers, only <b>what your skin is telling you</b>.`;
@@ -410,23 +410,26 @@ function newBlock(step){
     el.classList.add("past")}
   for(const c of carry){c.classList.add("carried");b.appendChild(c)}
   thread.appendChild(b);CUR_BLOCK=b;thread.scrollTop=0;return b}
-function botSay(html,kind=""){const r=document.createElement("div");r.className="row";r.innerHTML=avatar()+`<div class="say ${kind}">${html}</div>`;host().appendChild(r);focusEl(r);return r}
+function botSay(html,kind=""){exitResultsView();const r=document.createElement("div");r.className="row";r.innerHTML=avatar()+`<div class="say ${kind}">${html}</div>`;host().appendChild(r);focusEl(r);return r}
 function meSay(text){const r=document.createElement("div");r.className="row me";const s=document.createElement("div");s.className="say";s.textContent=text;r.appendChild(s);host().appendChild(r)}
 function focusEl(el){requestAnimationFrame(()=>el.scrollIntoView({block:"nearest",behavior:"smooth"}))}
 function lockAll(){thread.querySelectorAll(".q:not(.answered)").forEach(q=>{q.classList.add("answered");q.querySelectorAll("button,select,input").forEach(x=>{if(!x.classList.contains("backcta"))x.disabled=true})})}
-function progress(){const d=STEPS.filter(k=>DONE.has(k)).length,left=STEPS.length-d;$("bar").style.width=(100*d/STEPS.length)+"%";$("backBtn").disabled=!nameAsked;
-  $("eta").textContent=!nameAsked?"Consultation":left===0?"Your plan is ready":left===1?"Last step":left<=3?"Almost there":`Question ${d+1} of ${STEPS.length}`}
+const ASKED=k=>!(P.goal==="makeup"&&["undertone","utHelp","preview"].includes(k));   // after the skin-tone page makeup goes straight to the plan, so these are never shown as questions
+function progress(){const SS=STEPS.filter(ASKED),d=SS.filter(k=>DONE.has(k)).length,left=SS.length-d;$("bar").style.width=(100*d/SS.length)+"%";$("backBtn").disabled=!nameAsked;
+  $("eta").textContent=!nameAsked?"Consultation":left===0?"Your plan is ready":left===1?"Last step":left<=3?"Almost there":`${left} questions left`}
 
 function next(){
+  exitResultsView();
   if(!nameAsked){progress();askName();return}
   armExitTrap();
   stepNow=STEPS.find(k=>!DONE.has(k))||null;renderSide();updateTitle();
   if(stepNow)ask(stepNow);else buildPlan();
 }
 function ask(key){
-  lockAll();const s=STEP[key],Q=s.q();const idx=STEPS.indexOf(key)+1;
+  exitResultsView();lockAll();const s=STEP[key],Q=s.q();
+  const remaining=STEPS.filter(k=>!DONE.has(k)&&ASKED(k));const idx=Math.max(1,remaining.indexOf(key)+1),total=remaining.length||1;   // count what's actually left to answer, not the original total — skipped steps shouldn't make this still look like a 7-question quiz
   const box=document.createElement("div");box.className="q";box.dataset.step=key;
-  box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">Q${idx} of ${STEPS.length} · ${esc(s.title)}${STEPS.length-idx===0?" · last one":""}</span><p class="qgreet" hidden></p><h3 class="qtitle">${esc(Q.ask)}</h3>${Q.help?`<p class="qhelp">${fmt(Q.help)}</p>`:""}</div></div>`;
+  box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">Q${idx} of ${total} · ${esc(s.title)}${total-idx===0?" · last one":""}</span><p class="qgreet" hidden></p><h3 class="qtitle">${esc(Q.ask)}</h3>${Q.help?`<p class="qhelp">${fmt(Q.help)}</p>`:""}</div></div>`;
   const sl=PROB&&key!=="concerns"&&key!=="about"?shortlistPanel(key):null;SL_PANEL=sl;
   box.appendChild(Q.about?aboutWidget():Q.location?locationWidget():Q.preview?previewWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():Q.safety?safetyWidget():Q.concerns?concernsWidget():optionsWidget(key,Q));
   if(sl){box.classList.add("hassl");box.appendChild(sl)}else if(key==="concerns")SL_PREV=null;
@@ -492,7 +495,8 @@ function optionsWidget(key,Q){
   for(const o of Q.opts){const b=document.createElement("button");b.type="button";b.className="opt";
     const art=artFor(key,o);if(!o.sub&&art)b.classList.add("nosub");b.innerHTML=`${art?`<i class="art">${art}</i>`:""}<b>${esc(o.label)}</b>${o.sub?`<span>${esc(o.sub)}</span>`:""}`;
     if(Q.multi){b.setAttribute("aria-pressed",String(picked.has(o.value)));b.onclick=()=>{if(picked.has(o.value))picked.delete(o.value);else{if(Q.max&&picked.size>=Q.max)return;picked.add(o.value)}b.setAttribute("aria-pressed",String(picked.has(o.value)));update()}}
-    else b.onclick=()=>{b.setAttribute("aria-pressed","true");answer(key,o.value,o.label)};
+    else{if(Q.pre!=null&&o.value===Q.pre)b.setAttribute("aria-pressed","true");   // guessed from what they typed/said; tap to confirm or pick another
+      b.onclick=()=>{b.setAttribute("aria-pressed","true");answer(key,o.value,o.label)}}
     grid.appendChild(b)}
   w.appendChild(grid);
   if(Q.multi){update();const a=document.createElement("div");a.className="qactions";done.onclick=()=>{const v=[...picked];answer(key,v,v.length?Q.opts.filter(o=>picked.has(o.value)).map(o=>o.label).join(", "):Q.none)};
@@ -501,6 +505,9 @@ function optionsWidget(key,Q){
 }
 function answer(key,val,label){
   turn++;if(key==="follow")FOLLOW_IDX=val;if(key!=="tone"||val!==undefined)STEP[key].apply&&STEP[key].apply(val);DONE.add(key);lockAll();
+  // Skin tone is the only page a customer is sent to; once it's answered (selfie or scale), go straight to the plan. A selfie also
+  // reads the undertone; with a scale pick it stays "not sure", which the shade match already handles (neutral shade + a warm option).
+  if(key==="tone"&&P.goal==="makeup"){if(!P.undertone&&!P.undertoneSource)P.undertoneSource="unsure";for(const k of["undertone","utHelp","preview"])DONE.add(k)}
   const note=afterNote(key);if(note)botSay(note[0],note[1]||"");
   next();saveState();
 }
@@ -560,6 +567,7 @@ const PHOTO_TIPS=[
   "Pull hair back from your forehead and cheeks, and take one straight on.",
 ];
 const CAM=SVG('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>');
+const MIC=SVG('<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/>');
 function swBtn(t,{size="",pressed=false,label=true,onClick}={}){const b=document.createElement("button");b.type="button";b.className="tsw "+size;b.style.background=MONK_HEX[t];b.style.color=t>=6?"#fff":"#2a1f1a";b.textContent=label?t:"";b.setAttribute("aria-label",`Skin tone ${t}, ${TONE_NAME[t]}`);b.setAttribute("aria-pressed",String(pressed));if(onClick)b.onclick=onClick;return b}
 function thumbOf(src){const c=document.createElement("canvas");const s=96/Math.max(src.width,src.height);c.width=Math.round(src.width*s);c.height=Math.round(src.height*s);c.getContext("2d").drawImage(src,0,0,c.width,c.height);return c}
 
@@ -1298,12 +1306,12 @@ const SHORT={about:"About you",undertone:"Undertone",utHelp:"Undertone help",pre
 function renderSide(){
   const j=$("journey");if(!j)return;j.innerHTML="";
   const ol=document.createElement("ol");
-  STEPS.forEach((k,i)=>{const done=DONE.has(k),now=k===stepNow;const li=document.createElement("li");li.className="jn"+(done?" done":"")+(now?" now":"");
+  STEPS.forEach((k,i)=>{const done=DONE.has(k),now=k===stepNow&&!thread.classList.contains("results-view");const li=document.createElement("li");li.className="jn"+(done?" done":"")+(now?" now":"");
     const b=document.createElement("button");b.type="button";b.disabled=!done;b.title=done?`Change: ${STEP[k].show()}`:SHORT[k];
     b.innerHTML=`<span class="jc">${done?'<svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>':"Q"+(i+1)}</span><span class="jl">${esc(SHORT[k])}</span>`;
     b.setAttribute("aria-label",`Q${i+1} ${SHORT[k]}${done?", done, tap to change":now?", current question":""}`);
     if(done)b.onclick=()=>editStep(k);li.appendChild(b);ol.appendChild(li)});
-  const fin=document.createElement("li");fin.className="jn final"+(STEPS.every(k=>DONE.has(k))?" done now":"");fin.innerHTML=`<span class="jbtn"><span class="jc"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" fill="currentColor"/></svg></span><span class="jl">Your plan</span></span>`;ol.appendChild(fin);
+  const fin=document.createElement("li");fin.className="jn final"+(STEPS.every(k=>DONE.has(k))?" done now":thread.classList.contains("results-view")?" now":"");fin.innerHTML=`<span class="jbtn"><span class="jc"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" fill="currentColor"/></svg></span><span class="jl">Your plan</span></span>`;ol.appendChild(fin);
   j.appendChild(ol);
   const cur=j.querySelector(".now");if(cur)requestAnimationFrame(()=>cur.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}));
   progress();
@@ -1597,7 +1605,7 @@ function wireUpgrades(box){
    ===================================================================== */
 const SYMPTOMS=[["pain","Painful or swollen"],["spread","Spreading"],["bleed","Bleeding, pus or open sores"],["mole","A mole that's changing"],["fever","With fever"]];
 const REACT_TOP=["glycolic acid","salicylic acid","vitamin c","retinoids","niacinamide"];
-let TYPED_CONCERNS=null;
+let TYPED_CONCERNS=null,TYPED_SKIN=null;
 function concernsWidget(){
   const w=document.createElement("div");w.className="qbody concerns";
   let order=TYPED_CONCERNS?[...TYPED_CONCERNS]:(P.concerns||[]).filter(k=>PROBLEMS[k]);
@@ -1657,7 +1665,7 @@ function safetyWidget(){
      <div class="scs">${REACT_TOP.map(r=>chip("react",r,cap(r),from[r])).join("")}<span class="more" hidden>${rest.map(r=>chip("react",r,cap(r),"")).join("")}</span>
        <button type="button" class="btn ghost smore">+ ${rest.length} more</button>${none("react")}</div></section>
    ${askPreg?`<section class="sg" data-g="preg"><h4><span class="sn">3</span>Should I be pregnancy-cautious?</h4>
-     <div class="scs">${[["true","Yes, be cautious",""],["false","No",""],["null","Prefer not to say","I'll stay cautious"]].map(([v,l,s])=>`<label class="sc"><input type="radio" name="spreg" data-sec="preg" value="${v}" ${DONE.has("safety")&&String(P.pregnancy)===v?"checked":""}><span><b>${l}</b>${s?`<small>${s}</small>`:""}</span></label>`).join("")}</div>
+     <div class="scs">${[["true","Yes, be cautious",""],["false","No",""],["null","Prefer not to say","I'll stay cautious"]].map(([v,l,s])=>`<label class="sc"><input type="radio" name="spreg" data-sec="preg" value="${v}" ${(DONE.has("safety")||typeof P.pregnancy==="boolean")&&String(P.pregnancy)===v?"checked":""}><span><b>${l}</b>${s?`<small>${s}</small>`:""}</span></label>`).join("")}</div>
      <p class="small muted sgnote">This only means I skip retinoids and strong salicylic acid.</p></section>`:""}
    <section class="sg" data-g="sym"><h4><span class="sn">${askPreg?4:3}</span>Is any of this happening right now?</h4>
      <div class="scs">${SYMPTOMS.map(([v,l])=>chip("sym",v,l,"")).join("")}${none("sym")}</div>
@@ -2204,29 +2212,205 @@ function productCheck(p){const r=check(p);let h=`<p><b>${esc(p.n)}</b> · ${esc(
   h+=r.ok?`<p style="color:var(--ok)"><b>This passes ${DONE.has("avoid")?"all your checks":"the checks I can run so far"}.</b>${actives(p).length?" "+actives(p).map(a=>`${esc(a.name)} ${esc(a.does)}.`).join(" "):""}</p>`:`<p style="color:var(--bad)"><b>I wouldn't recommend this one for you</b>, because ${r.blocks.map(b=>esc(b[1])).join("; ")}.</p>`;
   if(p.blankInci)h+=`<p class="small">A missing ingredient list isn't proof of safety.</p>`;
   if(!DONE.has("avoid"))h+=`<p class="small muted">Answer the safety questions for a full check.</p>`;botSay(h)}
-function handleTyped(text){
+/* ---------- meaning layer: Claude (through our own backend, key kept server-side) reads ANY wording ----------
+   It only EXTRACTS the same answers the quiz collects. The built-in parser (parseSlots) always runs too and is the
+   fallback whenever the service is off, slow or fails, so nothing here can leave a customer stuck. */
+const UNDERSTAND_BASE=window.AAINA_API!=null?window.AAINA_API:(/^(localhost|127\.0\.0\.1)$/.test(location.hostname)&&location.port!=="8000"?"http://localhost:8000":"");
+let UNDERSTAND_ON=false;
+(async()=>{try{const c=new AbortController(),tm=setTimeout(()=>c.abort(),2500);const r=await fetch(UNDERSTAND_BASE+"/api/understand/status",{signal:c.signal});clearTimeout(tm);
+  if(r.ok&&(await r.json()).enabled){UNDERSTAND_ON=true;const n=$("askNote");if(n)n.hidden=false}}catch{}})();
+function understandVocab(){   // the app's own words, so the model can only answer with values the app knows
+  const concerns={};for(const[k,v]of Object.entries(PROBLEMS))concerns[k]={label:v.label,options:v.follow.opts.map(o=>o[0]+" - "+o[1])};   // includes the sunscreen / makeup goal questions; mergeUnderstood keeps those out of the concerns list
+  return{concerns,reactions:Object.keys(REACTIONS)}}
+async function understandText(t){
+  const f=$("askForm"),inp=$("askInput");f.classList.add("busy");const ph=inp.placeholder;inp.placeholder="Understanding what you said…";inp.disabled=true;
+  const c=new AbortController(),tm=setTimeout(()=>c.abort(),12000);
+  try{const r=await fetch(UNDERSTAND_BASE+"/api/understand",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:t.slice(0,400),vocab:understandVocab()}),signal:c.signal});
+    const j=r.ok?await r.json():null;return j&&j.ok?j.slots:null}
+  catch{return null}
+  finally{clearTimeout(tm);f.classList.remove("busy");inp.disabled=false;inp.placeholder=ph}}
+/* ---------- hybrid RAG answers: a QUESTION ("which sunscreen has no white cast?") is answered from retrieved catalogue products ----------
+   The server retrieves with filters + BM25 + embeddings (fused) and the model may only talk about what was retrieved. Safety stays here: the ids of
+   every product that fails THIS customer's checks are sent so they are never retrieved, and each product shown is checked again first.
+   Results appear as a results card (a page-like panel scrolled into view), not as a pile of chat bubbles above the quiz. */
+let CHAT_HIST=[],LAST_SEARCH=false;
+const NONPLAN=[["Lipstick",/lipstick|lip ?colou?r|lippie/i],["Kajal / eyeliner",/kajal|eye ?liner|kohl/i],["Blush",/\bblush(er)?\b/i],["Lip care",/lip balm|lip care/i]];
+const COLOUR_RE=/\b(pink|red|nude|brown|coral|peach|maroon|plum|berry|orange|mauve|wine|purple|black|blue|rose)\b/i;
+function showResults({title,chips=[],answer="",items=[],more=0,notes=[],doctor=false}){
+  thread.querySelectorAll(".results:not(.old)").forEach(r=>r.classList.add("old"));
+  const sec=document.createElement("section");sec.className="results";sec.setAttribute("aria-label","Catalogue results");
+  const cards=items.map(({p,why,pick})=>`<article class="rcard${pick?" pick":""}"><div class="rtop"><span>${esc(p.c)}</span><b>${rupee(p.p)}</b></div><h4>${esc(p.n)}</h4><p class="rmeta">${esc(p.b||"")}${p.sz?` · ${esc(p.sz)}`:""}</p>${p.a?`<p class="ract">${esc(p.a)}</p>`:""}${why&&why.length?`<ul class="rwhy">${why.map(w=>`<li>${esc(w)}</li>`).join("")}</ul>`:""}</article>`).join("");
+  const hasQ=!!thread.querySelector(".q:not(.answered)"),backLabel=hasQ?"Back to my questions":PL?"Back to my plan":"Back";
+  sec.innerHTML=`<button type="button" class="rback" data-back>← ${backLabel}</button><header class="rhead" tabindex="0" role="button" aria-label="Show or hide these results"><span class="eyebrow">✦ From our catalogue</span><h3>${esc(title)}</h3>${chips.length?`<div class="rchips">${chips.map(c=>`<span>${esc(c)}</span>`).join("")}</div>`:""}</header>
+    <div class="rbody">${answer?`<p class="ranswer">${answer}</p>`:""}${doctor?`<p class="ranswer rdoc">This sounds like something a dermatologist should look at; I can't tell what's causing it.</p>`:""}
+    ${items.length?`<div class="rgrid">${cards}</div>`:""}${more>0?`<p class="small muted">${more} more ${more>1?"matches":"match"}. Add a detail to narrow it down, such as a lower budget or your skin type.</p>`:""}
+    ${notes.map(n=>`<p class="small muted">${n}</p>`).join("")}</div>`;
+  const hd=sec.querySelector(".rhead"),tog=()=>{thread.querySelectorAll(".results").forEach(r=>{if(r!==sec)r.classList.add("old")});sec.classList.toggle("old")};
+  hd.onclick=tog;hd.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();tog()}};
+  sec.querySelector("[data-back]").onclick=()=>{exitResultsView();refocus();thread.querySelector(".plan:not(.old)")?.scrollIntoView({block:"start"})};
+  thread.appendChild(sec);thread.classList.add("results-view");renderSide();   // results are the "Your plan" stage: the stepper moves there and the quiz steps out of the way
+  thread.scrollTop=0;requestAnimationFrame(()=>{thread.scrollTop=0;sec.scrollIntoView({block:"start",behavior:"smooth"})});
+}
+function exitResultsView(){if(!thread.classList.contains("results-view"))return;thread.classList.remove("results-view");renderSide()}
+const passNote=()=>`${DONE.has("safety")?"Everything shown passes all your checks":"Everything shown passes the checks I can run so far"}; that is decided by our own rules, not by the assistant's wording.`;
+const colourNote=t=>{const m=COLOUR_RE.exec(t);return m?`Our catalogue doesn't list shade colours, so I can't filter by <b>${esc(m[1].toLowerCase())}</b>. Check the shades in store or in the try-on.`:null};
+async function answerQuestion(t){
+  const f=$("askForm"),inp=$("askInput");f.classList.add("busy");const ph=inp.placeholder;inp.placeholder="Looking through our range…";inp.disabled=true;
+  const c=new AbortController(),tm=setTimeout(()=>c.abort(),20000);
+  try{
+    const blocked=CAT.filter(p=>!check(p).ok).map(p=>p.id);
+    const profile={skin:P.skin||null,city:P.city||null,budget_inr:P.budget||null,pregnancy:typeof P.pregnancy==="boolean"?P.pregnancy:null,sensitive:!!P.sensitive,avoid_fragrance:!!P.avoidFrag,avoid_eo:!!P.avoidEO,reactions:P.reactions||[],concerns:(P.concerns||[]).map(k=>PROBLEMS[k]?PROBLEMS[k].label:k)};
+    const r=await fetch(UNDERSTAND_BASE+"/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:t.slice(0,400),profile,history:CHAT_HIST.slice(-4),blocked_ids:blocked}),signal:c.signal});
+    const j=r.ok?await r.json():null;if(!j||(!j.ok&&!(j.results&&j.results.length)))return false;   // nothing usable: the caller carries on as before
+    const okp=id=>BY_ID[id]&&check(BY_ID[id]).ok;   // belt and braces: the page's own rules have the last word
+    const res=(j.results||[]).filter(x=>okp(x.id)),cited=new Set((j.product_ids||[]).filter(okp)),leftOut=(j.product_ids||[]).filter(id=>!okp(id)).length;
+    const ordered=[...res.filter(x=>cited.has(x.id)),...res.filter(x=>!cited.has(x.id))].slice(0,6),shown=new Set(ordered.map(x=>x.id));
+    const ans=j.ok?esc(j.answer).replace(/\[(P\d+)\]/g,(m,id)=>shown.has(id)?`<b>${esc(BY_ID[id].n)}</b>`:""):"";
+    const F=j.filters||{},cats=F.categories||[];
+    const title=cats.length?`${cats.join(" & ")}${F.max_price!=null?` under ${rupee(F.max_price)}`:""}`:"Matches for your question";
+    const chips=[...cats,F.max_price!=null&&!j.relaxed?`Under ${rupee(F.max_price)}`:null,F.cheapest?"Cheapest first":null,"Passes your checks"].filter(Boolean);
+    const notes=[j.relaxed?`Nothing matched ${j.relaxed==="price"?"that budget":"that product type"}, so I widened the search.`:null,leftOut>0?`I left out ${leftOut} product${leftOut>1?"s":""} that didn't pass your checks.`:null,colourNote(t),ordered.length?passNote():null,`Searched by ${j.mode==="hybrid"?"keywords and meaning":"keywords"}. Cosmetic advice only.`].filter(Boolean);
+    showResults({title,chips,answer:ans,items:ordered.map(x=>({p:BY_ID[x.id],why:x.why,pick:cited.has(x.id)})),more:Math.max(0,(j.total_matches||0)-ordered.length),notes,doctor:!!j.needs_doctor});
+    LAST_SEARCH=true;
+    CHAT_HIST.push({role:"user",text:t.slice(0,300)},{role:"assistant",text:j.ok?String(j.answer).replace(/\[(P\d+)\]/g,(m,id)=>BY_ID[id]?BY_ID[id].n:"").slice(0,300):title});CHAT_HIST=CHAT_HIST.slice(-8);
+    return true;
+  }catch{return false}
+  finally{clearTimeout(tm);f.classList.remove("busy");inp.disabled=false;inp.placeholder=ph}
+}
+/* Lipstick, kajal, blush and lip care are in the catalogue but outside what a routine/plan covers. Asking for one must never fall into a
+   skincare or base-makeup plan, so it is a catalogue search: category + budget + this customer's own checks. Works with the AI service off. */
+function localCategorySearch(t,slots){
+  const hit=NONPLAN.find(([,re])=>re.test(t));if(!hit)return false;
+  const cat=hit[0],cap=slots.budget||P.budget||null,fit=CAT.filter(p=>p.c===cat&&check(p).ok&&(!cap||p.p<=cap)).sort((a,b)=>a.p-b.p),top=fit.slice(0,6);
+  showResults({title:`${cat}${cap?` under ${rupee(cap)}`:""}`,chips:[cat,cap?`Under ${rupee(cap)}`:null,"Cheapest first","Passes your checks"].filter(Boolean),
+    answer:fit.length?"":`I couldn't find a ${esc(cat.toLowerCase())}${cap?` under ${rupee(cap)}`:""} that passes your checks.`,
+    items:top.map(p=>({p,why:[cat,cap?`Under ${rupee(cap)}`:null].filter(Boolean)})),more:Math.max(0,fit.length-top.length),
+    notes:[colourNote(t),top.length?passNote():null].filter(Boolean)});
+  LAST_SEARCH=true;return true}
+function mergeUnderstood(s,ai){   // what the sentence said (regex) + what it meant (Claude). Restrictions only ever add, never remove.
+  const m={...s};
+  const cs=uniq([...(ai.concerns||[]),...(s.concerns||[])]).filter(k=>PROBLEMS[k]&&!PROBLEMS[k].goal).slice(0,MAX_CONCERNS);cs.length?m.concerns=cs:delete m.concerns;
+  if(!m.skin&&ai.skin)m.skin=ai.skin;
+  if(ai.sensitive_skin===true)m.sensitive=true;if(ai.avoid_fragrance===true)m.avoidFrag=true;if(ai.avoid_essential_oils===true)m.avoidEO=true;
+  if(ai.pregnancy===true)m.pregnancy=true;else if(m.pregnancy===undefined&&ai.pregnancy===false)m.pregnancy=false;
+  const rs=uniq([...(s.reactions||[]),...(ai.reactions||[])]).filter(r=>REACTIONS[r]);rs.length?m.reactions=rs:delete m.reactions;
+  if(m.budget==null&&ai.budget_inr)m.budget=ai.budget_inr;
+  m.aiCity=ai.city||null;m.aiGoal=ai.goal||null;m.aiGender=ai.gender||null;m.aiFU=ai.follow_ups||{};m.understood=ai.understood||"";
+  return m}
+const ESCALATE_HTML="<p>That sounds like it needs a dermatologist to look at it, and I can't tell what's causing it. Please don't put new products on that area until you've been seen.</p><p>If it's spreading fast, very painful, or you have a fever or swelling near your eyes or mouth, please get medical help today.</p>";
+async function handleTyped(text){
   turn++;const t=text.trim();if(!t)return;
   if(!nameAsked&&!G.inject.test(t)&&!G.redflag.test(t)&&t.split(/\s+/).length<=3&&cleanName(t.replace(/^(i'?m|i am|my name is|call me)\s+/i,""))){setName(cleanName(t.replace(/^(i'?m|i am|my name is|call me)\s+/i,"")));return}
   meSay(t);
   if(G.inject.test(t)){botSay("I can't switch off my safety checks; they run outside this chat, so nothing typed here changes them. I'll only recommend products that pass your checks.","hold");return refocus()}
-  if(G.redflag.test(t)){botSay("<p>That sounds like it needs a dermatologist to look at it, and I can't tell what's causing it. Please don't put new products on that area until you've been seen.</p><p>If it's spreading fast, very painful, or you have a fever or swelling near your eyes or mouth, please get medical help today.</p>","escalate");return refocus()}
+  if(G.redflag.test(t)){botSay(ESCALATE_HTML,"escalate");return refocus()}
   if(G.rx.test(t)){botSay("I can't advise on prescription treatments or medicines; a dermatologist can tell you if one is right for you. I can help with products from our range.","hold");return refocus()}
   if(G.fair.test(t)){botSay("I don't recommend products to change your skin tone; every tone deserves good skincare. If dark spots or tanning bother you, pick those as your concern and I'll build a plan.","hold");return refocus()}
   if(G.guarantee.test(t)&&!/\bP1\d{3}\b/.test(t)){botSay("I can't promise results; skin responds differently from person to person. I'll tell you what most people can expect and how long it usually takes.");return refocus()}
   if(G.del.test(t)){confirmDelete();return refocus()}   // always ask: "remove tan… photo" also matches
   const p=findProduct(t);if(p){productCheck(p);return refocus()}
-  const slots=parseSlots(t);
-  if(stepNow==="concerns"&&slots.concerns&&slots.concerns.length){const cs=uniq(slots.concerns.filter(x=>PROBLEMS[x])).slice(0,MAX_CONCERNS);if(cs.length){TYPED_CONCERNS=cs;botSay(`I've ticked <b>${esc(cs.map(k=>PROBLEMS[k].label.toLowerCase()).join(" and "))}</b>. Answer the quick follow-up inside ${cs.length>1?"each":"it"} and tap Continue.`);return ask("concerns")}}
+  let slots=parseSlots(t),ai=null;
+  if(UNDERSTAND_ON&&!(stepNow&&/^(none|no|nothing|no reactions)\b/i.test(t)))ai=await understandText(t);
+  if(ai&&ai.escalate){botSay(ESCALATE_HTML,"escalate");return refocus()}   // the model noticed something medical the word list missed: same stop as the rules above, nothing is built
+  // A question (or a short follow-up to the last search, like "in pink?" or "cheaper ones") is answered from the catalogue before the on-topic check:
+  // lipstick, kajal and the like ARE on topic for this shop. If that service is down, carry on as before.
+  const shopTalk=G.beauty.test(t)||NONPLAN.some(([,re])=>re.test(t)),followUp=LAST_SEARCH&&UNDERSTAND_ON&&t.split(/\s+/).length<=8&&!(ai&&ai.on_topic===false&&!shopTalk);   // a short reply right after a search is a follow-up, unless it is plainly off topic
+  if(UNDERSTAND_ON&&((ai&&ai.intent==="question"&&(ai.on_topic!==false||shopTalk))||followUp)){if(await answerQuestion(t))return refocus(true)}
+  if(ai&&ai.on_topic===false&&!shopTalk){botSay("I'm Aaina's skincare advisor, so I can only help with skin and beauty products from our range.");return refocus()}
+  if(localCategorySearch(t,slots))return refocus(true);   // lipstick / kajal / blush / lip care: a catalogue search, never a skincare or base-makeup plan (also the fallback when the AI answer is unavailable)
+  LAST_SEARCH=false;
+  if(ai)slots=mergeUnderstood(slots,ai);
+  const fromStart=!DONE.has("about"),assumed=[],missing=[];   // sent from the very first screen = they want the answer, not the quiz
+  /* skip straight ahead: someone who doesn't want the quiz can describe everything at once.
+     Location, skin type and budget are simple enough to accept outright; Safety only gets
+     pre-filled, never auto-confirmed. Skin tone and undertone always stay their own explicit
+     step (selfie or manual pick) — a number mentioned in passing is exactly the self-reported
+     guess this app's own tone-correction logic exists to not trust. */
+  const bulk=[];
+  // Sent from the very first screen: take what they already ticked there, else work out the goal from the sentence
+  // (sunscreen / makeup words, otherwise a skincare routine). Gender can't be told from a skin description, so it
+  // stays unset, which every safety rule treats the cautious way (pregnancy is never assumed away).
+  if(!DONE.has("about")){
+    const q=thread.querySelector(".q:not(.answered)");
+    const tapG=q&&q.querySelector('input[name="agender"]:checked')?.value,tapGoal=q&&q.querySelector('[data-goal][aria-pressed="true"]')?.dataset.goal;
+    const goal=tapGoal||(/\b(sunscreen|sun ?block|spf)\b/i.test(t)?"sunscreen":/\b(foundation|concealer|bb cream|cc cream|base makeup|compact powder|my shade)\b/i.test(t)?"makeup":slots.aiGoal||"routine");
+    const gender=tapG||(/\b(i am|i'm|im)\s+(a\s+)?(man|guy|male|boy)\b/i.test(t)?"man":/\b(i am|i'm|im)\s+(a\s+)?(woman|girl|lady|female)\b/i.test(t)?"woman":slots.aiGender||null);
+    STEP.about.apply({gender,goal});DONE.add("about");bulk.push("about");
+    stepNow=STEPS.find(k=>!DONE.has(k))||null;
+  }
+  for(const k of["sensitive","avoidFrag","avoidEO","budget"])if(slots[k]!==undefined&&P[k]!==slots[k]){P[k]=slots[k];bulk.push(k)}
+  if(slots.pregnancy!==undefined&&P.pregnancy!==slots.pregnancy){P.pregnancy=slots.pregnancy;bulk.push("pregnancy")}
+  if(slots.reactions&&slots.reactions.length){const before=P.reactions.length;P.reactions=uniq([...P.reactions,...slots.reactions]);if(P.reactions.length!==before)bulk.push("reactions")}
+  if(stepNow!=="location"&&!DONE.has("location")){const hit=findCity(t)||(slots.aiCity?findCity(slots.aiCity):null);if(hit){P.state=hit.state;P.city=hit.city;P.climate=hit.climate;DONE.add("location");bulk.push("location")}}
+  if(slots.skin&&!DONE.has("skin")&&stepNow!=="skin"){STEP.skin.apply(slots.skin);DONE.add("skin");bulk.push("skin")}   // mentioned in passing elsewhere: no follow-up question to risk, so just take it; still a reviewable tap when answered from the skin step itself
+  if(bulk.length&&stepNow==="safety")return ask("safety");   // refresh the pre-ticked boxes with what we just understood
+  if(stepNow==="concerns"&&slots.concerns&&slots.concerns.length){const cs=uniq(slots.concerns.filter(x=>PROBLEMS[x])).slice(0,MAX_CONCERNS);if(cs.length){
+    // They want the recommendation, not another question: the follow-up is taken from what they said (meaning layer first,
+    // word overlap second). If they never described it, use the first, mildest option (none of the concerns' first options
+    // carries a safety flag) and say so, so it's a visible assumption they can change, not a hidden guess.
+    P.concernFU=P.concernFU||{};
+    for(const k of cs){let fu=slots.aiFU&&slots.aiFU[k]!=null?slots.aiFU[k]:inferFollowUp(k,t);
+      if(fu==null){fu=0;assumed.push(`the most common pattern for ${PROBLEMS[k].label.toLowerCase()} ("${PROBLEMS[k].follow.opts[0][0].toLowerCase()}")`)}
+      P.concernFU[k]=fu}
+    STEP.concerns.apply({main:cs[0],list:cs,fu:P.concernFU});DONE.add("concerns");bulk.push("concerns")}}
+  if(stepNow==="follow"&&PROB&&PROBLEMS[PROB]){const fu0=slots.aiFU&&slots.aiFU[PROB]!=null?slots.aiFU[PROB]:inferFollowUp(PROB,t);let fu=fu0;
+    if(fu==null){fu=P.goal==="makeup"?0:1;if(P.goal!=="makeup")assumed.push("sunscreen for long hours outdoors (SPF 50, the most protective)");}   // makeup: finish defaults to Natural; sunscreen: when they didn't say, protect most
+    FOLLOW_IDX=fu;STEP.follow.apply(fu);DONE.add("follow");bulk.push("follow")}
+  // Safety: the one check that must run every time, but once G.redflag above found nothing alarming, there's nothing
+  // left that a tap would catch that the app's own "unknown → stay cautious" defaults don't already cover (pregnancy
+  // included — unmentioned stays null, exactly what "Prefer not to say" already means). So go all the way through.
+  if(!DONE.has("safety")&&stepNow!=="safety"){P.redflags=P.redflags||[];DONE.add("safety");bulk.push("safety")}
+  // a plain skincare routine doesn't need an exact shade — tone/undertone here only feed the optional base-makeup
+  // bonus section, which quietly drops itself when P.tone is unset. Shade work (goal "makeup") always keeps its own step.
+  if(P.goal==="routine"&&!DONE.has("tone")&&!DONE.has("undertone")&&stepNow!=="tone"&&stepNow!=="undertone"){DONE.add("tone");DONE.add("undertone");bulk.push("skip-shade")}
+  // From the first screen they asked for the answer, so city and skin type never become more questions: use what they
+  // said, otherwise leave them unset (the plan simply isn't tailored to them, which every rule already handles) and say so.
+  // Skin tone is the one thing never skipped: makeup always goes to the tone page.
+  if(fromStart){
+    if(STEPS.includes("location")&&!DONE.has("location")){DONE.add("location");if(!P.city)missing.push("your city")}
+    if(STEPS.includes("skin")&&!DONE.has("skin")){DONE.add("skin");if(!P.skin)missing.push("your skin type")}}
+  if(stepNow==="skin"&&slots.skin){const f=FACE_SKIN.find(([,,v])=>v===slots.skin);if(f){TYPED_SKIN=slots.skin;botSay(`Sounds like <b>${esc(f[1].toLowerCase())}</b> to me. Tap it to confirm, or pick another if I've got it wrong.`);return ask("skin")}}
   if(stepNow==="problem"&&slots.concerns&&slots.concerns.length){const c=slots.concerns.find(x=>PROBLEMS[x]);if(c){STEP.problem.apply(c);DONE.add("problem");P.concerns=uniq([c,...slots.concerns.filter(x=>PROBLEMS[x])]).slice(0,3);if(P.concerns.length>1)DONE.add("extra");botSay(afterNote("problem")[0]);return next()}}
   if(stepNow==="location"){const hit=findCity(t);if(hit){P.state=hit.state;P.city=hit.city;P.climate=hit.climate;DONE.add("location");botSay(afterNote("location")[0]);return next()}}
   if(stepNow==="react"&&slots.reactions){P.reactions=uniq([...P.reactions,...slots.reactions]);DONE.add("react");botSay(`Noted: I'll avoid ${esc(slots.reactions.join(", "))}.`);return next()}
   if(stepNow&&/^(none|no|nothing|no reactions)\b/i.test(t)&&["avoid","react","preg","extra"].includes(stepNow)){const s=STEP[stepNow];if(s.apply)s.apply(stepNow==="preg"?(t.toLowerCase().startsWith("no")?false:null):stepNow==="budget"?null:[]);DONE.add(stepNow);botSay("Okay.");return next()}
+  if(bulk.length){
+    let h=slots.understood?`<p>${esc(slots.understood)}</p>`:`<p>Got it — I've filled in ${bulk.length>1?"a few things":"that"} from what you said.</p>`;
+    const notes=[assumed.length&&`I assumed ${assumed.map(esc).join("; ")}, since you didn't say`,missing.length&&`I didn't tailor it to ${missing.join(" or ")}, since you didn't mention ${missing.length>1?"them":"it"}`].filter(Boolean);
+    if(notes.length)h+=`<p class="small muted">${notes.join(". ")}. You can change any answer after the plan is shown.</p>`;
+    botSay(h);return next()}
   if(!G.beauty.test(t)){botSay("I'm Aaina's skincare advisor, so I can only help with skin concerns and skincare products.");return refocus()}
   botSay(stepNow?"Thanks. To keep the plan accurate, please pick one of the options above.":"I can check a product (type its name), or start over with another concern.");refocus();
 }
-function refocus(){const q=thread.querySelector(".q:not(.answered)");if(q){thread.appendChild(q);focusEl(q)}}
+function refocus(quiet){const q=thread.querySelector(".q:not(.answered)");if(q){thread.appendChild(q);if(!quiet)focusEl(q)}}   // quiet: keep the quiz card below, but leave the view where it is (on the results just shown)
 function findCity(t){const low=t.toLowerCase();for(const[st,s]of Object.entries(INDIA))for(const c of Object.keys(s.c))if(new RegExp("\\b"+c.toLowerCase().replace(/[()]/g,"")+"\\b").test(low))return{state:st,city:c,climate:s.c[c]||s.d};return null}
-$("askForm").addEventListener("submit",e=>{e.preventDefault();const v=$("askInput").value;$("askInput").value="";handleTyped(v.slice(0,400))});
+$("askForm").addEventListener("submit",e=>{e.preventDefault();
+  const mic=$("askMic");if(mic)mic.dispatchEvent(new Event("aaina:stopmic"));   // Send always wins: a still-running mic (continuous mode) must not keep refilling the box after this
+  const v=$("askInput").value;$("askInput").value="";handleTyped(v.slice(0,400))});
+
+/* ---------- speak instead of typing: browser speech-to-text feeds the same chat input, nothing is sent until the user hits Send ---------- */
+(function initMic(){
+  const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;const btn=$("askMic");if(!Rec||!btn)return;
+  btn.innerHTML=MIC;btn.hidden=false;
+  const input=$("askInput"),basePlaceholder=input.placeholder;
+  let rec=null,listening=false,errT=null,silT=null;
+  const ERR_MSG={"not-allowed":"Microphone access was blocked — allow it for this page and try again.","audio-capture":"No microphone found on this device.","no-speech":"Didn't catch that — tap the mic and try again.","network":"Speech recognition needs an internet connection."};
+  const stop=()=>{listening=false;clearTimeout(silT);btn.classList.remove("listening");btn.setAttribute("aria-pressed","false");input.placeholder=basePlaceholder;try{rec&&rec.stop()}catch{}};
+  // what they said is the request: once they pause (or the browser ends the session), stop listening and send it straight away
+  const finish=()=>{const had=input.value.trim();stop();if(had){const f=$("askForm");f.requestSubmit?f.requestSubmit():f.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}))}};
+  btn.addEventListener("aaina:stopmic",()=>{if(listening)stop()});
+  btn.onclick=()=>{
+    if(listening){finish();return}
+    if(!rec){rec=new Rec();rec.lang="en-IN";rec.interimResults=true;rec.continuous=true;   // keep listening through pauses; a short single utterance cut you off before you finished a whole description
+      rec.onresult=e=>{if(!listening)return;   // Chrome delivers one last result AFTER stop(); letting it through refilled the box right after Send cleared it
+        let t="";for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;input.value=t;
+        clearTimeout(silT);if(t.trim())silT=setTimeout(finish,2200)};
+      rec.onerror=e=>{const m=ERR_MSG[e.error];stop();if(!m)return;input.placeholder=m;clearTimeout(errT);errT=setTimeout(()=>{if(input.placeholder===m)input.placeholder=basePlaceholder},4500)};
+      rec.onend=()=>{if(listening)finish()}}
+    listening=true;btn.classList.add("listening");btn.setAttribute("aria-pressed","true");input.placeholder="Listening… I'll send when you pause";input.value="";
+    try{rec.start()}catch{stop()}
+  };
+})();
 
 /* =====================================================================
    RESULTS TIMELINE (src/timeline.js): what studies saw at 2w / 4w / 3m / 6m / 1y,

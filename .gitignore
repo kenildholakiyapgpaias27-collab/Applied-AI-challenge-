@@ -4,4 +4,6 @@ __pycache__/
 node_modules/
 .agents/
 .vercel
+backend/.cache/
+.venv/
 data/openai.json
