@@ -321,7 +321,7 @@ let OPEN_SELFIE=false;
 /* ---------- a warm, personal line at the top of every question ---------- */
 function stepGreeting(key){
   const n=NAME?esc(NAME):"",N=n?`, ${n}`:"",prob=PROB&&PROBLEMS[PROB]?PROBLEMS[PROB].label.toLowerCase():null;
-  const left=STEPS.filter(k=>!DONE.has(k)).length,matched=SL_PREV?SL_PREV.size:0,city=P.city?esc(P.city):null;
+  const left=STEPS.filter(k=>!DONE.has(k)&&ASKED(k)).length,matched=SL_PREV?SL_PREV.size:0,city=P.city?esc(P.city):null;
   const others=(P.concerns||[]).slice(1).map(k=>PROBLEMS[k].label.toLowerCase());
   switch(key){
     case"concerns":return PROB?`Let's look at this again${N}. Take your time; nothing you've told me is lost.`:`This little moment is just for you${N}. There are no wrong answers, only <b>what your skin is telling you</b>.`;
@@ -414,8 +414,9 @@ function botSay(html,kind=""){const r=document.createElement("div");r.className=
 function meSay(text){const r=document.createElement("div");r.className="row me";const s=document.createElement("div");s.className="say";s.textContent=text;r.appendChild(s);host().appendChild(r)}
 function focusEl(el){requestAnimationFrame(()=>el.scrollIntoView({block:"nearest",behavior:"smooth"}))}
 function lockAll(){thread.querySelectorAll(".q:not(.answered)").forEach(q=>{q.classList.add("answered");q.querySelectorAll("button,select,input").forEach(x=>{if(!x.classList.contains("backcta"))x.disabled=true})})}
-function progress(){const d=STEPS.filter(k=>DONE.has(k)).length,left=STEPS.length-d;$("bar").style.width=(100*d/STEPS.length)+"%";$("backBtn").disabled=!nameAsked;
-  $("eta").textContent=!nameAsked?"Consultation":left===0?"Your plan is ready":left===1?"Last step":left<=3?"Almost there":`Question ${d+1} of ${STEPS.length}`}
+const ASKED=k=>!(P.goal==="makeup"&&["undertone","utHelp","preview"].includes(k));   // after the skin-tone page makeup goes straight to the plan, so these are never shown as questions
+function progress(){const SS=STEPS.filter(ASKED),d=SS.filter(k=>DONE.has(k)).length,left=SS.length-d;$("bar").style.width=(100*d/SS.length)+"%";$("backBtn").disabled=!nameAsked;
+  $("eta").textContent=!nameAsked?"Consultation":left===0?"Your plan is ready":left===1?"Last step":left<=3?"Almost there":`${left} questions left`}
 
 function next(){
   if(!nameAsked){progress();askName();return}
@@ -424,9 +425,10 @@ function next(){
   if(stepNow)ask(stepNow);else buildPlan();
 }
 function ask(key){
-  lockAll();const s=STEP[key],Q=s.q();const idx=STEPS.indexOf(key)+1;
+  lockAll();const s=STEP[key],Q=s.q();
+  const remaining=STEPS.filter(k=>!DONE.has(k)&&ASKED(k));const idx=Math.max(1,remaining.indexOf(key)+1),total=remaining.length||1;   // count what's actually left to answer, not the original total — skipped steps shouldn't make this still look like a 7-question quiz
   const box=document.createElement("div");box.className="q";box.dataset.step=key;
-  box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">Q${idx} of ${STEPS.length} · ${esc(s.title)}${STEPS.length-idx===0?" · last one":""}</span><p class="qgreet" hidden></p><h3 class="qtitle">${esc(Q.ask)}</h3>${Q.help?`<p class="qhelp">${fmt(Q.help)}</p>`:""}</div></div>`;
+  box.innerHTML=`<div class="row qhead">${avatar()}<div><span class="qnum">Q${idx} of ${total} · ${esc(s.title)}${total-idx===0?" · last one":""}</span><p class="qgreet" hidden></p><h3 class="qtitle">${esc(Q.ask)}</h3>${Q.help?`<p class="qhelp">${fmt(Q.help)}</p>`:""}</div></div>`;
   const sl=PROB&&key!=="concerns"&&key!=="about"?shortlistPanel(key):null;SL_PANEL=sl;
   box.appendChild(Q.about?aboutWidget():Q.location?locationWidget():Q.preview?previewWidget():Q.tone?toneWidget():Q.shelf?shelfWidget():Q.safety?safetyWidget():Q.concerns?concernsWidget():optionsWidget(key,Q));
   if(sl){box.classList.add("hassl");box.appendChild(sl)}else if(key==="concerns")SL_PREV=null;
@@ -502,6 +504,9 @@ function optionsWidget(key,Q){
 }
 function answer(key,val,label){
   turn++;if(key==="follow")FOLLOW_IDX=val;if(key!=="tone"||val!==undefined)STEP[key].apply&&STEP[key].apply(val);DONE.add(key);lockAll();
+  // Skin tone is the only page a customer is sent to; once it's answered (selfie or scale), go straight to the plan. A selfie also
+  // reads the undertone; with a scale pick it stays "not sure", which the shade match already handles (neutral shade + a warm option).
+  if(key==="tone"&&P.goal==="makeup"){if(!P.undertone&&!P.undertoneSource)P.undertoneSource="unsure";for(const k of["undertone","utHelp","preview"])DONE.add(k)}
   const note=afterNote(key);if(note)botSay(note[0],note[1]||"");
   next();saveState();
 }
@@ -1656,7 +1661,7 @@ function safetyWidget(){
      <div class="scs">${REACT_TOP.map(r=>chip("react",r,cap(r),from[r])).join("")}<span class="more" hidden>${rest.map(r=>chip("react",r,cap(r),"")).join("")}</span>
        <button type="button" class="btn ghost smore">+ ${rest.length} more</button>${none("react")}</div></section>
    ${askPreg?`<section class="sg" data-g="preg"><h4><span class="sn">3</span>Should I be pregnancy-cautious?</h4>
-     <div class="scs">${[["true","Yes, be cautious",""],["false","No",""],["null","Prefer not to say","I'll stay cautious"]].map(([v,l,s])=>`<label class="sc"><input type="radio" name="spreg" data-sec="preg" value="${v}" ${DONE.has("safety")&&String(P.pregnancy)===v?"checked":""}><span><b>${l}</b>${s?`<small>${s}</small>`:""}</span></label>`).join("")}</div>
+     <div class="scs">${[["true","Yes, be cautious",""],["false","No",""],["null","Prefer not to say","I'll stay cautious"]].map(([v,l,s])=>`<label class="sc"><input type="radio" name="spreg" data-sec="preg" value="${v}" ${(DONE.has("safety")||typeof P.pregnancy==="boolean")&&String(P.pregnancy)===v?"checked":""}><span><b>${l}</b>${s?`<small>${s}</small>`:""}</span></label>`).join("")}</div>
      <p class="small muted sgnote">This only means I skip retinoids and strong salicylic acid.</p></section>`:""}
    <section class="sg" data-g="sym"><h4><span class="sn">${askPreg?4:3}</span>Is any of this happening right now?</h4>
      <div class="scs">${SYMPTOMS.map(([v,l])=>chip("sym",v,l,"")).join("")}${none("sym")}</div>
@@ -2202,44 +2207,165 @@ function productCheck(p){const r=check(p);let h=`<p><b>${esc(p.n)}</b> · ${esc(
   h+=r.ok?`<p style="color:var(--ok)"><b>This passes ${DONE.has("avoid")?"all your checks":"the checks I can run so far"}.</b>${actives(p).length?" "+actives(p).map(a=>`${esc(a.name)} ${esc(a.does)}.`).join(" "):""}</p>`:`<p style="color:var(--bad)"><b>I wouldn't recommend this one for you</b>, because ${r.blocks.map(b=>esc(b[1])).join("; ")}.</p>`;
   if(p.blankInci)h+=`<p class="small">A missing ingredient list isn't proof of safety.</p>`;
   if(!DONE.has("avoid"))h+=`<p class="small muted">Answer the safety questions for a full check.</p>`;botSay(h)}
-function handleTyped(text){
+/* ---------- meaning layer: Claude (through our own backend, key kept server-side) reads ANY wording ----------
+   It only EXTRACTS the same answers the quiz collects. The built-in parser (parseSlots) always runs too and is the
+   fallback whenever the service is off, slow or fails, so nothing here can leave a customer stuck. */
+const UNDERSTAND_BASE=window.AAINA_API!=null?window.AAINA_API:(/^(localhost|127\.0\.0\.1)$/.test(location.hostname)&&location.port!=="8000"?"http://localhost:8000":"");
+let UNDERSTAND_ON=false;
+(async()=>{try{const c=new AbortController(),tm=setTimeout(()=>c.abort(),2500);const r=await fetch(UNDERSTAND_BASE+"/api/understand/status",{signal:c.signal});clearTimeout(tm);
+  if(r.ok&&(await r.json()).enabled){UNDERSTAND_ON=true;const n=$("askNote");if(n)n.hidden=false}}catch{}})();
+function understandVocab(){   // the app's own words, so the model can only answer with values the app knows
+  const concerns={};for(const[k,v]of Object.entries(PROBLEMS))concerns[k]={label:v.label,options:v.follow.opts.map(o=>o[0]+" - "+o[1])};   // includes the sunscreen / makeup goal questions; mergeUnderstood keeps those out of the concerns list
+  return{concerns,reactions:Object.keys(REACTIONS)}}
+async function understandText(t){
+  const f=$("askForm"),inp=$("askInput");f.classList.add("busy");const ph=inp.placeholder;inp.placeholder="Understanding what you said…";inp.disabled=true;
+  const c=new AbortController(),tm=setTimeout(()=>c.abort(),12000);
+  try{const r=await fetch(UNDERSTAND_BASE+"/api/understand",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:t.slice(0,400),vocab:understandVocab()}),signal:c.signal});
+    const j=r.ok?await r.json():null;return j&&j.ok?j.slots:null}
+  catch{return null}
+  finally{clearTimeout(tm);f.classList.remove("busy");inp.disabled=false;inp.placeholder=ph}}
+/* ---------- hybrid RAG answers: a QUESTION ("which sunscreen has no white cast?") is answered from retrieved catalogue products ----------
+   The server retrieves with BM25 + embeddings (fused) and the model may only talk about what was retrieved. Safety stays here: the ids of every
+   product that fails THIS customer's checks are sent so they are never retrieved, and each product the answer cites is checked again before it is shown. */
+let CHAT_HIST=[];
+async function answerQuestion(t){
+  const f=$("askForm"),inp=$("askInput");f.classList.add("busy");const ph=inp.placeholder;inp.placeholder="Looking through our range…";inp.disabled=true;
+  const c=new AbortController(),tm=setTimeout(()=>c.abort(),20000);
+  try{
+    const blocked=CAT.filter(p=>!check(p).ok).map(p=>p.id);
+    const profile={skin:P.skin||null,city:P.city||null,budget_inr:P.budget||null,pregnancy:typeof P.pregnancy==="boolean"?P.pregnancy:null,sensitive:!!P.sensitive,avoid_fragrance:!!P.avoidFrag,avoid_eo:!!P.avoidEO,reactions:P.reactions||[],concerns:(P.concerns||[]).map(k=>PROBLEMS[k]?PROBLEMS[k].label:k)};
+    const r=await fetch(UNDERSTAND_BASE+"/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:t.slice(0,400),profile,history:CHAT_HIST.slice(-4),blocked_ids:blocked}),signal:c.signal});
+    const j=r.ok?await r.json():null;if(!j||!j.ok)return false;
+    const shown=(j.product_ids||[]).filter(id=>BY_ID[id]&&check(BY_ID[id]).ok),dropped=(j.product_ids||[]).length-shown.length;   // belt and braces: the page's own rules have the last word
+    let h=esc(j.answer).replace(/\[(P\d+)\]/g,(m,id)=>shown.includes(id)?`<b>${esc(BY_ID[id].n)}</b>`:"");
+    h=`<p>${h}</p>`;
+    if(shown.length)h+=`<ul class="ragprods">${shown.map(id=>{const p=BY_ID[id];return`<li><b>${esc(p.n)}</b> · ${esc(p.c)} · ${rupee(p.p)}</li>`}).join("")}</ul>`;
+    if(shown.length)h+=`<p class="small muted">${shown.length>1?"These pass":"This passes"} ${DONE.has("safety")?"all your checks":"the checks I can run so far"}; that is decided by our own rules, not by the answer above.</p>`;
+    if(dropped>0)h+=`<p class="small muted">I left out ${dropped} product${dropped>1?"s":""} that didn't pass your checks.</p>`;
+    if(j.needs_doctor)h+=`<p>This sounds like something a dermatologist should look at; I can't tell what's causing it.</p>`;
+    h+=`<p class="small muted">Answered from our catalogue (${j.mode==="hybrid"?"keyword + meaning search":"keyword search"}). Cosmetic advice only.</p>`;
+    botSay(h,j.needs_doctor?"escalate":"");
+    CHAT_HIST.push({role:"user",text:t.slice(0,300)},{role:"assistant",text:String(j.answer).replace(/\[(P\d+)\]/g,(m,id)=>BY_ID[id]?BY_ID[id].n:"").slice(0,300)});CHAT_HIST=CHAT_HIST.slice(-8);
+    return true;
+  }catch{return false}
+  finally{clearTimeout(tm);f.classList.remove("busy");inp.disabled=false;inp.placeholder=ph}
+}
+function mergeUnderstood(s,ai){   // what the sentence said (regex) + what it meant (Claude). Restrictions only ever add, never remove.
+  const m={...s};
+  const cs=uniq([...(ai.concerns||[]),...(s.concerns||[])]).filter(k=>PROBLEMS[k]&&!PROBLEMS[k].goal).slice(0,MAX_CONCERNS);cs.length?m.concerns=cs:delete m.concerns;
+  if(!m.skin&&ai.skin)m.skin=ai.skin;
+  if(ai.sensitive_skin===true)m.sensitive=true;if(ai.avoid_fragrance===true)m.avoidFrag=true;if(ai.avoid_essential_oils===true)m.avoidEO=true;
+  if(ai.pregnancy===true)m.pregnancy=true;else if(m.pregnancy===undefined&&ai.pregnancy===false)m.pregnancy=false;
+  const rs=uniq([...(s.reactions||[]),...(ai.reactions||[])]).filter(r=>REACTIONS[r]);rs.length?m.reactions=rs:delete m.reactions;
+  if(m.budget==null&&ai.budget_inr)m.budget=ai.budget_inr;
+  m.aiCity=ai.city||null;m.aiGoal=ai.goal||null;m.aiGender=ai.gender||null;m.aiFU=ai.follow_ups||{};m.understood=ai.understood||"";
+  return m}
+const ESCALATE_HTML="<p>That sounds like it needs a dermatologist to look at it, and I can't tell what's causing it. Please don't put new products on that area until you've been seen.</p><p>If it's spreading fast, very painful, or you have a fever or swelling near your eyes or mouth, please get medical help today.</p>";
+async function handleTyped(text){
   turn++;const t=text.trim();if(!t)return;
   if(!nameAsked&&!G.inject.test(t)&&!G.redflag.test(t)&&t.split(/\s+/).length<=3&&cleanName(t.replace(/^(i'?m|i am|my name is|call me)\s+/i,""))){setName(cleanName(t.replace(/^(i'?m|i am|my name is|call me)\s+/i,"")));return}
   meSay(t);
   if(G.inject.test(t)){botSay("I can't switch off my safety checks; they run outside this chat, so nothing typed here changes them. I'll only recommend products that pass your checks.","hold");return refocus()}
-  if(G.redflag.test(t)){botSay("<p>That sounds like it needs a dermatologist to look at it, and I can't tell what's causing it. Please don't put new products on that area until you've been seen.</p><p>If it's spreading fast, very painful, or you have a fever or swelling near your eyes or mouth, please get medical help today.</p>","escalate");return refocus()}
+  if(G.redflag.test(t)){botSay(ESCALATE_HTML,"escalate");return refocus()}
   if(G.rx.test(t)){botSay("I can't advise on prescription treatments or medicines; a dermatologist can tell you if one is right for you. I can help with products from our range.","hold");return refocus()}
   if(G.fair.test(t)){botSay("I don't recommend products to change your skin tone; every tone deserves good skincare. If dark spots or tanning bother you, pick those as your concern and I'll build a plan.","hold");return refocus()}
   if(G.guarantee.test(t)&&!/\bP1\d{3}\b/.test(t)){botSay("I can't promise results; skin responds differently from person to person. I'll tell you what most people can expect and how long it usually takes.");return refocus()}
   if(G.del.test(t)){confirmDelete();return refocus()}   // always ask: "remove tan… photo" also matches
   const p=findProduct(t);if(p){productCheck(p);return refocus()}
-  const slots=parseSlots(t);
-  if(stepNow==="concerns"&&slots.concerns&&slots.concerns.length){const cs=uniq(slots.concerns.filter(x=>PROBLEMS[x])).slice(0,MAX_CONCERNS);if(cs.length){TYPED_CONCERNS=cs;botSay(`I've ticked <b>${esc(cs.map(k=>PROBLEMS[k].label.toLowerCase()).join(" and "))}</b>. Answer the quick follow-up inside ${cs.length>1?"each":"it"} and tap Continue.`);return ask("concerns")}}
+  let slots=parseSlots(t),ai=null;
+  if(UNDERSTAND_ON&&!(stepNow&&/^(none|no|nothing|no reactions)\b/i.test(t)))ai=await understandText(t);
+  if(ai&&ai.escalate){botSay(ESCALATE_HTML,"escalate");return refocus()}   // the model noticed something medical the word list missed: same stop as the rules above, nothing is built
+  if(ai&&ai.on_topic===false&&!G.beauty.test(t)){botSay("I'm Aaina's skincare advisor, so I can only help with skin concerns and skincare products.");return refocus()}
+  if(ai&&ai.intent==="question"){if(await answerQuestion(t))return refocus()}   // asked a question: answer it from the catalogue; if that service is down, carry on as before
+  if(ai)slots=mergeUnderstood(slots,ai);
+  const fromStart=!DONE.has("about"),assumed=[],missing=[];   // sent from the very first screen = they want the answer, not the quiz
+  /* skip straight ahead: someone who doesn't want the quiz can describe everything at once.
+     Location, skin type and budget are simple enough to accept outright; Safety only gets
+     pre-filled, never auto-confirmed. Skin tone and undertone always stay their own explicit
+     step (selfie or manual pick) — a number mentioned in passing is exactly the self-reported
+     guess this app's own tone-correction logic exists to not trust. */
+  const bulk=[];
+  // Sent from the very first screen: take what they already ticked there, else work out the goal from the sentence
+  // (sunscreen / makeup words, otherwise a skincare routine). Gender can't be told from a skin description, so it
+  // stays unset, which every safety rule treats the cautious way (pregnancy is never assumed away).
+  if(!DONE.has("about")){
+    const q=thread.querySelector(".q:not(.answered)");
+    const tapG=q&&q.querySelector('input[name="agender"]:checked')?.value,tapGoal=q&&q.querySelector('[data-goal][aria-pressed="true"]')?.dataset.goal;
+    const goal=tapGoal||(/\b(sunscreen|sun ?block|spf)\b/i.test(t)?"sunscreen":/\b(foundation|concealer|bb cream|cc cream|base makeup|compact powder|my shade)\b/i.test(t)?"makeup":slots.aiGoal||"routine");
+    const gender=tapG||(/\b(i am|i'm|im)\s+(a\s+)?(man|guy|male|boy)\b/i.test(t)?"man":/\b(i am|i'm|im)\s+(a\s+)?(woman|girl|lady|female)\b/i.test(t)?"woman":slots.aiGender||null);
+    STEP.about.apply({gender,goal});DONE.add("about");bulk.push("about");
+    stepNow=STEPS.find(k=>!DONE.has(k))||null;
+  }
+  for(const k of["sensitive","avoidFrag","avoidEO","budget"])if(slots[k]!==undefined&&P[k]!==slots[k]){P[k]=slots[k];bulk.push(k)}
+  if(slots.pregnancy!==undefined&&P.pregnancy!==slots.pregnancy){P.pregnancy=slots.pregnancy;bulk.push("pregnancy")}
+  if(slots.reactions&&slots.reactions.length){const before=P.reactions.length;P.reactions=uniq([...P.reactions,...slots.reactions]);if(P.reactions.length!==before)bulk.push("reactions")}
+  if(stepNow!=="location"&&!DONE.has("location")){const hit=findCity(t)||(slots.aiCity?findCity(slots.aiCity):null);if(hit){P.state=hit.state;P.city=hit.city;P.climate=hit.climate;DONE.add("location");bulk.push("location")}}
+  if(slots.skin&&!DONE.has("skin")&&stepNow!=="skin"){STEP.skin.apply(slots.skin);DONE.add("skin");bulk.push("skin")}   // mentioned in passing elsewhere: no follow-up question to risk, so just take it; still a reviewable tap when answered from the skin step itself
+  if(bulk.length&&stepNow==="safety")return ask("safety");   // refresh the pre-ticked boxes with what we just understood
+  if(stepNow==="concerns"&&slots.concerns&&slots.concerns.length){const cs=uniq(slots.concerns.filter(x=>PROBLEMS[x])).slice(0,MAX_CONCERNS);if(cs.length){
+    // They want the recommendation, not another question: the follow-up is taken from what they said (meaning layer first,
+    // word overlap second). If they never described it, use the first, mildest option (none of the concerns' first options
+    // carries a safety flag) and say so, so it's a visible assumption they can change, not a hidden guess.
+    P.concernFU=P.concernFU||{};
+    for(const k of cs){let fu=slots.aiFU&&slots.aiFU[k]!=null?slots.aiFU[k]:inferFollowUp(k,t);
+      if(fu==null){fu=0;assumed.push(`the most common pattern for ${PROBLEMS[k].label.toLowerCase()} ("${PROBLEMS[k].follow.opts[0][0].toLowerCase()}")`)}
+      P.concernFU[k]=fu}
+    STEP.concerns.apply({main:cs[0],list:cs,fu:P.concernFU});DONE.add("concerns");bulk.push("concerns")}}
+  if(stepNow==="follow"&&PROB&&PROBLEMS[PROB]){const fu0=slots.aiFU&&slots.aiFU[PROB]!=null?slots.aiFU[PROB]:inferFollowUp(PROB,t);let fu=fu0;
+    if(fu==null){fu=P.goal==="makeup"?0:1;if(P.goal!=="makeup")assumed.push("sunscreen for long hours outdoors (SPF 50, the most protective)");}   // makeup: finish defaults to Natural; sunscreen: when they didn't say, protect most
+    FOLLOW_IDX=fu;STEP.follow.apply(fu);DONE.add("follow");bulk.push("follow")}
+  // Safety: the one check that must run every time, but once G.redflag above found nothing alarming, there's nothing
+  // left that a tap would catch that the app's own "unknown → stay cautious" defaults don't already cover (pregnancy
+  // included — unmentioned stays null, exactly what "Prefer not to say" already means). So go all the way through.
+  if(!DONE.has("safety")&&stepNow!=="safety"){P.redflags=P.redflags||[];DONE.add("safety");bulk.push("safety")}
+  // a plain skincare routine doesn't need an exact shade — tone/undertone here only feed the optional base-makeup
+  // bonus section, which quietly drops itself when P.tone is unset. Shade work (goal "makeup") always keeps its own step.
+  if(P.goal==="routine"&&!DONE.has("tone")&&!DONE.has("undertone")&&stepNow!=="tone"&&stepNow!=="undertone"){DONE.add("tone");DONE.add("undertone");bulk.push("skip-shade")}
+  // From the first screen they asked for the answer, so city and skin type never become more questions: use what they
+  // said, otherwise leave them unset (the plan simply isn't tailored to them, which every rule already handles) and say so.
+  // Skin tone is the one thing never skipped: makeup always goes to the tone page.
+  if(fromStart){
+    if(STEPS.includes("location")&&!DONE.has("location")){DONE.add("location");if(!P.city)missing.push("your city")}
+    if(STEPS.includes("skin")&&!DONE.has("skin")){DONE.add("skin");if(!P.skin)missing.push("your skin type")}}
   if(stepNow==="skin"&&slots.skin){const f=FACE_SKIN.find(([,,v])=>v===slots.skin);if(f){TYPED_SKIN=slots.skin;botSay(`Sounds like <b>${esc(f[1].toLowerCase())}</b> to me. Tap it to confirm, or pick another if I've got it wrong.`);return ask("skin")}}
   if(stepNow==="problem"&&slots.concerns&&slots.concerns.length){const c=slots.concerns.find(x=>PROBLEMS[x]);if(c){STEP.problem.apply(c);DONE.add("problem");P.concerns=uniq([c,...slots.concerns.filter(x=>PROBLEMS[x])]).slice(0,3);if(P.concerns.length>1)DONE.add("extra");botSay(afterNote("problem")[0]);return next()}}
   if(stepNow==="location"){const hit=findCity(t);if(hit){P.state=hit.state;P.city=hit.city;P.climate=hit.climate;DONE.add("location");botSay(afterNote("location")[0]);return next()}}
   if(stepNow==="react"&&slots.reactions){P.reactions=uniq([...P.reactions,...slots.reactions]);DONE.add("react");botSay(`Noted: I'll avoid ${esc(slots.reactions.join(", "))}.`);return next()}
   if(stepNow&&/^(none|no|nothing|no reactions)\b/i.test(t)&&["avoid","react","preg","extra"].includes(stepNow)){const s=STEP[stepNow];if(s.apply)s.apply(stepNow==="preg"?(t.toLowerCase().startsWith("no")?false:null):stepNow==="budget"?null:[]);DONE.add(stepNow);botSay("Okay.");return next()}
+  if(bulk.length){
+    let h=slots.understood?`<p>${esc(slots.understood)}</p>`:`<p>Got it — I've filled in ${bulk.length>1?"a few things":"that"} from what you said.</p>`;
+    const notes=[assumed.length&&`I assumed ${assumed.map(esc).join("; ")}, since you didn't say`,missing.length&&`I didn't tailor it to ${missing.join(" or ")}, since you didn't mention ${missing.length>1?"them":"it"}`].filter(Boolean);
+    if(notes.length)h+=`<p class="small muted">${notes.join(". ")}. You can change any answer after the plan is shown.</p>`;
+    botSay(h);return next()}
   if(!G.beauty.test(t)){botSay("I'm Aaina's skincare advisor, so I can only help with skin concerns and skincare products.");return refocus()}
   botSay(stepNow?"Thanks. To keep the plan accurate, please pick one of the options above.":"I can check a product (type its name), or start over with another concern.");refocus();
 }
 function refocus(){const q=thread.querySelector(".q:not(.answered)");if(q){thread.appendChild(q);focusEl(q)}}
 function findCity(t){const low=t.toLowerCase();for(const[st,s]of Object.entries(INDIA))for(const c of Object.keys(s.c))if(new RegExp("\\b"+c.toLowerCase().replace(/[()]/g,"")+"\\b").test(low))return{state:st,city:c,climate:s.c[c]||s.d};return null}
-$("askForm").addEventListener("submit",e=>{e.preventDefault();const v=$("askInput").value;$("askInput").value="";handleTyped(v.slice(0,400))});
+$("askForm").addEventListener("submit",e=>{e.preventDefault();
+  const mic=$("askMic");if(mic)mic.dispatchEvent(new Event("aaina:stopmic"));   // Send always wins: a still-running mic (continuous mode) must not keep refilling the box after this
+  const v=$("askInput").value;$("askInput").value="";handleTyped(v.slice(0,400))});
 
 /* ---------- speak instead of typing: browser speech-to-text feeds the same chat input, nothing is sent until the user hits Send ---------- */
 (function initMic(){
   const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;const btn=$("askMic");if(!Rec||!btn)return;
   btn.innerHTML=MIC;btn.hidden=false;
   const input=$("askInput"),basePlaceholder=input.placeholder;
-  let rec=null,listening=false;
-  const stop=()=>{listening=false;btn.classList.remove("listening");btn.setAttribute("aria-pressed","false");input.placeholder=basePlaceholder;try{rec&&rec.stop()}catch{}};
+  let rec=null,listening=false,errT=null,silT=null;
+  const ERR_MSG={"not-allowed":"Microphone access was blocked — allow it for this page and try again.","audio-capture":"No microphone found on this device.","no-speech":"Didn't catch that — tap the mic and try again.","network":"Speech recognition needs an internet connection."};
+  const stop=()=>{listening=false;clearTimeout(silT);btn.classList.remove("listening");btn.setAttribute("aria-pressed","false");input.placeholder=basePlaceholder;try{rec&&rec.stop()}catch{}};
+  // what they said is the request: once they pause (or the browser ends the session), stop listening and send it straight away
+  const finish=()=>{const had=input.value.trim();stop();if(had){const f=$("askForm");f.requestSubmit?f.requestSubmit():f.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}))}};
+  btn.addEventListener("aaina:stopmic",()=>{if(listening)stop()});
   btn.onclick=()=>{
-    if(listening){stop();return}
-    if(!rec){rec=new Rec();rec.lang="en-IN";rec.interimResults=true;rec.continuous=false;
-      rec.onresult=e=>{let t="";for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;input.value=t};
-      rec.onerror=stop;rec.onend=stop}
-    listening=true;btn.classList.add("listening");btn.setAttribute("aria-pressed","true");input.placeholder="Listening… speak now";input.value="";
+    if(listening){finish();return}
+    if(!rec){rec=new Rec();rec.lang="en-IN";rec.interimResults=true;rec.continuous=true;   // keep listening through pauses; a short single utterance cut you off before you finished a whole description
+      rec.onresult=e=>{if(!listening)return;   // Chrome delivers one last result AFTER stop(); letting it through refilled the box right after Send cleared it
+        let t="";for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;input.value=t;
+        clearTimeout(silT);if(t.trim())silT=setTimeout(finish,2200)};
+      rec.onerror=e=>{const m=ERR_MSG[e.error];stop();if(!m)return;input.placeholder=m;clearTimeout(errT);errT=setTimeout(()=>{if(input.placeholder===m)input.placeholder=basePlaceholder},4500)};
+      rec.onend=()=>{if(listening)finish()}}
+    listening=true;btn.classList.add("listening");btn.setAttribute("aria-pressed","true");input.placeholder="Listening… I'll send when you pause";input.value="";
     try{rec.start()}catch{stop()}
   };
 })();

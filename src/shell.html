@@ -907,6 +907,8 @@ body{background:#fcfbfa;color:var(--ink);font:16px/1.55 var(--body);margin:0}
 #advisor .ask input{height:50px;padding:0 22px;font-size:15.5px;font-weight:400}
 #advisor .ask .btn{height:50px;padding:0 26px;font-size:15.5px;font-weight:750;flex:none}
 #advisor .ask .mic{width:50px;height:50px;padding:0;border-radius:999px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.ask-note{margin:0;padding:6px clamp(20px,3.5vw,56px) 10px;font-size:12px;color:var(--muted,#6b625d);background:var(--surface)}
+.ask.busy .btn.primary{opacity:.6;pointer-events:none}
 #advisor .ask .mic.listening{background:var(--bad);border-color:var(--bad);color:#fff;animation:micpulse 1.1s ease-in-out infinite}
 @keyframes micpulse{0%,100%{box-shadow:0 0 0 0 rgba(200,60,60,.35)}50%{box-shadow:0 0 0 8px rgba(200,60,60,0)}}
 .frame-foot{font-size:12px;font-weight:400;padding:12px 26px 14px}
@@ -1229,6 +1231,7 @@ html.to-lock,html.to-lock body{overflow:hidden}
         <input id="askInput" type="text" maxlength="400" placeholder="Describe your skin concern, or type a product name" aria-label="Type a message">
         <button class="btn primary" type="submit">Send <span aria-hidden="true">→</span></button>
       </form>
+      <p class="ask-note" id="askNote" hidden>To understand free-form messages, what you type or say here is sent to an AI service (OpenAI or Anthropic, depending on how this site is set up) through our server. Nothing else from your answers is sent.</p>
     </section>
   </div>
   <p class="frame-foot"><span>Cosmetic advice only, not medical advice. Aaina and its products are fictional (PS-14 demo).</span><button type="button" class="link small" id="deleteBtn">Delete my answers</button></p>

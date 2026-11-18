@@ -665,6 +665,20 @@ function parseSlots(t){
   const br=BRANDS.find(b=>low.includes(b.toLowerCase()));if(br)s.brand=br;
   return s;
 }
+/* which follow-up option (if any) the same sentence already answers, for a concern just picked up.
+   Generic word-overlap against the option's own label+sub text, never a hand-tuned guess per concern:
+   only commits when one option clearly leads, so an ambiguous or unmentioned case still asks. */
+const FU_STOP=new Set(["that","with","from","this","have","after","around","their","than","skin","looks","look","feels","feel"]);
+function inferFollowUp(k,t){
+  const opts=PROBLEMS[k]?.follow?.opts;if(!opts)return null;
+  const low=t.toLowerCase();
+  const scored=opts.map(([label,sub],i)=>{
+    const words=(label+" "+sub).toLowerCase().match(/[a-z]{5,}/g)||[];
+    const hits=words.filter(w=>!FU_STOP.has(w)&&low.includes(w)).length;
+    return[i,hits];
+  }).filter(([,h])=>h>0).sort((a,b)=>b[1]-a[1]);
+  return scored.length&&(scored.length===1||scored[0][1]>scored[1][1])?scored[0][0]:null;
+}
 function applySlots(s){
   const changed=[];
   for(const k of["skin","sensitive","avoidFrag","avoidEO","pregnancy","city","climate","month","budget","steps","tone","undertone"])if(s[k]!==undefined&&P[k]!==s[k]){P[k]=s[k];changed.push(k)}
