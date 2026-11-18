@@ -1,0 +1,18 @@
+build rc=0 0s :: 
+oauth_unit rc=0 0s :: 31/31 passed 
+timeline_unit rc=0 0s :: 35/35 passed 
+tryon_colour rc=0 0s :: PASS OKLab: white is L=1, black is L=0 32/32 passed 
+quiz_flow rc=1 50s :: 
+tryon rc=1 125s :: 
+tryon_unit rc=0 0s :: 32/32 passed 26/26 passed 
+timeline rc=0 34s :: 35/35 passed 
+rag_test rc=0 11s :: Ran 30 tests in 11.231s OK 
+understand_test rc=0 192s :: Ran 17 tests in 2.870s OK 
+rag_eval rc=0 0s :: 
+monk_service rc=1 0s :: 
+verify_colorimetry rc=1 0s :: 
+db_rls_e2e rc=1 124s :: 62/63 passed 
+check_evidence rc=0 0s :: OK: 26 entries, 35 checkpoints, 21 references, all checks passed 
+eval_testset rc=0 1s :: 
+eval_recommendations rc=0 0s :: 
+catalogue_check rc=0 0s :: 
