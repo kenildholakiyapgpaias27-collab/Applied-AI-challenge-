@@ -1,0 +1,3900 @@
+{
+ "desktop": [
+  {
+   "screen": "home",
+   "file": "screens/desktop/01_home.png",
+   "errors": [
+    "console.error: Failed to load resource: net::ERR_FAILED",
+    "console.error: Failed to load resource: net::ERR_CONNECTION_REFUSED"
+   ],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      "button[data-win=\"\"]",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_q1_about",
+   "file": "screens/desktop/02_routine_q1_about.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "before_you_go_progress",
+   "file": "screens/desktop/03_before_you_go_progress.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_q2_concerns",
+   "file": "screens/desktop/04_routine_q2_concerns.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".q[data-step=\"concerns\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_q3_safety",
+   "file": "screens/desktop/05_routine_q3_safety.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_q4_location",
+   "file": "screens/desktop/06_routine_q4_location.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"location\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "heading-order",
+     "impact": "moderate",
+     "help": "Heading levels should only increase by one",
+     "n": 1,
+     "targets": [
+      ".hassl.q[data-step=\"location\"] > details > .slbody > h5:nth-child(3)"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_q5_skin",
+   "file": "screens/desktop/07_routine_q5_skin.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"skin\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "heading-order",
+     "impact": "moderate",
+     "help": "Heading levels should only increase by one",
+     "n": 1,
+     "targets": [
+      ".hassl.q[data-step=\"skin\"] > details > .slbody > h5:nth-child(3)"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_q6_tone",
+   "file": "screens/desktop/08_routine_q6_tone.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 13,
+     "targets": [
+      ".tgroup:nth-child(1) > .trow > .tcell:nth-child(1) > .tname",
+      ".tgroup:nth-child(1) > .trow > .tcell:nth-child(2) > .tname",
+      ".tgroup:nth-child(1) > .trow > .tcell:nth-child(3) > .tname",
+      ".tgroup:nth-child(2) > .trow > .tcell:nth-child(1) > .tname"
+     ]
+    },
+    {
+     "id": "heading-order",
+     "impact": "moderate",
+     "help": "Heading levels should only increase by one",
+     "n": 1,
+     "targets": [
+      ".hassl.q[data-step=\"tone\"] > details > .slbody > h5:nth-child(3)"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_q7_undertone",
+   "file": "screens/desktop/09_routine_q7_undertone.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"undertone\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "heading-order",
+     "impact": "moderate",
+     "help": "Heading levels should only increase by one",
+     "n": 1,
+     "targets": [
+      ".hassl.q[data-step=\"undertone\"] > details > .slbody > h5:nth-child(3)"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_plan",
+   "file": "screens/desktop/10_routine_plan.png",
+   "errors": [
+    "console.error: Failed to load resource: net::ERR_FAILED",
+    "console.error: Failed to load resource: net::ERR_FAILED"
+   ],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 4,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      ".wa",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_plan_full",
+   "file": "screens/desktop/11_routine_plan_full.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   }
+  },
+  {
+   "screen": "routine_tune_your_plan",
+   "file": "screens/desktop/12_routine_tune_your_plan.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 5,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      ".tb:nth-child(2) > span > small",
+      ".wa",
+      "#deleteBtn"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "results_timeline",
+   "file": "screens/desktop/13_results_timeline.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 5,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      ".tb:nth-child(2) > span > small",
+      ".wa",
+      "#deleteBtn"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "compare_view",
+   "file": "screens/desktop/14_compare_view.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 5,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      ".tb:nth-child(2) > span > small",
+      ".wa",
+      "#deleteBtn"
+     ]
+    },
+    {
+     "id": "empty-table-header",
+     "impact": "minor",
+     "help": "Table header text should not be empty",
+     "n": 1,
+     "targets": [
+      "thead > tr > th:nth-child(1)"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "sign_in_panel",
+   "file": "screens/desktop/15_sign_in_panel.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 5,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      ".tb:nth-child(2) > span > small",
+      ".wa",
+      "#deleteBtn"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "before_you_go_plan",
+   "file": "screens/desktop/16_before_you_go_plan.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 5,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      ".tb:nth-child(2) > span > small",
+      "a[data-wa=\"\"]",
+      "#deleteBtn"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "check_in",
+   "file": "screens/desktop/17_check_in.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 2,
+     "targets": [
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "try_on_model_face",
+   "file": "screens/desktop/18_try_on_model_face.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .phero > .vanity-tray[aria-label=\"Protocol timing\"][role=\"tablist\"]"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 4,
+     "targets": [
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .phero > .vanity-tray[aria-label=\"Protocol timing\"][role=\"tablist\"] > .vanity-btn[data-vanity=\"pm\"][type=\"button\"]",
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .tune[open=\"\"] > .tune-body > fieldset:nth-child(1) > .tune-budget > .tb:nth-child(2) > span > small",
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .sharebar[aria-label=\"Share or save your plan\"][role=\"group\"] > .wa[data-wa=\"\"]",
+      "#deleteBtn"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "chat_ask_aaina",
+   "file": "screens/desktop/19_chat_ask_aaina.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .phero > .vanity-tray[aria-label=\"Protocol timing\"][role=\"tablist\"]"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 4,
+     "targets": [
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .phero > .vanity-tray[aria-label=\"Protocol timing\"][role=\"tablist\"] > .vanity-btn[data-vanity=\"pm\"][type=\"button\"]",
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .tune[open=\"\"] > .tune-body > fieldset:nth-child(1) > .tune-budget > .tb:nth-child(2) > span > small",
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .sharebar[aria-label=\"Share or save your plan\"][role=\"group\"] > .wa[data-wa=\"\"]",
+      "#deleteBtn"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "sunscreen_q2_follow",
+   "file": "screens/desktop/20_sunscreen_q2_follow.png",
+   "errors": [
+    "console.error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console.error: Failed to load resource: net::ERR_FAILED"
+   ],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "heading-order",
+     "impact": "moderate",
+     "help": "Heading levels should only increase by one",
+     "n": 1,
+     "targets": [
+      "h5:nth-child(2)"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "sunscreen_q3_safety",
+   "file": "screens/desktop/21_sunscreen_q3_safety.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"safety\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "sunscreen_q4_location",
+   "file": "screens/desktop/22_sunscreen_q4_location.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"location\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "heading-order",
+     "impact": "moderate",
+     "help": "Heading levels should only increase by one",
+     "n": 1,
+     "targets": [
+      ".hassl.q[data-step=\"location\"] > details > .slbody > h5:nth-child(3)"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "sunscreen_q5_skin",
+   "file": "screens/desktop/23_sunscreen_q5_skin.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"skin\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "heading-order",
+     "impact": "moderate",
+     "help": "Heading levels should only increase by one",
+     "n": 1,
+     "targets": [
+      ".hassl.q[data-step=\"skin\"] > details > .slbody > h5:nth-child(3)"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "sunscreen_plan",
+   "file": "screens/desktop/24_sunscreen_plan.png",
+   "errors": [
+    "console.error: Failed to load resource: net::ERR_FAILED",
+    "console.error: Failed to load resource: net::ERR_FAILED"
+   ],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 4,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      ".wa",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "makeup_q2_finish",
+   "file": "screens/desktop/25_makeup_q2_finish.png",
+   "errors": [
+    "console.error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console.error: Failed to load resource: net::ERR_FAILED"
+   ],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "heading-order",
+     "impact": "moderate",
+     "help": "Heading levels should only increase by one",
+     "n": 1,
+     "targets": [
+      "h5:nth-child(2)"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "makeup_q3_safety",
+   "file": "screens/desktop/26_makeup_q3_safety.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"safety\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "makeup_q4_skin",
+   "file": "screens/desktop/27_makeup_q4_skin.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"skin\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "heading-order",
+     "impact": "moderate",
+     "help": "Heading levels should only increase by one",
+     "n": 1,
+     "targets": [
+      ".hassl.q[data-step=\"skin\"] > details > .slbody > h5:nth-child(3)"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "makeup_q5_tone",
+   "file": "screens/desktop/28_makeup_q5_tone.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 13,
+     "targets": [
+      ".tgroup:nth-child(1) > .trow > .tcell:nth-child(1) > .tname",
+      ".tgroup:nth-child(1) > .trow > .tcell:nth-child(2) > .tname",
+      ".tgroup:nth-child(1) > .trow > .tcell:nth-child(3) > .tname",
+      ".tgroup:nth-child(2) > .trow > .tcell:nth-child(1) > .tname"
+     ]
+    },
+    {
+     "id": "heading-order",
+     "impact": "moderate",
+     "help": "Heading levels should only increase by one",
+     "n": 1,
+     "targets": [
+      ".hassl.q[data-step=\"tone\"] > details > .slbody > h5:nth-child(3)"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "makeup_q6_undertone",
+   "file": "screens/desktop/29_makeup_q6_undertone.png",
+   "errors": [
+    "console.error: Failed to load resource: net::ERR_FAILED",
+    "console.error: Failed to load resource: net::ERR_FAILED"
+   ],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 4,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      "a",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "makeup_plan",
+   "file": "screens/desktop/30_makeup_plan.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 4,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      "a",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "home_returning",
+   "file": "screens/desktop/31_home_returning.png",
+   "errors": [
+    "console.error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console.error: Failed to load resource: net::ERR_FAILED",
+    "console.error: Failed to load resource: net::ERR_FAILED",
+    "console.error: Failed to load resource: net::ERR_FAILED",
+    "console.error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console.error: Failed to load resource: net::ERR_FAILED"
+   ],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 1840px",
+     "div. 1668px",
+     "b. 1529px",
+     "small. 1668px",
+     "button.aa-x 1824px",
+     "div.aa-msgs 1840px",
+     "div.aa-msg.bot 1769px",
+     "div.aa-chips 1824px",
+     "button.aa-chip 1663px",
+     "button.aa-chip 1644px",
+     "button.aa-chip 1667px",
+     "button.aa-chip 1642px"
+    ],
+    "small": [],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      "button[data-win=\"\"]",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  }
+ ],
+ "mobile": [
+  {
+   "screen": "home",
+   "file": "screens/mobile/01_home.png",
+   "errors": [
+    "console.error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console.error: Failed to load resource: net::ERR_FAILED"
+   ],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "ol. 597px",
+     "li.jn 453px",
+     "button. 443px",
+     "span.jc 433px",
+     "span.jl 443px",
+     "li.jn 525px",
+     "button. 519px",
+     "span.jc 505px",
+     "span.jl 519px",
+     "li.jn.final 597px",
+     "span.jbtn 586px",
+     "span.jc 577px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety (36x51)",
+     "BEGIN CONSULTATION → (252x40)",
+     "Continue with Google (189x32)",
+     "Sign in with email (120x26)",
+     "Consultation Standards → (184x27)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      "button[data-win=\"\"]",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    },
+    {
+     "id": "scrollable-region-focusable",
+     "impact": "serious",
+     "help": "Scrollable region must have keyboard access",
+     "n": 1,
+     "targets": [
+      "#journey"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_q1_about",
+   "file": "screens/mobile/02_routine_q1_about.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "ol. 597px",
+     "li.jn 453px",
+     "button. 443px",
+     "span.jc 433px",
+     "span.jl 443px",
+     "li.jn 525px",
+     "button. 519px",
+     "span.jc 505px",
+     "span.jl 519px",
+     "li.jn.final 597px",
+     "span.jbtn 586px",
+     "span.jc 577px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety (36x51)",
+     "Woman (82x40)",
+     "Man (59x40)",
+     "Continue (121x40)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    },
+    {
+     "id": "scrollable-region-focusable",
+     "impact": "serious",
+     "help": "Scrollable region must have keyboard access",
+     "n": 1,
+     "targets": [
+      "#journey"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "before_you_go_progress",
+   "file": "screens/mobile/03_before_you_go_progress.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "ol. 597px",
+     "li.jn 453px",
+     "button. 443px",
+     "span.jc 433px",
+     "span.jl 443px",
+     "li.jn 525px",
+     "button. 519px",
+     "span.jc 505px",
+     "span.jl 519px",
+     "li.jn.final 597px",
+     "span.jbtn 586px",
+     "span.jc 577px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety (36x51)",
+     "Woman (82x40)",
+     "Man (59x40)",
+     "Continue (121x40)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)",
+     "Let's start (126x40)",
+     "Later (57x32)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    },
+    {
+     "id": "scrollable-region-focusable",
+     "impact": "serious",
+     "help": "Scrollable region must have keyboard access",
+     "n": 1,
+     "targets": [
+      "#journey"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_q2_concerns",
+   "file": "screens/mobile/04_routine_q2_concerns.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "ol. 597px",
+     "li.jn 453px",
+     "button. 443px",
+     "span.jc 433px",
+     "span.jl 443px",
+     "li.jn 525px",
+     "button. 519px",
+     "span.jc 505px",
+     "span.jl 519px",
+     "li.jn.final 597px",
+     "span.jbtn 586px",
+     "span.jc 577px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety (36x51)",
+     "Continue (121x40)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".q[data-step=\"concerns\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_q3_safety",
+   "file": "screens/mobile/05_routine_q3_safety.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "ol. 591px",
+     "li.jn 447px",
+     "button. 437px",
+     "span.jc 427px",
+     "span.jl 437px",
+     "li.jn 519px",
+     "button. 513px",
+     "span.jc 499px",
+     "span.jl 513px",
+     "li.jn.final 591px",
+     "span.jbtn 580px",
+     "span.jc 571px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, current question (37x51)",
+     "None (66x40)",
+     "Glycolic acid (118x40)",
+     "Salicylic acid (119x40)",
+     "Vitamin c (93x40)",
+     "Retinoids (94x40)",
+     "Niacinamide (115x40)",
+     "+ 5 more (80x32)",
+     "Yes, be cautious (140x40)",
+     "No (50x40)",
+     "Painful or swollen (148x40)",
+     "Spreading (101x40)",
+     "Bleeding, pus or open sores (218x40)",
+     "A mole that's changing (184x40)",
+     "With fever (100x40)",
+     "Continue (121x40)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_q4_location",
+   "file": "screens/mobile/06_routine_q4_location.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "ol. 519px",
+     "li.jn 447px",
+     "button. 441px",
+     "span.jc 427px",
+     "span.jl 441px",
+     "li.jn.final 519px",
+     "span.jbtn 508px",
+     "span.jc 499px",
+     "svg. 490px",
+     "path. 487px",
+     "span.jl 508px",
+     "div.aa-head 780px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "Continue (121x40)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"location\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_q5_skin",
+   "file": "screens/mobile/07_routine_q5_skin.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "ol. 447px",
+     "li.jn.final 447px",
+     "span.jbtn 436px",
+     "span.jc 427px",
+     "svg. 418px",
+     "path. 415px",
+     "span.jl 436px",
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"skin\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_q6_tone",
+   "file": "screens/mobile/08_routine_q6_tone.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "Not sure? Take a selfie (229x42)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 13,
+     "targets": [
+      ".tgroup:nth-child(1) > .trow > .tcell:nth-child(1) > .tname",
+      ".tgroup:nth-child(1) > .trow > .tcell:nth-child(2) > .tname",
+      ".tgroup:nth-child(1) > .trow > .tcell:nth-child(3) > .tname",
+      ".tgroup:nth-child(2) > .trow > .tcell:nth-child(1) > .tname"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_q7_undertone",
+   "file": "screens/mobile/09_routine_q7_undertone.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"undertone\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_plan",
+   "file": "screens/mobile/10_routine_plan.png",
+   "errors": [
+    "console.error: Failed to load resource: net::ERR_FAILED",
+    "console.error: Failed to load resource: net::ERR_FAILED"
+   ],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "☀️ Morning Protocol (162x33)",
+     "🌙 Evening Protocol (160x33)",
+     "btn primary (164x40)",
+     "btn ghost (119x32)",
+     "link small (177x26)",
+     "SUBSTITUTE (98x26)",
+     "btn small (211x36)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 4,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      ".wa",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "routine_plan_full",
+   "file": "screens/mobile/11_routine_plan_full.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "☀️ Morning Protocol (162x33)",
+     "🌙 Evening Protocol (160x33)",
+     "btn primary (164x40)",
+     "btn ghost (119x32)",
+     "link small (177x26)",
+     "SUBSTITUTE (98x26)",
+     "btn small (211x36)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   }
+  },
+  {
+   "screen": "routine_tune_your_plan",
+   "file": "screens/mobile/12_routine_tune_your_plan.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "☀️ Morning Protocol (162x33)",
+     "🌙 Evening Protocol (160x33)",
+     "Update my plan (164x40)",
+     "Undo changes (119x32)",
+     "link small (177x26)",
+     "SUBSTITUTE (98x26)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 5,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      ".tb:nth-child(2) > span > small",
+      ".wa",
+      "#deleteBtn"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "results_timeline",
+   "file": "screens/mobile/13_results_timeline.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "☀️ Morning Protocol (162x33)",
+     "🌙 Evening Protocol (160x33)",
+     "Update my plan (164x40)",
+     "Undo changes (119x32)",
+     "Compare with alternatives (177x26)",
+     "SUBSTITUTE (98x26)",
+     "btn small (211x36)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 5,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      ".tb:nth-child(2) > span > small",
+      ".wa",
+      "#deleteBtn"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "compare_view",
+   "file": "screens/mobile/14_compare_view.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "☀️ Morning Protocol (162x33)",
+     "🌙 Evening Protocol (160x33)",
+     "Update my plan (164x40)",
+     "Undo changes (119x32)",
+     "Compare with alternatives (177x26)",
+     "SUBSTITUTE (98x26)",
+     "btn small (211x36)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)",
+     "Close (28x28)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 5,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      ".tb:nth-child(2) > span > small",
+      ".wa",
+      "#deleteBtn"
+     ]
+    },
+    {
+     "id": "empty-table-header",
+     "impact": "minor",
+     "help": "Table header text should not be empty",
+     "n": 1,
+     "targets": [
+      "thead > tr > th:nth-child(1)"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    },
+    {
+     "id": "scrollable-region-focusable",
+     "impact": "serious",
+     "help": "Scrollable region must have keyboard access",
+     "n": 1,
+     "targets": [
+      ".tl-cmpwrap"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "sign_in_panel",
+   "file": "screens/mobile/15_sign_in_panel.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "☀️ Morning Protocol (162x33)",
+     "🌙 Evening Protocol (160x33)",
+     "Update my plan (164x40)",
+     "Undo changes (119x32)",
+     "Compare with alternatives (177x26)",
+     "SUBSTITUTE (98x26)",
+     "btn small (211x36)",
+     "btn small ghost (140x32)",
+     "Share on WhatsApp (193x40)",
+     "Save as PDF (141x40)",
+     "Copy plan (117x36)",
+     "Try these on (98x34)",
+     "✦ Exceptional (118x32)",
+     "✦ Resonant (104x32)",
+     "· Suitable (92x32)",
+     "· Nuanced (97x32)",
+     "○ Needs Tuning (129x32)",
+     "Continue with Google (302x40)",
+     "Email me a sign-in link (180x36)",
+     "Plan for another concern (224x40)",
+     "How's it going? Check in (198x36)",
+     "Track my progress (157x36)",
+     "Check a product (146x36)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 5,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      ".tb:nth-child(2) > span > small",
+      ".wa",
+      "#deleteBtn"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "before_you_go_plan",
+   "file": "screens/mobile/16_before_you_go_plan.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "☀️ Morning Protocol (162x33)",
+     "🌙 Evening Protocol (160x33)",
+     "Update my plan (164x40)",
+     "Undo changes (119x32)",
+     "Compare with alternatives (177x26)",
+     "SUBSTITUTE (98x26)",
+     "btn small (211x36)",
+     "btn small ghost (140x32)",
+     "Share on WhatsApp (193x40)",
+     "Save as PDF (141x40)",
+     "Copy plan (117x36)",
+     "Try these on (98x34)",
+     "✦ Exceptional (118x32)",
+     "✦ Resonant (104x32)",
+     "· Suitable (92x32)",
+     "· Nuanced (97x32)",
+     "○ Needs Tuning (129x32)",
+     "Continue with Google (302x40)",
+     "Email me a sign-in link (180x36)",
+     "Plan for another concern (224x40)",
+     "How's it going? Check in (198x36)",
+     "Track my progress (157x36)",
+     "Check a product (146x36)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 5,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      ".tb:nth-child(2) > span > small",
+      "a[data-wa=\"\"]",
+      "#deleteBtn"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "check_in",
+   "file": "screens/mobile/17_check_in.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "Update my plan (164x40)",
+     "Not now (91x36)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 2,
+     "targets": [
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "try_on_model_face",
+   "file": "screens/mobile/18_try_on_model_face.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "☀️ Morning Protocol (162x33)",
+     "🌙 Evening Protocol (160x33)",
+     "Update my plan (164x40)",
+     "Undo changes (119x32)",
+     "link small (177x26)",
+     "SUBSTITUTE (98x26)",
+     "btn small (211x36)",
+     "btn small ghost (140x32)",
+     "Share on WhatsApp (193x40)",
+     "Save as PDF (141x40)",
+     "Copy plan (117x36)",
+     "Try these on (98x34)",
+     "✦ Exceptional (118x32)",
+     "✦ Resonant (104x32)",
+     "· Suitable (92x32)",
+     "· Nuanced (97x32)",
+     "○ Needs Tuning (129x32)",
+     "Continue with Google (302x40)",
+     "Email me a sign-in link (180x36)",
+     "Plan for another concern (224x40)",
+     "How's it going? Check in (198x36)",
+     "Track my progress (157x36)",
+     "Check a product (146x36)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .phero > .vanity-tray[aria-label=\"Protocol timing\"][role=\"tablist\"]"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 4,
+     "targets": [
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .phero > .vanity-tray[aria-label=\"Protocol timing\"][role=\"tablist\"] > .vanity-btn[data-vanity=\"pm\"][type=\"button\"]",
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .tune[open=\"\"] > .tune-body > fieldset:nth-child(1) > .tune-budget > .tb:nth-child(2) > span > small",
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .sharebar[aria-label=\"Share or save your plan\"][role=\"group\"] > .wa[data-wa=\"\"]",
+      "#deleteBtn"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "chat_ask_aaina",
+   "file": "screens/mobile/19_chat_ask_aaina.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "☀️ Morning Protocol (162x33)",
+     "🌙 Evening Protocol (160x33)",
+     "Update my plan (164x40)",
+     "Undo changes (119x32)",
+     "link small (177x26)",
+     "SUBSTITUTE (98x26)",
+     "btn small (211x36)",
+     "btn small ghost (140x32)",
+     "Share on WhatsApp (193x40)",
+     "Save as PDF (141x40)",
+     "Copy plan (117x36)",
+     "Try these on (98x34)",
+     "✦ Exceptional (118x32)",
+     "✦ Resonant (104x32)",
+     "· Suitable (92x32)",
+     "· Nuanced (97x32)",
+     "○ Needs Tuning (129x32)",
+     "Continue with Google (302x40)",
+     "Email me a sign-in link (180x36)",
+     "Plan for another concern (224x40)",
+     "How's it going? Check in (198x36)",
+     "Track my progress (157x36)",
+     "Check a product (146x36)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .phero > .vanity-tray[aria-label=\"Protocol timing\"][role=\"tablist\"]"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 4,
+     "targets": [
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .phero > .vanity-tray[aria-label=\"Protocol timing\"][role=\"tablist\"] > .vanity-btn[data-vanity=\"pm\"][type=\"button\"]",
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .tune[open=\"\"] > .tune-body > fieldset:nth-child(1) > .tune-budget > .tb:nth-child(2) > span > small",
+      ".stepblock[data-step=\"plan\"]:nth-child(9) > .plan > .sharebar[aria-label=\"Share or save your plan\"][role=\"group\"] > .wa[data-wa=\"\"]",
+      "#deleteBtn"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "sunscreen_q2_follow",
+   "file": "screens/mobile/20_sunscreen_q2_follow.png",
+   "errors": [
+    "console.error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console.error: Failed to load resource: net::ERR_FAILED"
+   ],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "ol. 453px",
+     "li.jn.final 453px",
+     "span.jbtn 442px",
+     "span.jc 433px",
+     "svg. 424px",
+     "path. 421px",
+     "span.jl 442px",
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q2 Details, current question (39x51)",
+     "Q3 Safety (36x51)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "sunscreen_q3_safety",
+   "file": "screens/mobile/21_sunscreen_q3_safety.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "ol. 447px",
+     "li.jn.final 447px",
+     "span.jbtn 436px",
+     "span.jc 427px",
+     "svg. 418px",
+     "path. 415px",
+     "span.jl 436px",
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q2 Details, done, tap to change (38x51)",
+     "Q3 Safety, current question (37x51)",
+     "None (66x40)",
+     "Glycolic acid (118x40)",
+     "Salicylic acid (119x40)",
+     "Vitamin c (93x40)",
+     "Retinoids (94x40)",
+     "Niacinamide (115x40)",
+     "+ 5 more (80x32)",
+     "Painful or swollen (148x40)",
+     "Spreading (101x40)",
+     "Bleeding, pus or open sores (218x40)",
+     "A mole that's changing (184x40)",
+     "With fever (100x40)",
+     "Continue (121x40)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"safety\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "sunscreen_q4_location",
+   "file": "screens/mobile/22_sunscreen_q4_location.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q2 Details, done, tap to change (38x51)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "Continue (121x40)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"location\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "sunscreen_q5_skin",
+   "file": "screens/mobile/23_sunscreen_q5_skin.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q2 Details, done, tap to change (38x51)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"skin\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "sunscreen_plan",
+   "file": "screens/mobile/24_sunscreen_plan.png",
+   "errors": [
+    "console.error: Failed to load resource: net::ERR_FAILED",
+    "console.error: Failed to load resource: net::ERR_FAILED"
+   ],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q2 Details, done, tap to change (38x51)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "☀️ Morning Protocol (162x33)",
+     "🌙 Evening Protocol (160x33)",
+     "btn primary (164x40)",
+     "btn ghost (119x32)",
+     "btn small (211x36)",
+     "btn small ghost (140x32)",
+     "SUBSTITUTE (98x26)",
+     "Share on WhatsApp (193x40)",
+     "Save as PDF (141x40)",
+     "Copy plan (117x36)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 4,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      ".wa",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "makeup_q2_finish",
+   "file": "screens/mobile/25_makeup_q2_finish.png",
+   "errors": [
+    "console.error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console.error: Failed to load resource: net::ERR_FAILED"
+   ],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "ol. 597px",
+     "li.jn 453px",
+     "button. 447px",
+     "span.jc 433px",
+     "span.jl 447px",
+     "li.jn 525px",
+     "button. 519px",
+     "span.jc 505px",
+     "span.jl 519px",
+     "li.jn.final 597px",
+     "span.jbtn 586px",
+     "span.jc 577px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q2 Details, current question (39x51)",
+     "Q3 Safety (36x51)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "makeup_q3_safety",
+   "file": "screens/mobile/26_makeup_q3_safety.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "ol. 591px",
+     "li.jn 447px",
+     "button. 441px",
+     "span.jc 427px",
+     "span.jl 441px",
+     "li.jn 519px",
+     "button. 513px",
+     "span.jc 499px",
+     "span.jl 513px",
+     "li.jn.final 591px",
+     "span.jbtn 580px",
+     "span.jc 571px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q2 Details, done, tap to change (38x51)",
+     "Q3 Safety, current question (37x51)",
+     "None (66x40)",
+     "Glycolic acid (118x40)",
+     "Salicylic acid (119x40)",
+     "Vitamin c (93x40)",
+     "Retinoids (94x40)",
+     "Niacinamide (115x40)",
+     "+ 5 more (80x32)",
+     "Yes, be cautious (140x40)",
+     "No (50x40)",
+     "Painful or swollen (148x40)",
+     "Spreading (101x40)",
+     "Bleeding, pus or open sores (218x40)",
+     "A mole that's changing (184x40)",
+     "With fever (100x40)",
+     "Continue (121x40)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"safety\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "makeup_q4_skin",
+   "file": "screens/mobile/27_makeup_q4_skin.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "ol. 519px",
+     "li.jn 447px",
+     "button. 441px",
+     "span.jc 427px",
+     "span.jl 441px",
+     "li.jn.final 519px",
+     "span.jbtn 508px",
+     "span.jc 499px",
+     "svg. 490px",
+     "path. 487px",
+     "span.jl 508px",
+     "div.aa-head 780px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q2 Details, done, tap to change (38x51)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      ".hassl.q[data-step=\"skin\"] > .qnav > .qnav-step",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "makeup_q5_tone",
+   "file": "screens/mobile/28_makeup_q5_tone.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "ol. 447px",
+     "li.jn.final 447px",
+     "span.jbtn 436px",
+     "span.jc 427px",
+     "svg. 418px",
+     "path. 415px",
+     "span.jl 436px",
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q2 Details, done, tap to change (38x51)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "Not sure? Take a selfie (229x42)",
+     "Back (104x40)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 13,
+     "targets": [
+      ".tgroup:nth-child(1) > .trow > .tcell:nth-child(1) > .tname",
+      ".tgroup:nth-child(1) > .trow > .tcell:nth-child(2) > .tname",
+      ".tgroup:nth-child(1) > .trow > .tcell:nth-child(3) > .tname",
+      ".tgroup:nth-child(2) > .trow > .tcell:nth-child(1) > .tname"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "makeup_q6_undertone",
+   "file": "screens/mobile/29_makeup_q6_undertone.png",
+   "errors": [
+    "console.error: Failed to load resource: net::ERR_FAILED",
+    "console.error: Failed to load resource: net::ERR_FAILED"
+   ],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q2 Details, done, tap to change (38x51)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "Try your shades on (136x34)",
+     "☀️ Morning Protocol (162x33)",
+     "🌙 Evening Protocol (160x33)",
+     "btn primary (164x40)",
+     "btn ghost (119x32)",
+     "Try it on (71x34)",
+     "SUBSTITUTE (98x26)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 4,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      "a",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "makeup_plan",
+   "file": "screens/mobile/30_makeup_plan.png",
+   "errors": [],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "div.aa-head 780px",
+     "div. 618px",
+     "b. 479px",
+     "small. 618px",
+     "button.aa-x 764px",
+     "div.aa-msgs 780px",
+     "div.aa-msg.bot 710px",
+     "div.aa-chips 764px",
+     "button.aa-chip 613px",
+     "button.aa-chip 594px",
+     "button.aa-chip 617px",
+     "button.aa-chip 592px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q2 Details, done, tap to change (38x51)",
+     "Q3 Safety, done, tap to change (36x51)",
+     "Try your shades on (136x34)",
+     "☀️ Morning Protocol (162x33)",
+     "🌙 Evening Protocol (160x33)",
+     "btn primary (164x40)",
+     "btn ghost (119x32)",
+     "Try it on (71x34)",
+     "SUBSTITUTE (98x26)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "aria-required-children",
+     "impact": "critical",
+     "help": "Certain ARIA roles must contain particular children",
+     "n": 1,
+     "targets": [
+      ".vanity-tray"
+     ]
+    },
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 4,
+     "targets": [
+      "button[data-vanity=\"pm\"]",
+      "a",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    }
+   ]
+  },
+  {
+   "screen": "home_returning",
+   "file": "screens/mobile/31_home_returning.png",
+   "errors": [
+    "console.error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console.error: Failed to load resource: net::ERR_FAILED",
+    "console.error: Failed to load resource: net::ERR_FAILED",
+    "console.error: Failed to load resource: net::ERR_FAILED",
+    "console.error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console.error: Failed to load resource: net::ERR_FAILED"
+   ],
+   "layout": {
+    "overflowX": false,
+    "wide": [
+     "ol. 597px",
+     "li.jn 453px",
+     "button. 443px",
+     "span.jc 433px",
+     "span.jl 443px",
+     "li.jn 525px",
+     "button. 519px",
+     "span.jc 505px",
+     "span.jl 519px",
+     "li.jn.final 597px",
+     "span.jbtn 586px",
+     "span.jc 577px"
+    ],
+    "small": [
+     "Back (90x32)",
+     "Q3 Safety (36x51)",
+     "View my plan (148x40)",
+     "Report how it's going (177x36)",
+     "Start fresh (93x36)",
+     "BEGIN CONSULTATION → (252x40)",
+     "Continue with Google (189x32)",
+     "Sign in with email (120x26)",
+     "Consultation Standards → (184x27)",
+     "Delete my answers (125x25)",
+     "Ask Aaina — voice and chat assistant (125x40)",
+     "Close (29x30)",
+     "Oily skin, acne, Mumbai, ₹1000 (207x26)",
+     "Dry skin sunscreen for Delhi (188x26)",
+     "Foundation for medium-tan skin (211x26)",
+     "Sensitive skin, no fragrance (186x26)",
+     "Hold or tap to speak (40x40)",
+     "Send (40x40)"
+    ],
+    "clipped": []
+   },
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "n": 3,
+     "targets": [
+      "button[data-win=\"\"]",
+      "#deleteBtn",
+      ".aa-note"
+     ]
+    },
+    {
+     "id": "region",
+     "impact": "moderate",
+     "help": "All page content should be contained by landmarks",
+     "n": 3,
+     "targets": [
+      ".brand-title",
+      ".brand-sub",
+      ".frame-foot > span"
+     ]
+    },
+    {
+     "id": "scrollable-region-focusable",
+     "impact": "serious",
+     "help": "Scrollable region must have keyboard access",
+     "n": 1,
+     "targets": [
+      "#journey"
+     ]
+    }
+   ]
+  }
+ ]
+}
